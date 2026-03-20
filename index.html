@@ -3,8 +3,8 @@
 <head>
 <meta charset="utf-8"/>
 <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
-<title>Polar[3] — Sistema Operativo 2026 · V2.5.0</title>
-<meta content="Sistema Operativo Polar3 V2.5.0 listo para móvil/PWA, con agenda, KPIs, jornada premium y respaldo local." name="description"/>
+<title>Polar[3] — Sistema Operativo 2026 · V2.5.1</title>
+<meta content="Sistema Operativo Polar3 V2.5.1 listo para móvil/PWA, con agenda, KPIs, jornada premium y respaldo local." name="description"/>
 <meta content="#161c26" name="theme-color"/>
 <meta content="yes" name="mobile-web-app-capable"/>
 <meta content="yes" name="apple-mobile-web-app-capable"/>
@@ -21,10 +21,10 @@
 <div class="sidebar-logo">
 <div class="logo-brand">Polar<span>[3]</span></div>
 <div class="logo-sub">Fotografía escolar · sistema operativo</div>
-<div class="logo-badge">V2.5.0 móvil / PWA · 2026</div>
+<div class="logo-badge">V2.5.1 móvil / PWA · 2026</div>
 </div>
 <div class="sidebar-nav">
-<a class="nav-item-direct active" data-section="inicio" data-space="operativo comercial legal" onclick="showSection('inicio')">
+<a class="nav-item-direct active" data-section="inicio" data-space="operativo comercial" onclick="showSection('inicio')">
 <span class="nav-icon">🏠</span> Inicio
     </a>
 <div class="nav-section-label" data-space="operativo comercial">Negocio</div>
@@ -109,7 +109,7 @@
 <li><a data-section="diagnostico" href="#" onclick="showSection('diagnostico')">Diagnóstico en campo</a></li>
 </ul>
 </div>
-<div class="nav-group" data-space="operativo legal" id="grp-post">
+<div class="nav-group" data-space="operativo" id="grp-post">
 <div class="nav-group-header" onclick="toggleGroup('grp-post')">
 <span class="nav-icon">📦</span>
 <span>Post y entrega</span>
@@ -138,19 +138,7 @@
 <li><a data-section="onboarding" href="#" onclick="showSection('onboarding')">Onboarding asistente</a></li>
 <li><a data-section="glosario" href="#" onclick="showSection('glosario')">Glosario técnico</a></li>
 </ul>
-</div><div class="nav-section-label" data-space="legal">Marco legal</div><div class="nav-group" data-space="legal" id="grp-legal">
-<div class="nav-group-header" onclick="toggleGroup('grp-legal')">
-<span class="nav-icon">⚖️</span>
-<span>Términos y privacidad</span>
-<span class="nav-arrow">▶</span>
-</div>
-<ul class="nav-sub">
-<li><a data-section="legal-consolidado" href="#" onclick="showSection('legal-consolidado')">Legal consolidado</a></li>
-<li><a data-section="legal-resumen" href="#" onclick="showSection('legal-resumen')">Resumen legal</a></li>
-<li><a data-section="privacidad" href="#" onclick="showSection('privacidad')">Privacidad y menores</a></li>
-</ul>
-</div>
-</div>
+</div></div>
 <div class="sidebar-footer">
 <div class="sidebar-contact">
 <strong>Adrián Fernández</strong>
@@ -180,7 +168,6 @@
 </div><div class="workspace-switcher" id="workspaceSwitcher">
 <button class="workspace-btn active" data-workspace="operativo" onclick="switchWorkspace('operativo')" type="button">Operativo</button>
 <button class="workspace-btn" data-workspace="comercial" onclick="switchWorkspace('comercial')" type="button">Comercial</button>
-<button class="workspace-btn" data-workspace="legal" onclick="switchWorkspace('legal')" type="button">Legal</button>
 </div>
 <div class="pwa-status-bar" id="pwaStatusBar">
 <span class="topbar-chip pwa-chip" data-tone="neutral" id="pwaModeChip">Modo navegador</span>
@@ -246,13 +233,6 @@
 <div class="qc-text">
 <div class="qc-title">Modo comercial</div>
 <div class="qc-desc">Presentación institucional y modalidades</div>
-</div>
-</div>
-<div class="quick-card" onclick="showSection('legal-resumen')">
-<div class="qc-icon">⚖️</div>
-<div class="qc-text">
-<div class="qc-title">Marco legal</div>
-<div class="qc-desc">Términos, pagos, privacidad y menores</div>
 </div>
 </div>
 <div class="quick-card" onclick="showSection('simulador')">
@@ -3455,7 +3435,6 @@
 <div class="btn-row">
 <button class="btn btn-primary" onclick="showSection('modalidades')" type="button">Ver modalidades</button>
 <button class="btn btn-outline" onclick="showSection('pack')" type="button">Abrir pack y servicios</button>
-<button class="btn btn-outline" onclick="showSection('legal-resumen')" type="button">Marco legal resumido</button>
 </div>
 </div>
 <div class="grid-4">

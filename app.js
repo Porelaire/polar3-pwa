@@ -38,13 +38,10 @@ const sectionMap = {
   modalidades: 'sec-modalidades',
   propuesta: 'sec-propuesta',
   marca: 'sec-marca',
-  'legal-consolidado': 'sec-legal-consolidado',
-  'legal-resumen': 'sec-legal-resumen',
-  privacidad: 'sec-privacidad',
   workspace: 'sec-workspace'
 };
 const sectionSpaces = {
-  inicio: ['operativo', 'comercial', 'legal'],
+  inicio: ['operativo', 'comercial'],
   quien: ['operativo', 'comercial'],
   pack: ['operativo', 'comercial'],
   compromisos: ['operativo', 'comercial'],
@@ -72,7 +69,7 @@ const sectionSpaces = {
   qa: ['operativo'],
   pagos: ['operativo'],
   cobranzas: ['operativo'],
-  forms: ['operativo', 'legal'],
+  forms: ['operativo'],
   kpis: ['operativo'],
   simulador: ['operativo', 'comercial'],
   respaldos: ['operativo'],
@@ -82,17 +79,13 @@ const sectionSpaces = {
   modalidades: ['comercial'],
   propuesta: ['comercial'],
   marca: ['comercial'],
-  'legal-consolidado': ['legal'],
-  'legal-resumen': ['legal'],
-  privacidad: ['legal'],
-  workspace: ['operativo', 'comercial', 'legal']
+  workspace: ['operativo', 'comercial']
 };
 const workspaceDefaults = {
   operativo: 'inicio',
-  comercial: 'institucional',
-  legal: 'legal-consolidado'
+  comercial: 'institucional'
 };
-let currentWorkspace = localStorage.getItem('polar3_workspace') || 'operativo';
+let currentWorkspace = (['operativo', 'comercial'].includes(localStorage.getItem('polar3_workspace')) ? localStorage.getItem('polar3_workspace') : 'operativo');
 let meetingMode = false;
 const POLAR3_STORAGE_PREFIX = 'polar3_';
 const BACKUP_META_KEY = 'polar3_backup_meta';
