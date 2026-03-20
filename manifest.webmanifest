@@ -1,0 +1,70 @@
+{
+  "name": "Polar[3] Sistema Operativo 2026",
+  "short_name": "Polar[3]",
+  "description": "Sistema operativo para fotografía escolar con agenda anual, KPIs y hoja de jornada premium.",
+  "lang": "es-AR",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#f4f6f9",
+  "theme_color": "#161c26",
+  "orientation": "any",
+  "categories": [
+    "productivity",
+    "business",
+    "photography"
+  ],
+  "prefer_related_applications": false,
+  "icons": [
+    {
+      "src": "./icons/polar3-icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    },
+    {
+      "src": "./icons/polar3-icon-maskable.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "maskable"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Calendario anual",
+      "short_name": "Calendario",
+      "url": "./index.html#calendario",
+      "icons": [
+        {
+          "src": "./icons/polar3-icon.svg",
+          "sizes": "any",
+          "type": "image/svg+xml"
+        }
+      ]
+    },
+    {
+      "name": "KPIs",
+      "short_name": "KPIs",
+      "url": "./index.html#kpis",
+      "icons": [
+        {
+          "src": "./icons/polar3-icon.svg",
+          "sizes": "any",
+          "type": "image/svg+xml"
+        }
+      ]
+    },
+    {
+      "name": "Cobranzas",
+      "short_name": "Cobranzas",
+      "url": "./index.html#cobranzas",
+      "icons": [
+        {
+          "src": "./icons/polar3-icon.svg",
+          "sizes": "any",
+          "type": "image/svg+xml"
+        }
+      ]
+    }
+  ]
+}
