@@ -3,8 +3,8 @@
 <head>
 <meta charset="utf-8"/>
 <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
-<title>Polar[3] — Sistema Operativo 2026 · V2.5.1</title>
-<meta content="Sistema Operativo Polar3 V2.5.1 listo para móvil/PWA, con agenda, KPIs, jornada premium y respaldo local." name="description"/>
+<title>Polar[3] — Sistema Operativo 2026 · V2.6.0</title>
+<meta content="Sistema Operativo Polar3 V2.6.0 pulido para Android/PWA, con accesos rápidos, agenda, KPIs y jornada premium." name="description"/>
 <meta content="#161c26" name="theme-color"/>
 <meta content="yes" name="mobile-web-app-capable"/>
 <meta content="yes" name="apple-mobile-web-app-capable"/>
@@ -12,7 +12,8 @@
 <meta content="Polar[3]" name="apple-mobile-web-app-title"/>
 <link href="styles.css" rel="stylesheet"/>
 <link href="manifest.webmanifest" rel="manifest"/>
-<link href="icons/polar3-icon.svg" rel="icon" type="image/svg+xml"/>
+<link href="icons/polar3-icon-192.png" rel="icon" sizes="192x192" type="image/png"/>
+<link href="icons/apple-touch-icon.png" rel="apple-touch-icon" sizes="180x180"/>
 </head>
 <body>
 <button class="sidebar-toggle" id="sidebarToggle" onclick="toggleSidebar()">☰</button>
@@ -21,7 +22,7 @@
 <div class="sidebar-logo">
 <div class="logo-brand">Polar<span>[3]</span></div>
 <div class="logo-sub">Fotografía escolar · sistema operativo</div>
-<div class="logo-badge">V2.5.1 móvil / PWA · 2026</div>
+<div class="logo-badge">V2.6.0 Android first · 2026</div>
 </div>
 <div class="sidebar-nav">
 <a class="nav-item-direct active" data-section="inicio" data-space="operativo comercial" onclick="showSection('inicio')">
@@ -178,7 +179,61 @@
 <div class="backup-reminder-bar" hidden="" id="backupReminderBar"></div>
 </div>
 <div class="section active" id="sec-inicio">
-<div class="quick-grid">
+<div class="mobile-ops-shell">
+<div class="mobile-ops-head">
+<div>
+<div class="summary-kicker">Modo campo</div>
+<h2>Acceso rápido</h2>
+<p>Las acciones clave para usar Polar[3] con una mano durante la jornada.</p>
+</div>
+<div class="ops-badge">Android first</div>
+</div>
+<div class="mobile-ops-grid">
+<button class="mobile-ops-btn" onclick="showSection('calendario')" type="button">
+<span class="mobile-ops-icon">🗓️</span>
+<strong>Calendario</strong>
+<small>Agenda anual y vistas diarias</small>
+</button>
+<button class="mobile-ops-btn" onclick="showSection('cobranzas')" type="button">
+<span class="mobile-ops-icon">💳</span>
+<strong>Cobranzas</strong>
+<small>Altas rápidas y control de pagos</small>
+</button>
+<button class="mobile-ops-btn" onclick="showSection('checklist')" type="button">
+<span class="mobile-ops-icon">📋</span>
+<strong>Jornada</strong>
+<small>Checklist operativo y hoja del día</small>
+</button>
+<button class="mobile-ops-btn" onclick="showSection('kpis')" type="button">
+<span class="mobile-ops-icon">📊</span>
+<strong>KPIs</strong>
+<small>Lectura de negocio en tiempo real</small>
+</button>
+</div>
+<div class="mobile-ops-insights">
+<div class="mobile-ops-insight">
+<span>Agenda</span>
+<strong id="mobileNextActionTitle">Sin agenda próxima cargada</strong>
+<small id="mobileNextActionMeta">Carga una fecha en Calendario anual para ver tu próxima acción.</small>
+</div>
+<div class="mobile-ops-insight">
+<span>Cobranzas</span>
+<strong id="mobilePendingPaymentsTitle">0 cobros en seguimiento</strong>
+<small id="mobilePendingPaymentsMeta">Sin dinero pendiente por revisar.</small>
+</div>
+<div class="mobile-ops-insight">
+<span>Pendientes</span>
+<strong id="mobileFollowupTitle">0 casos abiertos</strong>
+<small id="mobileFollowupMeta">Sin ausentes ni retomas abiertas.</small>
+</div>
+<div class="mobile-ops-insight">
+<span>Respaldo</span>
+<strong id="mobileBackupTitle">Sin información</strong>
+<small id="mobileBackupMeta">Todavía no hay estado de respaldo disponible.</small>
+</div>
+</div>
+</div>
+<div class="quick-grid home-quick-grid">
 <div class="quick-card" onclick="showSection('quien')">
 <div class="qc-icon">👤</div>
 <div class="qc-text">
@@ -4131,7 +4186,16 @@ Polar[3] Fotografía retiene los derechos de autoría de todo el material genera
 </div>
 </div>
 
-</main><div id="modal-precio" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:300;align-items:center;justify-content:center">
+
+</main>
+<div class="mobile-tabbar" id="mobileTabbar">
+<button class="mobile-tabbar-btn active" data-mobile-tab="inicio" onclick="showSection('inicio')" type="button"><span>🏠</span><em>Inicio</em></button>
+<button class="mobile-tabbar-btn" data-mobile-tab="calendario" onclick="showSection('calendario')" type="button"><span>🗓️</span><em>Calendario</em></button>
+<button class="mobile-tabbar-btn" data-mobile-tab="cobranzas" onclick="showSection('cobranzas')" type="button"><span>💳</span><em>Cobranzas</em></button>
+<button class="mobile-tabbar-btn" data-mobile-tab="kpis" onclick="showSection('kpis')" type="button"><span>📊</span><em>KPIs</em></button>
+<button class="mobile-tabbar-btn" data-mobile-tab="menu" onclick="toggleSidebar()" type="button"><span>☰</span><em>Menú</em></button>
+</div>
+<div id="modal-precio" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:300;align-items:center;justify-content:center">
 <div style="background:#fff;border-radius:12px;padding:28px;width:320px;box-shadow:var(--shadow-md)">
 <h3 style="font-family:var(--font-head);font-size:16px;margin-bottom:6px">Editar precio del pack</h3>
 <p style="font-size:12.5px;color:var(--text-muted);margin-bottom:16px">Este valor se actualizará en toda la app.</p>

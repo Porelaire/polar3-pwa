@@ -97,6 +97,7 @@ let backupReminderShown = false;
 let appReadyForDirtyTracking = false;
 let deferredInstallPrompt = null;
 const PWA_CACHE_LABEL = 'Polar3 PWA';
+const POLAR3_APP_VERSION = '2.6.0';
 
 function trackedSetItem(key, value, markDirty = true) {
   localStorage.setItem(key, value);
@@ -359,10 +360,82 @@ function renderBackupAdmin() {
   }
 }
 
+function summarizeUpcomingAgenda() {
+  const data = getCalendarPlannerData();
+  const items = sortCalendarItems(Object.values(data).flatMap(month => Array.isArray(month?.items) ? month.items : []));
+  const today = getTodayIsoDate();
+  const todays = items.filter(item => normalizePaymentDate(item.date) === today);
+  const next = items.find(item => normalizePaymentDate(item.date) && normalizePaymentDate(item.date) >= today) || null;
+  return { today, todays, next };
+}
+
+function renderMobileOpsDashboard() {
+  const nextTitle = document.getElementById('mobileNextActionTitle');
+  const nextMeta = document.getElementById('mobileNextActionMeta');
+  const payTitle = document.getElementById('mobilePendingPaymentsTitle');
+  const payMeta = document.getElementById('mobilePendingPaymentsMeta');
+  const followTitle = document.getElementById('mobileFollowupTitle');
+  const followMeta = document.getElementById('mobileFollowupMeta');
+  const backupTitle = document.getElementById('mobileBackupTitle');
+  const backupMeta = document.getElementById('mobileBackupMeta');
+  if (!nextTitle && !payTitle && !followTitle && !backupTitle) return;
+
+  const agenda = summarizeUpcomingAgenda();
+  if (nextTitle && nextMeta) {
+    if (agenda.todays.length) {
+      const first = agenda.todays[0];
+      nextTitle.textContent = `Hoy · ${agenda.todays.length} movimiento${agenda.todays.length > 1 ? 's' : ''}`;
+      nextMeta.textContent = `${first.time ? formatCalendarTime(first.time) + ' · ' : ''}${first.school || 'Sin colegio'} · ${getCalendarStatusLabel(first.status)}`;
+    } else if (agenda.next) {
+      nextTitle.textContent = agenda.next.school || 'Próxima agenda cargada';
+      nextMeta.textContent = `${formatCalendarDate(agenda.next.date)}${agenda.next.time ? ' · ' + formatCalendarTime(agenda.next.time) : ''} · ${getCalendarStatusLabel(agenda.next.status)}`;
+    } else {
+      nextTitle.textContent = 'Sin agenda próxima cargada';
+      nextMeta.textContent = 'Carga una fecha en Calendario anual para ver tu próxima acción.';
+    }
+  }
+
+  const payments = getPaymentBoardData();
+  const pendingPayments = payments.filter(item => ['pendiente', 'observado'].includes(item.status));
+  const pendingAmount = pendingPayments.reduce((sum, item) => sum + (Number(item.amount) || 0), 0);
+  if (payTitle && payMeta) {
+    payTitle.textContent = `${pendingPayments.length} cobro${pendingPayments.length === 1 ? '' : 's'} en seguimiento`;
+    payMeta.textContent = pendingPayments.length
+      ? `${money(pendingAmount)} pendientes entre observados y no validados.`
+      : 'Sin dinero pendiente por revisar.';
+  }
+
+  const followups = getFollowupData();
+  const openCases = followups.filter(item => item.status !== 'resuelto');
+  const openCount = openCases.reduce((sum, item) => sum + Number(item.count || 0), 0);
+  const retakeCount = openCases.filter(item => item.type === 'retoma').reduce((sum, item) => sum + Number(item.count || 0), 0);
+  if (followTitle && followMeta) {
+    followTitle.textContent = `${openCount} caso${openCount === 1 ? '' : 's'} abierto${openCount === 1 ? '' : 's'}`;
+    followMeta.textContent = openCount
+      ? `${retakeCount} en retoma · ${openCases.length} registro${openCases.length === 1 ? '' : 's'} operativos todavía activos.`
+      : 'Sin ausentes ni retomas abiertas.';
+  }
+
+  const backup = computeBackupReminderState();
+  if (backupTitle && backupMeta) {
+    backupTitle.textContent = backup.dirty ? 'Respaldo pendiente' : 'Respaldo al día';
+    backupMeta.textContent = `Último JSON: ${backup.lastBackupText}. ${backup.nextReminderText}`;
+  }
+}
+
+function updateMobileTabbar(activeSection) {
+  document.querySelectorAll('[data-mobile-tab]').forEach(btn => {
+    const key = btn.dataset.mobileTab;
+    const isActive = key !== 'menu' && key === activeSection;
+    btn.classList.toggle('active', isActive);
+  });
+}
+
 function updateBackupUI() {
   updateBackupChip();
   updateBackupReminderUI();
   renderBackupAdmin();
+  renderMobileOpsDashboard();
 }
 
 function showToast(message, tone = 'info') {
@@ -692,6 +765,8 @@ function showSection(id, pushHash = true) {
   document.querySelectorAll(`[data-section="${id}"]`).forEach(a => a.classList.add('active'));
   openGroupForSection(id);
   updateTopbar(id);
+  document.body.dataset.section = id;
+  updateMobileTabbar(id);
   if (pushHash && location.hash !== `#${id}`) history.replaceState(null, '', `#${id}`);
   window.scrollTo({ top: 0, behavior: 'instant' in window ? 'instant' : 'auto' });
   closeSidebar();
@@ -2408,6 +2483,7 @@ function renderFollowupBoard() {
     else if (open > 0) insight.textContent = 'Quedan pendientes operativos. Conviene cerrarlos antes de edición e impresión.';
     else insight.textContent = 'Control limpio: no quedan abiertos relevantes en esta vista.';
   }
+  renderMobileOpsDashboard();
 }
 
 function addFollowupRecord() {
@@ -2532,6 +2608,7 @@ function renderPaymentBoard() {
 
   syncKpiScopeSelectors(getKpiScope());
   renderKpiDashboard();
+  renderMobileOpsDashboard();
 }
 
 function addPaymentRecord() {
@@ -3096,6 +3173,7 @@ function initApp() {
   buildSearchIndex();
   initEvents();
   initPwa();
+  renderMobileOpsDashboard();
   updateBackupUI();
   applyWorkspaceState();
   applyMeetingMode();

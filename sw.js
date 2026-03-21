@@ -1,12 +1,14 @@
-const CACHE_NAME = 'polar3-pwa-v2-5-0';
+const CACHE_NAME = 'polar3-pwa-v2-7-0';
 const CORE_ASSETS = [
   './',
   './index.html',
   './styles.css',
   './app.js',
   './manifest.webmanifest',
-  './icons/polar3-icon.svg',
-  './icons/polar3-icon-maskable.svg'
+  './icons/polar3-icon-192.png',
+  './icons/polar3-icon-512.png',
+  './icons/polar3-icon-maskable-512.png',
+  './icons/apple-touch-icon.png'
 ];
 
 self.addEventListener('install', event => {
