@@ -95,7 +95,7 @@ let backupReminderShown = false;
 let appReadyForDirtyTracking = false;
 let deferredInstallPrompt = null;
 const PWA_CACHE_LABEL = 'Polar3 PWA';
-const POLAR3_APP_VERSION = '2.7.9';
+const POLAR3_APP_VERSION = '2.7.10';
 const DEPRECATED_SECTION_REDIRECTS = {
   quien: 'inicio',
   pack: 'modalidades',
@@ -3552,13 +3552,30 @@ function openAiQuickProvider(provider) {
   const intentUrl = AI_PROVIDER_INTENTS[provider];
   if (!webUrl) return;
   const label = provider === 'chatgpt' ? 'ChatGPT' : provider === 'gemini' ? 'Gemini' : 'Claude';
-  copyPlainText(buildAiQuickPrompt()).then(success => {
+  const prompt = buildAiQuickPrompt();
+
+  copyPlainText(prompt).then(success => {
     showToast(success ? `Prompt copiado. Intentando abrir ${label}.` : `Intentando abrir ${label}. Si hace falta, copia el prompt manualmente.`, success ? 'success' : 'info');
   });
+
   if (isAndroidLikeDevice() && intentUrl) {
-    window.location.href = intentUrl;
+    let fallbackUsed = false;
+    const fallback = () => {
+      if (fallbackUsed || document.hidden) return;
+      fallbackUsed = true;
+      window.open(webUrl, '_blank', 'noopener');
+    };
+    setTimeout(fallback, 900);
+    const anchor = document.createElement('a');
+    anchor.href = intentUrl;
+    anchor.rel = 'noopener';
+    anchor.style.display = 'none';
+    document.body.appendChild(anchor);
+    anchor.click();
+    anchor.remove();
     return;
   }
+
   window.open(webUrl, '_blank', 'noopener');
 }
 

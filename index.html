@@ -3,8 +3,8 @@
 <head>
 <meta charset="utf-8"/>
 <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
-<title>Polar[3] — Sistema Operativo 2026 · V2.7.9</title>
-<meta content="Sistema Operativo Polar3 V2.7.9 pulido para Android/PWA, con navegación más limpia, encabezado móvil estabilizado y flujo operativo simplificado." name="description"/>
+<title>Polar[3] — Sistema Operativo 2026 · V2.7.10</title>
+<meta content="Sistema Operativo Polar3 V2.7.10 pulido para Android/PWA, con navegación más limpia, encabezado móvil estabilizado y flujo operativo simplificado." name="description"/>
 <meta content="#161c26" name="theme-color"/>
 <meta content="yes" name="mobile-web-app-capable"/>
 <meta content="yes" name="apple-mobile-web-app-capable"/>
@@ -21,7 +21,7 @@
 <div class="sidebar-logo">
 <div class="logo-brand">Polar<span>[3]</span></div>
 <div class="logo-sub">Fotografía escolar · sistema operativo</div>
-<div class="logo-badge">V2.7.9 Android first · 2026</div>
+<div class="logo-badge">V2.7.10 Android first · 2026</div>
 </div>
 <div class="sidebar-nav">
 <a class="nav-item-direct active" data-section="inicio" data-space="operativo comercial" onclick="showSection('inicio')">
@@ -177,9 +177,9 @@
 <div class="ops-kicker">Consulta IA rápida</div>
 <h3>ChatGPT · Gemini · Claude</h3>
 </div>
-<div class="ops-badge">v2.7.9</div>
+<div class="ops-badge">v2.7.10</div>
 </div>
-<p class="ai-quick-copy">Arma un prompt breve con contexto de la sección actual. La app intenta abrir la IA elegida en Android y, si no puede, usa la versión web.</p>
+<p class="ai-quick-copy">Arma un prompt breve con contexto de la sección actual. La app copia el texto y primero intenta abrir la app si Android la reconoce; si no, abre la web.</p>
 <div class="ai-quick-grid">
 <div class="field">
 <label for="aiTemplateSelect">Plantilla</label>
@@ -197,8 +197,8 @@
 </div>
 </div>
 <div class="field">
-<label for="aiQuickNotes">Pedido puntual para la IA</label>
-<div class="field-help">Esto se agrega al final del prompt como tu consulta concreta. La plantilla define el rol y el contexto detectado aporta la sección actual.</div>
+<label for="aiQuickNotes">Tu pedido exacto</label>
+<div class="field-help">Lo que escribes aquí se pega textual al final del prompt. La plantilla define el rol y el contexto detectado agrega la sección actual.</div>
 <textarea id="aiQuickNotes" oninput="syncAiQuickComposer()" placeholder="Ejemplo: necesito redactar un mensaje breve para una cooperadora que demora el pago, o que me ayude a revisar la jornada de mañana."></textarea>
 </div>
 <div class="field">
@@ -211,7 +211,7 @@
 <button class="topbar-btn" onclick="openAiQuickProvider('gemini')" type="button">Abrir Gemini</button>
 <button class="topbar-btn" onclick="openAiQuickProvider('claude')" type="button">Abrir Claude</button>
 </div>
-<div class="ai-quick-foot">La app copia el prompt y primero intenta abrir la app instalada en Android. Si no puede, usa la versión web.</div>
+<div class="ai-quick-foot">En Android se intenta abrir la app primero. Si el sistema no la reconoce, se abre la web en el navegador predeterminado.</div>
 </div>
 </div>
 </div>
@@ -3929,7 +3929,7 @@
 </div>
 <div class="section" id="sec-cobranzas">
 <div class="section-header">
-<div class="breadcrumb">Post y entrega · V2.7.9</div>
+<div class="breadcrumb">Post y entrega · V2.7.10</div>
 <h1>Tablero de cobranzas</h1>
 <p>Versión móvil reforzada para cargar cobros con menos pasos, leer rápido el tablero y actuar con botones táctiles sin pelearte con una tabla chica.</p>
 </div>
