@@ -1,7 +1,7 @@
 {
-  "name": "Polar[3] Sistema Operativo 2026",
+  "name": "Polar[3] · Sistema Operativo v2.7.6",
   "short_name": "Polar[3]",
-  "description": "Sistema operativo para fotografía escolar pulido para Android/PWA, con foco en Cobranzas móvil: carga rápida más compacta, filtros prácticos y tarjetas táctiles para uso en campo.",
+  "description": "Polar[3] v2.7.6: Cobranzas móvil, contacto rápido y Consulta IA rápida.",
   "lang": "es-AR",
   "start_url": "./index.html#inicio",
   "scope": "./",

@@ -99,7 +99,7 @@ let backupReminderShown = false;
 let appReadyForDirtyTracking = false;
 let deferredInstallPrompt = null;
 const PWA_CACHE_LABEL = 'Polar3 PWA';
-const POLAR3_APP_VERSION = '2.7.4';
+const POLAR3_APP_VERSION = '2.7.6';
 const DEPRECATED_SECTION_REDIRECTS = {
   quien: 'inicio',
   pack: 'modalidades',
@@ -120,6 +120,18 @@ let lastScrollY = 0;
 let topbarCollapsedState = false;
 let topbarScrollTicking = false;
 let topbarScrollLockUntil = 0;
+const AI_PROVIDER_URLS = {
+  chatgpt: 'https://chatgpt.com/',
+  gemini: 'https://gemini.google.com/',
+  claude: 'https://claude.ai/'
+};
+const AI_TEMPLATE_LABELS = {
+  consulta: 'Consulta operativa',
+  cobranzas: 'Cobranzas / pagos',
+  jornada: 'Jornada de toma',
+  comercial: 'Mensaje comercial',
+  kpis: 'Lectura de KPIs'
+};
 
 function trackedSetItem(key, value, markDirty = true) {
   localStorage.setItem(key, value);
@@ -3199,6 +3211,140 @@ function loadWorkspaceUI() {
 }
 // ----------------------------------------
 
+function copyPlainText(text) {
+  if (!text) return Promise.resolve(false);
+  if (navigator.clipboard?.writeText) return navigator.clipboard.writeText(text).then(() => true).catch(() => false);
+  try {
+    const helper = document.createElement('textarea');
+    helper.value = text;
+    helper.setAttribute('readonly', 'readonly');
+    helper.style.position = 'fixed';
+    helper.style.opacity = '0';
+    document.body.appendChild(helper);
+    helper.select();
+    document.execCommand('copy');
+    helper.remove();
+    return Promise.resolve(true);
+  } catch (error) {
+    return Promise.resolve(false);
+  }
+}
+
+function getCurrentSectionContext() {
+  const hash = location.hash.replace('#', '') || 'inicio';
+  const title = document.getElementById('currentSectionTitle')?.textContent?.trim() || 'Inicio';
+  return { hash, title, workspace: currentWorkspace };
+}
+
+function getAiQuickTemplateValue() {
+  const select = document.getElementById('aiTemplateSelect');
+  return select?.value || localStorage.getItem('polar3_ai_template') || 'consulta';
+}
+
+function getAiQuickNotesValue() {
+  const notes = document.getElementById('aiQuickNotes')?.value || '';
+  return notes.trim();
+}
+
+function buildAiQuickPrompt() {
+  const template = getAiQuickTemplateValue();
+  const notes = getAiQuickNotesValue();
+  const ctx = getCurrentSectionContext();
+  const contextLine = `Contexto Polar[3]: sección ${ctx.title} (${ctx.hash}), espacio ${ctx.workspace}.`;
+  const common = 'Responde en español, directo, breve y accionable. Si falta un dato, dilo con claridad y no inventes.';
+  let body = '';
+  switch (template) {
+    case 'cobranzas':
+      body = 'Actúa como apoyo administrativo para fotografía escolar. Ayúdame con seguimiento de pagos, redacción breve de mensajes, orden de estados y próximos pasos.';
+      break;
+    case 'jornada':
+      body = 'Actúa como coordinador operativo de una jornada de fotografía escolar. Ayúdame con checklist, tiempos, contingencias, retomas y organización del día.';
+      break;
+    case 'comercial':
+      body = 'Actúa como consultor comercial para fotografía escolar en Argentina. Ayúdame a redactar mensajes, objeciones, propuestas y seguimiento de instituciones.';
+      break;
+    case 'kpis':
+      body = 'Actúa como analista de negocio para fotografía escolar. Ayúdame a interpretar KPIs, detectar alertas y proponer decisiones concretas.';
+      break;
+    default:
+      body = 'Actúa como asistente operativo para mi negocio de fotografía escolar Polar[3].';
+      break;
+  }
+  const userRequest = notes || 'Necesito una consulta rápida con foco práctico.';
+  return `${body}
+${contextLine}
+${common}
+Consulta puntual: ${userRequest}`.trim();
+}
+
+function syncAiQuickComposer() {
+  const preview = document.getElementById('aiQuickPromptPreview');
+  const contextChip = document.getElementById('aiQuickContextChip');
+  const template = getAiQuickTemplateValue();
+  const ctx = getCurrentSectionContext();
+  if (contextChip) contextChip.textContent = `${ctx.title} · ${ctx.workspace}`;
+  if (preview) preview.value = buildAiQuickPrompt();
+  try {
+    trackedSetItem('polar3_ai_template', JSON.stringify(template), false);
+    trackedSetItem('polar3_ai_notes', JSON.stringify(document.getElementById('aiQuickNotes')?.value || ''), false);
+  } catch (error) {}
+}
+
+function setAiQuickTemplate(value) {
+  const select = document.getElementById('aiTemplateSelect');
+  if (select) select.value = value;
+  syncAiQuickComposer();
+}
+
+function loadAiQuickComposer() {
+  const savedTemplate = safeReadJsonKey('polar3_ai_template', 'consulta');
+  const savedNotes = safeReadJsonKey('polar3_ai_notes', '');
+  const select = document.getElementById('aiTemplateSelect');
+  const notes = document.getElementById('aiQuickNotes');
+  if (select) select.value = typeof savedTemplate === 'string' ? savedTemplate : 'consulta';
+  if (notes) notes.value = typeof savedNotes === 'string' ? savedNotes : '';
+  syncAiQuickComposer();
+}
+
+function focusAiQuickPanel() {
+  showSection('appcenter');
+  setTimeout(() => {
+    document.getElementById('aiQuickPanel')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    document.getElementById('aiQuickNotes')?.focus();
+  }, 120);
+}
+
+function copyAiQuickPrompt() {
+  const prompt = buildAiQuickPrompt();
+  copyPlainText(prompt).then(success => {
+    showToast(success ? 'Prompt copiado.' : 'No pude copiar el prompt automáticamente.', success ? 'success' : 'warning');
+  });
+}
+
+function openAiQuickProvider(provider) {
+  const url = AI_PROVIDER_URLS[provider];
+  if (!url) return;
+  window.open(url, '_blank', 'noopener');
+  copyPlainText(buildAiQuickPrompt()).then(success => {
+    const label = provider === 'chatgpt' ? 'ChatGPT' : provider === 'gemini' ? 'Gemini' : 'Claude';
+    showToast(success ? `Prompt copiado y ${label} abierto.` : `${label} abierto. Copia el prompt manualmente si hace falta.`, success ? 'success' : 'info');
+  });
+}
+
+function openPolarWhatsApp() {
+  const ctx = getCurrentSectionContext();
+  const text = `Hola Adrián, consulta rápida desde Polar[3]. Contexto: ${ctx.title}.`;
+  const url = `https://wa.me/5491155238266?text=${encodeURIComponent(text)}`;
+  window.open(url, '_blank', 'noopener');
+}
+
+function openPolarMail() {
+  const ctx = getCurrentSectionContext();
+  const subject = `Polar[3] · Consulta desde ${ctx.title}`;
+  const body = `Hola Adrián,\n\nTe escribo desde Polar[3].\nContexto: ${ctx.title}.\n\nConsulta:\n`;
+  window.location.href = `mailto:polar3fotografia@gmail.com?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+}
+
 function isPwaSecureContext() {
   return location.protocol === 'https:' || ['localhost', '127.0.0.1'].includes(location.hostname);
 }
@@ -3463,6 +3609,7 @@ function initApp() {
   buildSearchIndex();
   initEvents();
   initPwa();
+  loadAiQuickComposer();
   renderMobileOpsDashboard();
   updateBackupUI();
   applyWorkspaceState();
@@ -3481,6 +3628,13 @@ window.showSection = showSection;
 window.toggleGroup = toggleGroup;
 window.toggleSidebar = toggleSidebar;
 window.closeSidebar = closeSidebar;
+window.openPolarWhatsApp = openPolarWhatsApp;
+window.openPolarMail = openPolarMail;
+window.focusAiQuickPanel = focusAiQuickPanel;
+window.setAiQuickTemplate = setAiQuickTemplate;
+window.syncAiQuickComposer = syncAiQuickComposer;
+window.copyAiQuickPrompt = copyAiQuickPrompt;
+window.openAiQuickProvider = openAiQuickProvider;
 window.toggleAcc = toggleAcc;
 window.toggleCheck = toggleCheck;
 window.resetChecklist = resetChecklist;

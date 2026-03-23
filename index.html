@@ -3,8 +3,8 @@
 <head>
 <meta charset="utf-8"/>
 <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
-<title>Polar[3] — Sistema Operativo 2026 · V2.7.5</title>
-<meta content="Sistema Operativo Polar3 V2.7.5 pulido para Android/PWA, con navegación más limpia, encabezado móvil estabilizado y flujo operativo simplificado." name="description"/>
+<title>Polar[3] — Sistema Operativo 2026 · V2.7.6</title>
+<meta content="Sistema Operativo Polar3 V2.7.6 pulido para Android/PWA, con navegación más limpia, encabezado móvil estabilizado y flujo operativo simplificado." name="description"/>
 <meta content="#161c26" name="theme-color"/>
 <meta content="yes" name="mobile-web-app-capable"/>
 <meta content="yes" name="apple-mobile-web-app-capable"/>
@@ -21,7 +21,7 @@
 <div class="sidebar-logo">
 <div class="logo-brand">Polar<span>[3]</span></div>
 <div class="logo-sub">Fotografía escolar · sistema operativo</div>
-<div class="logo-badge">V2.7.5 Android first · 2026</div>
+<div class="logo-badge">V2.7.6 Android first · 2026</div>
 </div>
 <div class="sidebar-nav">
 <a class="nav-item-direct active" data-section="inicio" data-space="operativo comercial" onclick="showSection('inicio')">
@@ -117,6 +117,10 @@
       📞 11 5523-8266<br/>
       ✉ polar3fotografia@gmail.com<br/>
       📍 CABA
+      <div class="sidebar-contact-actions">
+        <button class="sidebar-contact-btn" onclick="openPolarWhatsApp()" type="button">WhatsApp</button>
+        <button class="sidebar-contact-btn" onclick="openPolarMail()" type="button">Mail</button>
+      </div>
     </div>
 </div>
 </nav>
@@ -155,6 +159,10 @@
 <button class="topbar-btn" onclick="triggerBackupImport()" type="button">Importar JSON</button>
 <button class="topbar-btn topbar-btn-primary" onclick="exportBackupJson()" type="button">Respaldar JSON</button>
 </div>
+<div class="contact-quick-actions">
+<button class="topbar-btn contact-btn contact-btn-wa" onclick="openPolarWhatsApp()" type="button">💬 WhatsApp</button>
+<button class="topbar-btn contact-btn contact-btn-mail" onclick="openPolarMail()" type="button">✉️ Mail</button>
+</div>
 <div class="workspace-switcher workspace-switcher-panel" id="workspaceSwitcher">
 <button class="workspace-btn active" data-workspace="operativo" onclick="switchWorkspace('operativo')" type="button">Operativo</button>
 <button class="workspace-btn" data-workspace="comercial" onclick="switchWorkspace('comercial')" type="button">Comercial</button>
@@ -164,6 +172,47 @@
 <span class="topbar-chip pwa-chip" data-tone="neutral" id="pwaOfflineChip">Cache web: pendiente</span>
 <span class="topbar-chip pwa-chip" data-tone="neutral" id="pwaScopeChip">Instalable desde localhost / HTTPS</span>
 <button class="topbar-btn" hidden="" id="pwaInstallBtn" onclick="installPolarApp()" type="button">Instalar app</button>
+</div>
+<div class="ai-quick-shell" id="aiQuickPanel">
+<div class="ops-booster-head ai-quick-head">
+<div>
+<div class="ops-kicker">Consulta IA rápida</div>
+<h3>ChatGPT · Gemini · Claude</h3>
+</div>
+<div class="ops-badge">v2.7.6</div>
+</div>
+<p class="ai-quick-copy">Arma un prompt breve con contexto de la sección actual, cópialo y abre tu IA preferida sin meter claves ni backend dentro de la app.</p>
+<div class="ai-quick-grid">
+<div class="field">
+<label for="aiTemplateSelect">Plantilla</label>
+<select id="aiTemplateSelect" onchange="setAiQuickTemplate(this.value)">
+<option value="consulta">Consulta operativa</option>
+<option value="cobranzas">Cobranzas / pagos</option>
+<option value="jornada">Jornada de toma</option>
+<option value="comercial">Mensaje comercial</option>
+<option value="kpis">Lectura de KPIs</option>
+</select>
+</div>
+<div class="field ai-provider-inline">
+<label>Contexto detectado</label>
+<div class="ai-context-chip" id="aiQuickContextChip">Inicio · operativo</div>
+</div>
+</div>
+<div class="field">
+<label for="aiQuickNotes">Qué quieres consultar</label>
+<textarea id="aiQuickNotes" oninput="syncAiQuickComposer()" placeholder="Ejemplo: necesito redactar un mensaje breve para una cooperadora que demora el pago, o que me ayude a revisar la jornada de mañana."></textarea>
+</div>
+<div class="field">
+<label for="aiQuickPromptPreview">Prompt listo</label>
+<textarea id="aiQuickPromptPreview" readonly></textarea>
+</div>
+<div class="ai-quick-actions">
+<button class="topbar-btn" onclick="copyAiQuickPrompt()" type="button">📋 Copiar prompt</button>
+<button class="topbar-btn topbar-btn-primary" onclick="openAiQuickProvider('chatgpt')" type="button">Abrir ChatGPT</button>
+<button class="topbar-btn" onclick="openAiQuickProvider('gemini')" type="button">Abrir Gemini</button>
+<button class="topbar-btn" onclick="openAiQuickProvider('claude')" type="button">Abrir Claude</button>
+</div>
+<div class="ai-quick-foot">La app copia el prompt y abre el proveedor elegido en otra pestaña. Así mantienes la PWA simple y segura.</div>
 </div>
 </div>
 </div>
@@ -237,6 +286,7 @@
 </div>
 <div class="mobile-inline-actions">
 <button class="mobile-inline-btn" onclick="showSection('appcenter')" type="button">⚙️ Centro de app</button>
+<button class="mobile-inline-btn" onclick="focusAiQuickPanel()" type="button">🤖 IA rápida</button>
 <button class="mobile-inline-btn" onclick="exportBackupJson()" type="button">💾 Respaldo rápido</button>
 </div>
 <div class="quick-grid home-quick-grid">
@@ -245,6 +295,20 @@
 <div class="qc-text">
 <div class="qc-title">Modo móvil / PWA</div>
 <div class="qc-desc">Instala Polar[3] como app cuando lo abras desde navegador seguro</div>
+</div>
+</div>
+<div class="quick-card" onclick="openPolarWhatsApp()">
+<div class="qc-icon">💬</div>
+<div class="qc-text">
+<div class="qc-title">WhatsApp directo</div>
+<div class="qc-desc">Abrir mensaje rápido a tu número operativo</div>
+</div>
+</div>
+<div class="quick-card" onclick="focusAiQuickPanel()">
+<div class="qc-icon">🤖</div>
+<div class="qc-text">
+<div class="qc-title">Consulta IA rápida</div>
+<div class="qc-desc">Copiar prompt y abrir ChatGPT, Gemini o Claude</div>
 </div>
 </div>
 <div class="quick-card" onclick="showSection('workspace')">
@@ -3825,7 +3889,7 @@
 </div>
 <div class="section" id="sec-cobranzas">
 <div class="section-header">
-<div class="breadcrumb">Post y entrega · V2.7.5</div>
+<div class="breadcrumb">Post y entrega · V2.7.6</div>
 <h1>Tablero de cobranzas</h1>
 <p>Versión móvil reforzada para cargar cobros con menos pasos, leer rápido el tablero y actuar con botones táctiles sin pelearte con una tabla chica.</p>
 </div>

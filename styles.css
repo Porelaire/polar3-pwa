@@ -2666,3 +2666,32 @@ body.meeting-mode .app-topbar { background: rgba(255,255,255,.97); }
     grid-template-columns: 1fr 1fr;
   }
 }
+
+
+.contact-quick-actions { display:flex; gap:12px; flex-wrap:wrap; }
+.contact-btn { min-width: 180px; }
+.contact-btn-wa { background:#eaf8ef; border-color:rgba(16,185,129,.18); color:#166534; }
+.contact-btn-mail { background:#eef6ff; border-color:rgba(59,130,246,.18); color:#1d4ed8; }
+.sidebar-contact-actions { display:flex; gap:8px; margin-top:10px; flex-wrap:wrap; }
+.sidebar-contact-btn { border:1px solid rgba(255,255,255,.12); background:rgba(255,255,255,.06); color:var(--text-sidebar); border-radius:999px; padding:7px 12px; font:inherit; font-size:11px; cursor:pointer; }
+.ai-quick-shell { border:1px solid var(--border); background:linear-gradient(180deg,#ffffff 0%,#f7fbfe 100%); border-radius:18px; padding:18px; display:grid; gap:14px; }
+.ai-quick-head { margin-bottom:0; }
+.ai-quick-copy { margin:0; color:var(--text-secondary); }
+.ai-quick-grid { display:grid; gap:14px; grid-template-columns:1.2fr .8fr; }
+.ai-provider-inline { display:grid; align-content:end; }
+.ai-context-chip { min-height:48px; display:flex; align-items:center; padding:0 14px; border-radius:14px; border:1px solid var(--border); background:#fff; color:var(--text-primary); font-weight:600; }
+#aiQuickNotes, #aiQuickPromptPreview { min-height:110px; resize:vertical; }
+#aiQuickPromptPreview { background:#f8fafc; font-size:13px; }
+.ai-quick-actions { display:flex; gap:10px; flex-wrap:wrap; }
+.ai-quick-actions .topbar-btn { min-height:46px; }
+.ai-quick-foot { font-size:12px; color:var(--text-secondary); }
+@media (max-width: 768px) {
+  .contact-quick-actions { flex-direction:column; }
+  .contact-quick-actions .topbar-btn { width:100%; min-width:0; min-height:48px; }
+  .ai-quick-grid { grid-template-columns:1fr; }
+  .ai-quick-actions { display:grid; grid-template-columns:1fr 1fr; }
+  .ai-quick-actions .topbar-btn:first-child { grid-column:1 / -1; }
+}
+@media (max-width: 480px) {
+  .ai-quick-actions { grid-template-columns:1fr; }
+}
