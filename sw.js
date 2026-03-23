@@ -1,4 +1,4 @@
-const CACHE_NAME = 'polar3-pwa-v2-7-4';
+const CACHE_NAME = 'polar3-pwa-v2-7-5';
 const CORE_ASSETS = [
   './',
   './index.html',

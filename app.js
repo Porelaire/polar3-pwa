@@ -2651,6 +2651,59 @@ function clearFollowupBoard() {
   renderFollowupBoard();
 }
 
+
+const paymentBoardUiState = {
+  search: '',
+  status: ''
+};
+
+function getPaymentStatusLabel(status) {
+  return ({
+    pendiente: 'Pendiente',
+    observado: 'Observado',
+    validado: 'Validado',
+    liquidado: 'Liquidado'
+  })[status] || 'Pendiente';
+}
+
+function getPaymentFilteredData(data = getPaymentBoardData()) {
+  const search = String(paymentBoardUiState.search || '').trim().toLowerCase();
+  const status = paymentBoardUiState.status || '';
+  return data.filter(item => {
+    const matchesStatus = !status || item.status === status;
+    if (!matchesStatus) return false;
+    if (!search) return true;
+    const haystack = [item.school, item.name, item.course, item.receipt, item.note, item.date, item.status]
+      .map(value => String(value || '').toLowerCase())
+      .join(' ');
+    return haystack.includes(search);
+  });
+}
+
+function setPaymentSearch(value) {
+  paymentBoardUiState.search = String(value || '').trim();
+  renderPaymentBoard();
+}
+
+function setPaymentStatusFilter(value) {
+  paymentBoardUiState.status = value || '';
+  renderPaymentBoard();
+}
+
+function clearPaymentFilters() {
+  paymentBoardUiState.search = '';
+  paymentBoardUiState.status = '';
+  const searchEl = document.getElementById('paymentSearch');
+  const statusEl = document.getElementById('paymentFilterStatus');
+  if (searchEl) searchEl.value = '';
+  if (statusEl) statusEl.value = '';
+  renderPaymentBoard();
+}
+
+function setPaymentQuickStatus(id, status) {
+  setPaymentField(id, 'status', status);
+}
+
 function getPaymentBoardData() {
   const data = JSON.parse(localStorage.getItem('polar3_payment_board') || '[]');
   if (!Array.isArray(data)) return [];
@@ -2669,25 +2722,40 @@ function savePaymentBoardData(data) {
   trackedSetItem('polar3_payment_board', JSON.stringify(data));
 }
 
+
 function renderPaymentBoard() {
   const rows = document.getElementById('paymentsBoardRows');
+  const mobileList = document.getElementById('paymentMobileList');
   if (!rows) return;
   const data = getPaymentBoardData();
+  const filteredData = getPaymentFilteredData(data);
   renderPaymentSchoolOptions();
 
+  const emptyRow = '<tr><td colspan="9" style="text-align:center;color:var(--text-muted)">Sin registros todavía.</td></tr>';
+  const emptyFilteredRow = '<tr><td colspan="9" style="text-align:center;color:var(--text-muted)">No hay registros para este filtro.</td></tr>';
+
   if (!data.length) {
-    rows.innerHTML = '<tr><td colspan="9" style="text-align:center;color:var(--text-muted)">Sin registros todavía.</td></tr>';
+    rows.innerHTML = emptyRow;
+  } else if (!filteredData.length) {
+    rows.innerHTML = emptyFilteredRow;
   } else {
-    rows.innerHTML = data.map(item => `
+    rows.innerHTML = filteredData.map(item => {
+      const school = escapeHtml(item.school || '');
+      const date = escapeHtml(item.date || '');
+      const name = escapeHtml(item.name || '');
+      const course = escapeHtml(item.course || '');
+      const receipt = escapeHtml(item.receipt || '');
+      const note = escapeHtml(item.note || '');
+      return `
       <tr>
         <td>
-          <input class="inline-input" list="paymentSchoolOptions" value="${(item.school || '').replace(/"/g,'&quot;')}" onchange="setPaymentField('${item.id}','school', this.value)" placeholder="Asignar colegio" type="text">
+          <input class="inline-input" list="paymentSchoolOptions" value="${school}" onchange="setPaymentField('${item.id}','school', this.value)" placeholder="Asignar colegio" type="text">
         </td>
         <td>
-          <input class="inline-input inline-input-date" value="${item.date || ''}" onchange="setPaymentField('${item.id}','date', this.value)" type="date">
+          <input class="inline-input inline-input-date" value="${date}" onchange="setPaymentField('${item.id}','date', this.value)" type="date">
         </td>
-        <td><strong>${item.name || '—'}</strong></td>
-        <td>${item.course || '—'}</td>
+        <td><strong>${name || '—'}</strong></td>
+        <td>${course || '—'}</td>
         <td>${money(item.amount)}</td>
         <td>
           <select class="inline-select status-${item.status}" onchange="setPaymentField('${item.id}','status', this.value)">
@@ -2697,11 +2765,71 @@ function renderPaymentBoard() {
             <option value="liquidado" ${item.status === 'liquidado' ? 'selected' : ''}>Liquidado</option>
           </select>
         </td>
-        <td>${item.receipt || '—'}</td>
-        <td>${item.note || '—'}</td>
+        <td>${receipt || '—'}</td>
+        <td>${note || '—'}</td>
         <td><button class="mini-btn danger" type="button" onclick="removePaymentRecord('${item.id}')">Eliminar</button></td>
       </tr>
-    `).join('');
+    `;
+    }).join('');
+  }
+
+  if (mobileList) {
+    if (!data.length) {
+      mobileList.innerHTML = '<div class="payment-mobile-empty">Todavía no hay registros de cobranzas.</div>';
+    } else if (!filteredData.length) {
+      mobileList.innerHTML = '<div class="payment-mobile-empty">No hay resultados con ese filtro.</div>';
+    } else {
+      mobileList.innerHTML = filteredData.map(item => {
+        const school = escapeHtml(item.school || 'Sin institución');
+        const name = escapeHtml(item.name || 'Sin nombre');
+        const course = escapeHtml(item.course || 'Sin curso');
+        const receipt = escapeHtml(item.receipt || 'Sin comprobante');
+        const note = escapeHtml(item.note || 'Sin observación');
+        const prettyDate = escapeHtml(formatCalendarDate(item.date));
+        const statusLabel = escapeHtml(getPaymentStatusLabel(item.status));
+        return `
+        <article class="payment-mobile-card status-${item.status}">
+          <div class="payment-mobile-card-top">
+            <div>
+              <div class="payment-mobile-school">${school}</div>
+              <h4>${name}</h4>
+              <p>${course}</p>
+            </div>
+            <div class="payment-mobile-amount-wrap">
+              <strong class="payment-mobile-amount">${money(item.amount)}</strong>
+              <span class="payment-status-pill status-${item.status}">${statusLabel}</span>
+            </div>
+          </div>
+          <div class="payment-mobile-meta">
+            <span>📅 ${prettyDate}</span>
+            <span>🧾 ${receipt}</span>
+          </div>
+          <div class="payment-mobile-note">${note}</div>
+          <div class="payment-mobile-edit-grid">
+            <label class="payment-mobile-edit">
+              <span>Fecha</span>
+              <input class="inline-input inline-input-date" value="${escapeHtml(item.date || '')}" onchange="setPaymentField('${item.id}','date', this.value)" type="date">
+            </label>
+            <label class="payment-mobile-edit">
+              <span>Estado</span>
+              <select class="inline-select status-${item.status}" onchange="setPaymentField('${item.id}','status', this.value)">
+                <option value="pendiente" ${item.status === 'pendiente' ? 'selected' : ''}>Pendiente</option>
+                <option value="observado" ${item.status === 'observado' ? 'selected' : ''}>Observado</option>
+                <option value="validado" ${item.status === 'validado' ? 'selected' : ''}>Validado</option>
+                <option value="liquidado" ${item.status === 'liquidado' ? 'selected' : ''}>Liquidado</option>
+              </select>
+            </label>
+          </div>
+          <div class="payment-mobile-actions">
+            <button class="payment-chip-btn" type="button" onclick="setPaymentQuickStatus('${item.id}','pendiente')">Pend.</button>
+            <button class="payment-chip-btn" type="button" onclick="setPaymentQuickStatus('${item.id}','observado')">Obs.</button>
+            <button class="payment-chip-btn" type="button" onclick="setPaymentQuickStatus('${item.id}','validado')">Validar</button>
+            <button class="payment-chip-btn primary" type="button" onclick="setPaymentQuickStatus('${item.id}','liquidado')">Liquidar</button>
+            <button class="payment-chip-btn danger" type="button" onclick="removePaymentRecord('${item.id}')">Eliminar</button>
+          </div>
+        </article>`;
+      }).join('');
+    }
   }
 
   const total = data.reduce((sum, item) => sum + (Number(item.amount) || 0), 0);
@@ -2727,12 +2855,20 @@ function renderPaymentBoard() {
     else insight.textContent = 'Tablero equilibrado, pero todavía conviene revisar observados para no frenar producción.';
   }
 
+  const feedback = document.getElementById('paymentFilterFeedback');
+  if (feedback) {
+    if (!data.length) feedback.textContent = 'Sin registros cargados todavía.';
+    else if (!paymentBoardUiState.search && !paymentBoardUiState.status) feedback.textContent = `Mostrando todos los registros (${data.length}).`;
+    else feedback.textContent = `Mostrando ${filteredData.length} de ${data.length} registro(s)${paymentBoardUiState.status ? ` · estado ${getPaymentStatusLabel(paymentBoardUiState.status).toLowerCase()}` : ''}${paymentBoardUiState.search ? ` · búsqueda “${paymentBoardUiState.search}”` : ''}.`;
+  }
+
   syncKpiScopeSelectors(getKpiScope());
   renderKpiDashboard();
   renderMobileOpsDashboard();
 }
 
 function addPaymentRecord() {
+
   const school = document.getElementById('paymentSchool')?.value.trim();
   const name = document.getElementById('paymentName')?.value.trim();
   const course = document.getElementById('paymentCourse')?.value.trim();
@@ -2748,7 +2884,10 @@ function addPaymentRecord() {
   ['paymentSchool','paymentName','paymentCourse','paymentAmount','paymentReceipt','paymentNote'].forEach(id => { const el = document.getElementById(id); if (el) el.value = ''; });
   const statusEl = document.getElementById('paymentStatus'); if (statusEl) statusEl.value = 'pendiente';
   const dateEl = document.getElementById('paymentDate'); if (dateEl) dateEl.value = getTodayIsoDate();
+  showToast('Registro de cobranza guardado.', 'success');
   renderPaymentBoard();
+  const nextField = document.getElementById('paymentName');
+  if (nextField) nextField.focus();
 }
 
 function setPaymentField(id, field, value) {

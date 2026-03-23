@@ -3,8 +3,8 @@
 <head>
 <meta charset="utf-8"/>
 <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
-<title>Polar[3] — Sistema Operativo 2026 · V2.7.4</title>
-<meta content="Sistema Operativo Polar3 V2.7.4 pulido para Android/PWA, con navegación más limpia, encabezado móvil estabilizado y flujo operativo simplificado." name="description"/>
+<title>Polar[3] — Sistema Operativo 2026 · V2.7.5</title>
+<meta content="Sistema Operativo Polar3 V2.7.5 pulido para Android/PWA, con navegación más limpia, encabezado móvil estabilizado y flujo operativo simplificado." name="description"/>
 <meta content="#161c26" name="theme-color"/>
 <meta content="yes" name="mobile-web-app-capable"/>
 <meta content="yes" name="apple-mobile-web-app-capable"/>
@@ -21,7 +21,7 @@
 <div class="sidebar-logo">
 <div class="logo-brand">Polar<span>[3]</span></div>
 <div class="logo-sub">Fotografía escolar · sistema operativo</div>
-<div class="logo-badge">V2.7.4 Android first · 2026</div>
+<div class="logo-badge">V2.7.5 Android first · 2026</div>
 </div>
 <div class="sidebar-nav">
 <a class="nav-item-direct active" data-section="inicio" data-space="operativo comercial" onclick="showSection('inicio')">
@@ -3825,45 +3825,55 @@
 </div>
 <div class="section" id="sec-cobranzas">
 <div class="section-header">
-<div class="breadcrumb">Post y entrega · V2.3</div>
+<div class="breadcrumb">Post y entrega · V2.7.5</div>
 <h1>Tablero de cobranzas</h1>
-<p>Registro rápido por alumno/familia e institución, con estados editables, totales automáticos y persistencia local para seguimiento operativo.</p>
+<p>Versión móvil reforzada para cargar cobros con menos pasos, leer rápido el tablero y actuar con botones táctiles sin pelearte con una tabla chica.</p>
 </div>
 <div class="section-body stack-6">
 <div class="note-box info"><span class="note-label">Uso:</span> carga rápida para reuniones internas, control por jornada o conciliación previa a liquidar a cooperadora. Guarda todo en este navegador. Para que el KPI por <strong>familia única</strong> deduplique bien, mantén siempre el mismo nombre de familia o comprador cuando registres cobros repetidos. Para habilitar KPIs por colegio, completa también la <strong>institución</strong> en cada cobro. Para habilitar KPIs por período, completa la <strong>fecha de cobro</strong> en cada registro.</div>
-<div class="ops-grid ops-grid-2">
+<div class="payment-mobile-shell">
+<div class="payment-mobile-kicker">Android first · Carga rápida</div>
+<h3>Alta compacta de cobro</h3>
+<p>Primero carga lo esencial y deja el resto como ajuste fino.</p>
+<div class="payment-mobile-summary-strip" id="paymentMobileSummaryStrip">
+<span class="payment-mini-pill">Registro inmediato</span>
+<span class="payment-mini-pill">Filtros por estado</span>
+<span class="payment-mini-pill">Tarjetas táctiles</span>
+</div>
+</div>
+<div class="ops-grid ops-grid-2 payment-ops-grid">
 <div class="card">
 <div class="card-header"><div class="card-icon">➕</div><h3>Alta rápida de registro</h3></div>
 <div class="card-body stack-4">
-<div class="tool-grid">
-<div class="field"><label>Institución</label><input id="paymentSchool" list="paymentSchoolOptions" placeholder="Ej. Jardín Arco Iris" type="text"/><datalist id="paymentSchoolOptions"></datalist></div>
-<div class="field"><label>Alumno / familia</label><input id="paymentName" placeholder="Ej. Sofía Pérez" type="text"/></div>
-<div class="field"><label>Curso / división</label><input id="paymentCourse" placeholder="Sala 5 A / 2° B" type="text"/></div>
-<div class="field"><label>Fecha de cobro</label><input id="paymentDate" type="date"/></div>
+<div class="payment-form-grid">
+<div class="field field-wide"><label>Alumno / familia</label><input id="paymentName" placeholder="Ej. Sofía Pérez / Familia Pérez" type="text"/></div>
 <div class="field"><label>Monto</label><input id="paymentAmount" min="0" placeholder="15000" step="100" type="number"/></div>
 <div class="field"><label>Estado</label><select id="paymentStatus"><option value="pendiente">Pendiente</option><option value="observado">Observado</option><option value="validado">Validado</option><option value="liquidado">Liquidado</option></select></div>
+<div class="field field-wide"><label>Institución</label><input id="paymentSchool" list="paymentSchoolOptions" placeholder="Ej. Jardín Arco Iris" type="text"/><datalist id="paymentSchoolOptions"></datalist></div>
+<div class="field"><label>Curso / división</label><input id="paymentCourse" placeholder="Sala 5 A / 2° B" type="text"/></div>
+<div class="field"><label>Fecha de cobro</label><input id="paymentDate" type="date"/></div>
 <div class="field"><label>Comprobante</label><input id="paymentReceipt" placeholder="MP-98321 / Transferencia" type="text"/></div>
 <div class="field"><label>Observación</label><input id="paymentNote" placeholder="Dato faltante / extra / grupal" type="text"/></div>
 </div>
-<div class="btn-row">
+<div class="btn-row payment-btn-row">
 <button class="btn btn-primary" type="button" onclick="addPaymentRecord()">Guardar registro</button>
 <button class="btn btn-outline" type="button" onclick="seedPaymentBoard()">Cargar ejemplo</button>
 <button class="btn btn-outline" type="button" onclick="fillMissingPaymentDates()">Completar fechas faltantes</button>
-<button class="btn btn-outline" type="button" onclick="clearPaymentBoard()">Vaciar tablero</button>
+<button class="btn btn-outline danger-soft" type="button" onclick="clearPaymentBoard()">Vaciar tablero</button>
 </div>
 </div>
 </div>
 <div class="card">
 <div class="card-header"><div class="card-icon">📈</div><h3>Resumen automático</h3></div>
 <div class="card-body stack-4">
-<div class="dashboard-stats">
+<div class="dashboard-stats payment-dashboard-stats">
 <div class="metric-tile"><span>Registros</span><strong id="payCount">0</strong></div>
 <div class="metric-tile"><span>Monto total</span><strong id="payTotal">$0</strong></div>
 <div class="metric-tile"><span>Pendiente</span><strong id="payPending">$0</strong></div>
 <div class="metric-tile"><span>Liquidado</span><strong id="paySettled">$0</strong></div>
 <div class="metric-tile"><span>Vinculación</span><strong id="paySchoolsLinked">0 vinculados · 0 sin colegio</strong></div>
 </div>
-<div class="ops-grid ops-grid-2">
+<div class="ops-grid ops-grid-2 payment-summary-grid">
 <div class="ops-card"><strong>Lectura rápida</strong><p id="paymentInsight">Aún no hay datos cargados.</p></div>
 <div class="ops-card"><strong>Regla operativa</strong><p>No pasar a producción todo lo que no esté validado. Usa “observado” para todo lo que requiera aclaración.</p></div>
 </div>
@@ -3871,9 +3881,31 @@
 </div>
 </div>
 <div class="card">
-<div class="card-header"><div class="card-icon">📋</div><h3>Registros activos</h3></div>
-<div class="card-body">
-<div class="table-wrap">
+<div class="card-header"><div class="card-icon">🧭</div><h3>Vista operativa del tablero</h3></div>
+<div class="card-body stack-4">
+<div class="payment-toolbar">
+<div class="field payment-filter-field">
+<label>Buscar</label>
+<input id="paymentSearch" oninput="setPaymentSearch(this.value)" placeholder="Familia, colegio, curso o comprobante" type="search"/>
+</div>
+<div class="field payment-filter-field">
+<label>Estado</label>
+<select id="paymentFilterStatus" onchange="setPaymentStatusFilter(this.value)">
+<option value="">Todos</option>
+<option value="pendiente">Pendiente</option>
+<option value="observado">Observado</option>
+<option value="validado">Validado</option>
+<option value="liquidado">Liquidado</option>
+</select>
+</div>
+<div class="payment-toolbar-actions">
+<button class="btn btn-outline" type="button" onclick="clearPaymentFilters()">Limpiar filtros</button>
+<button class="btn btn-outline" type="button" onclick="showSection('kpis')">Ver KPIs</button>
+</div>
+</div>
+<div class="payment-filter-feedback" id="paymentFilterFeedback">Mostrando todos los registros.</div>
+<div class="payment-mobile-list" id="paymentMobileList"></div>
+<div class="table-wrap payment-table-wrap">
 <table>
 <thead><tr><th>Institución</th><th>Fecha</th><th>Alumno / familia</th><th>Curso</th><th>Monto</th><th>Estado</th><th>Comprobante</th><th>Observación</th><th>Acción</th></tr></thead>
 <tbody id="paymentsBoardRows">
