@@ -3,8 +3,8 @@
 <head>
 <meta charset="utf-8"/>
 <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
-<title>Polar[3] — Sistema Operativo 2026 · V2.7.3</title>
-<meta content="Sistema Operativo Polar3 V2.7.3 pulido para Android/PWA, con navegación más limpia, encabezado móvil estabilizado y flujo operativo simplificado." name="description"/>
+<title>Polar[3] — Sistema Operativo 2026 · V2.7.4</title>
+<meta content="Sistema Operativo Polar3 V2.7.4 pulido para Android/PWA, con navegación más limpia, encabezado móvil estabilizado y flujo operativo simplificado." name="description"/>
 <meta content="#161c26" name="theme-color"/>
 <meta content="yes" name="mobile-web-app-capable"/>
 <meta content="yes" name="apple-mobile-web-app-capable"/>
@@ -21,7 +21,7 @@
 <div class="sidebar-logo">
 <div class="logo-brand">Polar<span>[3]</span></div>
 <div class="logo-sub">Fotografía escolar · sistema operativo</div>
-<div class="logo-badge">V2.7.3 Android first · 2026</div>
+<div class="logo-badge">V2.7.4 Android first · 2026</div>
 </div>
 <div class="sidebar-nav">
 <a class="nav-item-direct active" data-section="inicio" data-space="operativo comercial" onclick="showSection('inicio')">
@@ -171,6 +171,17 @@
 </div>
 <div class="section active" id="sec-inicio">
 <div class="mobile-ops-shell">
+<div class="mobile-install-panel" id="mobileInstallPanel" hidden="">
+<div class="mobile-install-copy">
+<div class="summary-kicker">Instalación</div>
+<strong id="mobileInstallTitle">Polar[3] lista para instalar</strong>
+<p id="mobileInstallMeta">Si ya la agregaste a pantalla principal, ábrela desde el icono para usarla como app independiente.</p>
+</div>
+<div class="mobile-install-actions">
+<button class="topbar-btn topbar-btn-primary" id="mobileInstallActionBtn" onclick="installPolarApp()" type="button">Instalar / abrir como app</button>
+<button class="topbar-btn" onclick="showSection('appcenter')" type="button">Centro de app</button>
+</div>
+</div>
 <div class="mobile-ops-head">
 <div>
 <div class="summary-kicker">Modo campo</div>
@@ -223,6 +234,10 @@
 <small id="mobileBackupMeta">Todavía no hay estado de respaldo disponible.</small>
 </div>
 </div>
+</div>
+<div class="mobile-inline-actions">
+<button class="mobile-inline-btn" onclick="showSection('appcenter')" type="button">⚙️ Centro de app</button>
+<button class="mobile-inline-btn" onclick="exportBackupJson()" type="button">💾 Respaldo rápido</button>
 </div>
 <div class="quick-grid home-quick-grid">
 <div class="quick-card quick-card-install" onclick="installPolarApp()">

@@ -99,7 +99,7 @@ let backupReminderShown = false;
 let appReadyForDirtyTracking = false;
 let deferredInstallPrompt = null;
 const PWA_CACHE_LABEL = 'Polar3 PWA';
-const POLAR3_APP_VERSION = '2.7.3';
+const POLAR3_APP_VERSION = '2.7.4';
 const DEPRECATED_SECTION_REDIRECTS = {
   quien: 'inicio',
   pack: 'modalidades',
@@ -3073,6 +3073,10 @@ function updatePwaUi() {
   const offlineChip = document.getElementById('pwaOfflineChip');
   const scopeChip = document.getElementById('pwaScopeChip');
   const installBtn = document.getElementById('pwaInstallBtn');
+  const mobileInstallPanel = document.getElementById('mobileInstallPanel');
+  const mobileInstallTitle = document.getElementById('mobileInstallTitle');
+  const mobileInstallMeta = document.getElementById('mobileInstallMeta');
+  const mobileInstallActionBtn = document.getElementById('mobileInstallActionBtn');
   const standalone = isStandalonePwa();
   const controlled = !!navigator.serviceWorker?.controller;
   const canInstall = !standalone && !!deferredInstallPrompt;
@@ -3116,6 +3120,26 @@ function updatePwaUi() {
   }
 
   if (installBtn) installBtn.hidden = !canInstall;
+
+  if (mobileInstallPanel && mobileInstallTitle && mobileInstallMeta && mobileInstallActionBtn) {
+    mobileInstallPanel.hidden = standalone;
+    if (!secureContextReady) {
+      mobileInstallTitle.textContent = 'Instalación deshabilitada en este contexto';
+      mobileInstallMeta.textContent = 'Para instalar Polar[3] abre la app desde HTTPS o localhost. Si entraste desde archivo local, no se podrá instalar.';
+      mobileInstallActionBtn.textContent = 'Ver centro de app';
+      mobileInstallActionBtn.onclick = () => showSection('appcenter');
+    } else if (canInstall) {
+      mobileInstallTitle.textContent = 'Polar[3] lista para instalar';
+      mobileInstallMeta.textContent = 'Puedes instalarla ahora. Si ya la agregaste a pantalla principal, ábrela desde el icono para evitar la barra del navegador.';
+      mobileInstallActionBtn.textContent = 'Instalar / abrir como app';
+      mobileInstallActionBtn.onclick = () => installPolarApp();
+    } else {
+      mobileInstallTitle.textContent = 'Abrir desde el icono para usar modo app';
+      mobileInstallMeta.textContent = 'Si ya la agregaste a pantalla principal, cierra esta pestaña y abre Polar[3] desde el icono del teléfono. Si no, usa el menú del navegador y elige “Agregar a pantalla principal”.';
+      mobileInstallActionBtn.textContent = 'Centro de app';
+      mobileInstallActionBtn.onclick = () => showSection('appcenter');
+    }
+  }
 }
 
 async function registerPolarServiceWorker() {

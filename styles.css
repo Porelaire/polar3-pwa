@@ -2196,7 +2196,6 @@ body.meeting-mode .app-topbar { background: rgba(255,255,255,.97); }
 }
 
 @media (max-width: 480px) {
-  .mobile-ops-grid, .mobile-ops-insights { grid-template-columns: 1fr; }
   .topbar-actions { grid-template-columns: 1fr; }
   .topbar-btn { width: 100%; }
   .workspace-btn { min-height: 46px; }
@@ -2208,3 +2207,158 @@ body.meeting-mode .app-topbar { background: rgba(255,255,255,.97); }
 
 
 .sidebar-toggle { display: none !important; }
+
+
+/* ═══════════════════════════════════════════════════════════════
+   V2.7.4 — COMPACTO MÓVIL + AYUDA DE INSTALACIÓN
+═══════════════════════════════════════════════════════════════ */
+.mobile-install-panel {
+  display:flex;
+  justify-content:space-between;
+  gap:16px;
+  align-items:center;
+  padding:14px 16px;
+  margin-bottom:16px;
+  border:1px solid rgba(0,174,239,.18);
+  border-radius:18px;
+  background: linear-gradient(180deg, rgba(0,174,239,.07), rgba(255,255,255,.96));
+}
+.mobile-install-copy strong {
+  display:block;
+  font-size:16px;
+  line-height:1.25;
+  margin:4px 0 6px;
+  color:var(--text-primary);
+}
+.mobile-install-copy p {
+  font-size:13px;
+  line-height:1.5;
+  color:var(--text-secondary);
+}
+.mobile-install-actions {
+  display:flex;
+  gap:10px;
+  flex-wrap:wrap;
+  justify-content:flex-end;
+}
+.mobile-inline-actions {
+  display:none;
+}
+.mobile-inline-btn {
+  min-height:46px;
+  border-radius:14px;
+  border:1px solid var(--border);
+  background:#fff;
+  padding:0 14px;
+  font-size:13px;
+  font-weight:700;
+  color:var(--text-primary);
+  box-shadow: var(--shadow);
+}
+.mobile-inline-btn:active {
+  transform: scale(.99);
+}
+@media (max-width: 768px) {
+  .mobile-install-panel {
+    display:grid;
+    gap:12px;
+    padding:14px;
+    margin-bottom:14px;
+  }
+  .mobile-install-actions {
+    justify-content:stretch;
+    display:grid;
+    grid-template-columns: 1fr 1fr;
+  }
+  .mobile-install-actions .topbar-btn {
+    width:100%;
+    min-height:46px;
+  }
+  .mobile-ops-shell {
+    margin: 12px 12px 0;
+    padding: 16px;
+    border-radius: 20px;
+  }
+  .mobile-ops-head h2 {
+    font-size: 22px;
+  }
+  .mobile-ops-head p {
+    font-size: 13px;
+  }
+  .mobile-ops-grid {
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+    margin-bottom: 10px;
+  }
+  .mobile-ops-btn {
+    min-height: 94px;
+    padding: 14px 12px;
+    border-radius: 16px;
+  }
+  .mobile-ops-icon {
+    font-size: 20px;
+  }
+  .mobile-ops-btn strong {
+    font-size: 14px;
+  }
+  .mobile-ops-btn small {
+    font-size: 11.5px;
+    line-height: 1.35;
+  }
+  .mobile-ops-insights {
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+  }
+  .mobile-ops-insight {
+    min-height: 0;
+    padding: 12px;
+    border-radius: 16px;
+  }
+  .mobile-ops-insight strong {
+    font-size: 14px;
+  }
+  .mobile-ops-insight small {
+    font-size: 11.5px;
+    line-height: 1.35;
+  }
+  .mobile-inline-actions {
+    display:grid;
+    grid-template-columns: 1fr 1fr;
+    gap:10px;
+    margin-top:12px;
+    margin-bottom:0;
+  }
+  .mobile-tabbar {
+    left: 10px;
+    right: 10px;
+    bottom: calc(10px + env(safe-area-inset-bottom, 0px));
+    padding: 7px;
+    border-radius: 20px;
+  }
+  .mobile-tabbar-btn {
+    min-height: 56px;
+    border-radius: 14px;
+    gap:2px;
+  }
+}
+@media (max-width: 480px) {
+  .mobile-install-actions {
+    grid-template-columns: 1fr;
+  }
+  .mobile-ops-grid,
+  .mobile-ops-insights,
+  .mobile-inline-actions {
+    grid-template-columns: 1fr 1fr;
+  }
+  .mobile-ops-head h2 {
+    font-size: 20px;
+  }
+  .mobile-ops-head p,
+  .mobile-install-copy p {
+    font-size: 12.5px;
+  }
+  .mobile-ops-btn,
+  .mobile-ops-insight {
+    min-height: 0;
+  }
+}
