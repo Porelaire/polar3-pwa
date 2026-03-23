@@ -37,7 +37,7 @@
 
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 html { font-size: 15px; }
-html, body { overscroll-behavior-y: contain; }
+html, body { overscroll-behavior-y: contain; max-width: 100%; overflow-x: hidden; }
 body {
   font-family: var(--font-body);
   background: var(--bg-main);
@@ -46,6 +46,9 @@ body {
   min-height: 100vh;
   -webkit-font-smoothing: antialiased;
   padding-bottom: env(safe-area-inset-bottom, 0px);
+  width: 100%;
+  max-width: 100%;
+  overflow-x: hidden;
 }
 a { color: var(--accent); text-decoration: none; }
 ul { list-style: none; }
@@ -234,11 +237,14 @@ img { max-width: 100%; display: block; }
   min-height: 100vh;
   display: flex;
   flex-direction: column;
+  min-width: 0;
+  max-width: 100%;
+  overflow-x: hidden;
 }
 
 /* Section wrapper */
 .section { display: none; animation: fadeIn 0.25s ease; }
-.section.active { display: block; }
+.section.active { display: block; max-width: 100%; overflow-x: hidden; }
 @keyframes fadeIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
 
 /* Section header */
@@ -263,6 +269,8 @@ img { max-width: 100%; display: block; }
   color: var(--text-primary);
   letter-spacing: -0.5px;
   line-height: 1.2;
+  overflow-wrap: anywhere;
+  word-break: break-word;
 }
 .section-header p {
   color: var(--text-secondary);
@@ -2849,4 +2857,79 @@ body.meeting-mode .app-topbar { background: rgba(255,255,255,.97); }
 @media (max-width: 640px) {
   #sec-kpis .kpi-mobile-focus-actions { grid-template-columns: 1fr; }
   #sec-kpis .btn-row { grid-template-columns: 1fr; }
+}
+
+
+.field-help {
+  font-size: 12px;
+  line-height: 1.45;
+  color: var(--text-secondary);
+  margin-top: -1px;
+}
+
+.section, .section-header, .section-body, .card, .card-body, .ops-grid, .tool-grid, .dashboard-stats, .btn-row, .note-box {
+  min-width: 0;
+  max-width: 100%;
+}
+
+#sec-cartera .table-wrap,
+#sec-calendario .table-wrap {
+  width: 100%;
+  max-width: 100%;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+#sec-cartera .section-body,
+#sec-calendario .section-body,
+#sec-appcenter .section-body {
+  overflow-x: hidden;
+}
+
+#sec-cartera .card-header h3,
+#sec-calendario .card-header h3,
+#sec-appcenter .card-header h3,
+#sec-appcenter .ai-quick-copy,
+#sec-appcenter .ai-quick-foot,
+#sec-appcenter .ai-context-chip {
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
+
+@media (max-width: 768px) {
+  .section-header {
+    padding: 20px 16px 12px;
+  }
+  .section-header h1 {
+    font-size: clamp(22px, 8.5vw, 32px);
+    line-height: 1.08;
+  }
+  .section-header p {
+    max-width: 100%;
+  }
+  .section-body {
+    padding: 18px 16px 44px;
+    width: 100%;
+    max-width: 100%;
+    overflow-x: hidden;
+  }
+  #sec-cartera .ops-grid,
+  #sec-calendario .ops-grid,
+  #sec-cartera .tool-grid,
+  #sec-calendario .tool-grid,
+  #sec-appcenter .appcenter-actions,
+  #sec-appcenter .contact-quick-actions,
+  #sec-appcenter .ai-quick-actions {
+    min-width: 0;
+    max-width: 100%;
+  }
+  #sec-cartera .btn-row .btn,
+  #sec-calendario .btn-row .btn {
+    width: 100%;
+    justify-content: center;
+  }
+  #sec-cartera table,
+  #sec-calendario table {
+    min-width: 0;
+  }
 }

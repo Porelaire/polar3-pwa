@@ -33,9 +33,7 @@ const sectionMap = {
   kpis: 'sec-kpis',
   simulador: 'sec-simulador',
   respaldos: 'sec-respaldos',
-  onboarding: 'sec-onboarding',
-  glosario: 'sec-glosario',
-  institucional: 'sec-institucional',
+    institucional: 'sec-institucional',
   modalidades: 'sec-modalidades',
   propuesta: 'sec-propuesta',
   marca: 'sec-marca',
@@ -75,8 +73,6 @@ const sectionSpaces = {
   kpis: ['operativo'],
   simulador: ['operativo', 'comercial'],
   respaldos: ['operativo'],
-  onboarding: ['operativo'],
-  glosario: ['operativo'],
   institucional: ['comercial'],
   modalidades: ['comercial'],
   propuesta: ['comercial'],
@@ -99,7 +95,7 @@ let backupReminderShown = false;
 let appReadyForDirtyTracking = false;
 let deferredInstallPrompt = null;
 const PWA_CACHE_LABEL = 'Polar3 PWA';
-const POLAR3_APP_VERSION = '2.7.7';
+const POLAR3_APP_VERSION = '2.7.9';
 const DEPRECATED_SECTION_REDIRECTS = {
   quien: 'inicio',
   pack: 'modalidades',
@@ -113,7 +109,9 @@ const DEPRECATED_SECTION_REDIRECTS = {
   montaje: 'checklist',
   imprenta: 'checklist',
   archivos: 'workspace',
-  roles: 'checklist'
+  roles: 'checklist',
+  onboarding: 'inicio',
+  glosario: 'inicio'
 };
 const SEARCH_EXCLUDED_SECTIONS = new Set(Object.keys(DEPRECATED_SECTION_REDIRECTS));
 let lastScrollY = 0;
@@ -123,8 +121,13 @@ let topbarScrollLockUntil = 0;
 let calendarMobileOpenMonthKey = null;
 const AI_PROVIDER_URLS = {
   chatgpt: 'https://chatgpt.com/',
-  gemini: 'https://gemini.google.com/',
+  gemini: 'https://gemini.google.com/app',
   claude: 'https://claude.ai/'
+};
+const AI_PROVIDER_INTENTS = {
+  chatgpt: 'intent://chatgpt.com/#Intent;scheme=https;package=com.openai.chatgpt;S.browser_fallback_url=https%3A%2F%2Fchatgpt.com%2F;end',
+  gemini: 'intent://gemini.google.com/app#Intent;scheme=https;package=com.google.android.apps.bard;S.browser_fallback_url=https%3A%2F%2Fgemini.google.com%2Fapp;end',
+  claude: 'intent://claude.ai/#Intent;scheme=https;package=com.anthropic.claude;S.browser_fallback_url=https%3A%2F%2Fclaude.ai%2F;end'
 };
 const AI_TEMPLATE_LABELS = {
   consulta: 'Consulta operativa',
@@ -3540,14 +3543,23 @@ function copyAiQuickPrompt() {
   });
 }
 
+function isAndroidLikeDevice() {
+  return /Android/i.test(navigator.userAgent || '');
+}
+
 function openAiQuickProvider(provider) {
-  const url = AI_PROVIDER_URLS[provider];
-  if (!url) return;
-  window.open(url, '_blank', 'noopener');
+  const webUrl = AI_PROVIDER_URLS[provider];
+  const intentUrl = AI_PROVIDER_INTENTS[provider];
+  if (!webUrl) return;
+  const label = provider === 'chatgpt' ? 'ChatGPT' : provider === 'gemini' ? 'Gemini' : 'Claude';
   copyPlainText(buildAiQuickPrompt()).then(success => {
-    const label = provider === 'chatgpt' ? 'ChatGPT' : provider === 'gemini' ? 'Gemini' : 'Claude';
-    showToast(success ? `Prompt copiado y ${label} abierto.` : `${label} abierto. Copia el prompt manualmente si hace falta.`, success ? 'success' : 'info');
+    showToast(success ? `Prompt copiado. Intentando abrir ${label}.` : `Intentando abrir ${label}. Si hace falta, copia el prompt manualmente.`, success ? 'success' : 'info');
   });
+  if (isAndroidLikeDevice() && intentUrl) {
+    window.location.href = intentUrl;
+    return;
+  }
+  window.open(webUrl, '_blank', 'noopener');
 }
 
 function openPolarWhatsApp() {
