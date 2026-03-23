@@ -36,8 +36,8 @@
 }
 
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-html { font-size: 15px; }
-html, body { overscroll-behavior-y: contain; max-width: 100%; overflow-x: hidden; }
+html { font-size: 15px; height: 100%; }
+html, body { overscroll-behavior-y: contain; width: 100%; max-width: 100%; overflow-x: hidden; overflow-y: auto; }
 body {
   font-family: var(--font-body);
   background: var(--bg-main);
@@ -49,6 +49,7 @@ body {
   width: 100%;
   max-width: 100%;
   overflow-x: hidden;
+  overflow-y: auto;
 }
 a { color: var(--accent); text-decoration: none; }
 ul { list-style: none; }
@@ -234,17 +235,21 @@ img { max-width: 100%; display: block; }
 #main {
   margin-left: var(--sidebar-w);
   flex: 1;
-  min-height: 100vh;
+  min-height: 100dvh;
+  height: 100dvh;
   display: flex;
   flex-direction: column;
   min-width: 0;
   max-width: 100%;
   overflow-x: hidden;
+  overflow-y: auto;
+  overscroll-behavior-y: contain;
+  -webkit-overflow-scrolling: touch;
 }
 
 /* Section wrapper */
 .section { display: none; animation: fadeIn 0.25s ease; }
-.section.active { display: block; max-width: 100%; overflow-x: hidden; }
+.section.active { display: block; max-width: 100%; overflow-x: clip; }
 @keyframes fadeIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
 
 /* Section header */
@@ -1159,7 +1164,7 @@ tr:hover td { background: #fbfcfe; }
   #sidebar.open { transform: translateX(0); }
   .sidebar-toggle { display: flex; }
   .sidebar-overlay.open { display: block; }
-  #main { margin-left: 0; }
+  #main { margin-left: 0; min-height: 100dvh; height: 100dvh; }
   .section-header { padding: 20px; padding-top: 60px; }
   .section-body { padding: 20px; }
   .grid-2 { grid-template-columns: 1fr; }
@@ -2883,7 +2888,9 @@ body.meeting-mode .app-topbar { background: rgba(255,255,255,.97); }
 #sec-cartera .section-body,
 #sec-calendario .section-body,
 #sec-appcenter .section-body {
-  overflow-x: hidden;
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
 }
 
 #sec-cartera .card-header h3,
@@ -2911,7 +2918,16 @@ body.meeting-mode .app-topbar { background: rgba(255,255,255,.97); }
     padding: 18px 16px 44px;
     width: 100%;
     max-width: 100%;
-    overflow-x: hidden;
+    min-width: 0;
+  }
+  #main, .section.active {
+    touch-action: pan-y;
+  }
+  #sec-cartera .table-wrap,
+  #sec-calendario .table-wrap {
+    overflow-x: auto;
+    overflow-y: visible;
+    -webkit-overflow-scrolling: touch;
   }
   #sec-cartera .ops-grid,
   #sec-calendario .ops-grid,
@@ -2935,37 +2951,9 @@ body.meeting-mode .app-topbar { background: rgba(255,255,255,.97); }
 }
 
 
-/* v2.7.10 · fixes móviles de scroll y overflow */
-html, body { width: 100%; max-width: 100%; }
-body, #main { overflow-x: hidden !important; }
-#main, .section, .section-header, .section-body, .card, .card-body, .table-wrap { box-sizing: border-box; }
-.section-header h1, .card-header h3 { max-width: 100%; overflow-wrap: anywhere; word-break: break-word; }
-@media (max-width: 900px) {
-  #sec-cartera .section-header h1,
-  #sec-calendario .section-header h1,
-  #sec-appcenter .section-header h1 { font-size: clamp(20px, 8vw, 30px); line-height: 1.08; }
-  #sec-cartera .section-body,
-  #sec-calendario .section-body,
-  #sec-appcenter .section-body { width: 100%; max-width: 100%; overflow-x: hidden !important; }
-  #sec-cartera .table-wrap,
-  #sec-calendario .table-wrap { display: block; width: 100%; max-width: 100%; overflow-x: auto !important; overscroll-behavior-x: contain; }
-  #sec-cartera .table-wrap table,
-  #sec-calendario .table-wrap table { width: max-content; min-width: 760px; }
-  #sec-cartera .card,
-  #sec-calendario .card,
-  #sec-appcenter .card,
-  #sec-appcenter .ops-booster,
-  #sec-cartera .note-box,
-  #sec-calendario .note-box { width: 100%; max-width: 100%; min-width: 0; }
-  #sec-appcenter .ai-quick-shell,
-  #sec-appcenter .ai-quick-grid,
-  #sec-appcenter .field,
-  #sec-appcenter textarea,
-  #sec-appcenter select,
-  #sec-appcenter input { width: 100%; max-width: 100%; min-width: 0; }
-}
-@media (max-width: 768px) {
-  body { touch-action: pan-y; }
-  #sec-appcenter .ai-quick-actions { grid-template-columns: 1fr; }
-  #sec-appcenter .ai-quick-actions .topbar-btn { width: 100%; }
+/* v2.7.11 · scroll container y overflow móvil */
+.section-header h1, .section-header p, .card-header h3 {
+  max-width: 100%;
+  overflow-wrap: anywhere;
+  word-break: break-word;
 }

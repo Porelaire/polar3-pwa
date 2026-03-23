@@ -95,7 +95,7 @@ let backupReminderShown = false;
 let appReadyForDirtyTracking = false;
 let deferredInstallPrompt = null;
 const PWA_CACHE_LABEL = 'Polar3 PWA';
-const POLAR3_APP_VERSION = '2.7.10';
+const POLAR3_APP_VERSION = '2.7.9';
 const DEPRECATED_SECTION_REDIRECTS = {
   quien: 'inicio',
   pack: 'modalidades',
@@ -842,7 +842,8 @@ function evaluateTopbarAutoCollapse(currentY) {
 }
 
 function handleTopbarAutoCollapse() {
-  const currentY = window.scrollY || window.pageYOffset || 0;
+  const scrollHost = getScrollContainer();
+  const currentY = scrollHost?.scrollTop || window.scrollY || window.pageYOffset || 0;
   if (topbarScrollTicking) return;
   topbarScrollTicking = true;
   requestAnimationFrame(() => {
@@ -889,6 +890,10 @@ function updateTopbar(id) {
   document.title = `Polar[3] · ${normalizeWorkspaceLabel(currentWorkspace)} — ${meta.title}`;
 }
 
+function getScrollContainer() {
+  return document.getElementById('main') || document.scrollingElement || document.documentElement;
+}
+
 function showSection(id, pushHash = true) {
   id = resolveSectionTarget(id);
   if (!sectionMap[id]) id = 'inicio';
@@ -904,7 +909,11 @@ function showSection(id, pushHash = true) {
   setTopbarCollapsed(false, { force: true });
   updateMobileTabbar(id);
   if (pushHash && location.hash !== `#${id}`) history.replaceState(null, '', `#${id}`);
-  window.scrollTo({ top: 0, behavior: 'instant' in window ? 'instant' : 'auto' });
+  const scrollHost = getScrollContainer();
+  if (scrollHost && typeof scrollHost.scrollTo === 'function') {
+    scrollHost.scrollTo({ top: 0, behavior: 'auto' });
+  }
+  window.scrollTo({ top: 0, behavior: 'auto' });
   closeSidebar();
   return false;
 }
@@ -3552,30 +3561,13 @@ function openAiQuickProvider(provider) {
   const intentUrl = AI_PROVIDER_INTENTS[provider];
   if (!webUrl) return;
   const label = provider === 'chatgpt' ? 'ChatGPT' : provider === 'gemini' ? 'Gemini' : 'Claude';
-  const prompt = buildAiQuickPrompt();
-
-  copyPlainText(prompt).then(success => {
+  copyPlainText(buildAiQuickPrompt()).then(success => {
     showToast(success ? `Prompt copiado. Intentando abrir ${label}.` : `Intentando abrir ${label}. Si hace falta, copia el prompt manualmente.`, success ? 'success' : 'info');
   });
-
   if (isAndroidLikeDevice() && intentUrl) {
-    let fallbackUsed = false;
-    const fallback = () => {
-      if (fallbackUsed || document.hidden) return;
-      fallbackUsed = true;
-      window.open(webUrl, '_blank', 'noopener');
-    };
-    setTimeout(fallback, 900);
-    const anchor = document.createElement('a');
-    anchor.href = intentUrl;
-    anchor.rel = 'noopener';
-    anchor.style.display = 'none';
-    document.body.appendChild(anchor);
-    anchor.click();
-    anchor.remove();
+    window.location.href = intentUrl;
     return;
   }
-
   window.open(webUrl, '_blank', 'noopener');
 }
 
@@ -3832,8 +3824,8 @@ function initEvents() {
     showSection(target, false);
   });
 
-  window.addEventListener('scroll', handleTopbarAutoCollapse, { passive: true });
-  window.addEventListener('resize', () => { lastScrollY = window.scrollY || window.pageYOffset || 0; handleTopbarAutoCollapse(); syncCalendarMobileLayout(); });
+  getScrollContainer()?.addEventListener('scroll', handleTopbarAutoCollapse, { passive: true });
+  window.addEventListener('resize', () => { const host = getScrollContainer(); lastScrollY = host?.scrollTop || window.scrollY || window.pageYOffset || 0; handleTopbarAutoCollapse(); syncCalendarMobileLayout(); });
   document.addEventListener('focusin', evt => {
     if (evt.target && ['INPUT','TEXTAREA','SELECT'].includes(evt.target.tagName)) setTopbarCollapsed(false, { force: true });
   });
