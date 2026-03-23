@@ -2695,3 +2695,158 @@ body.meeting-mode .app-topbar { background: rgba(255,255,255,.97); }
 @media (max-width: 480px) {
   .ai-quick-actions { grid-template-columns:1fr; }
 }
+
+
+.calendar-mobile-hub { display:none; }
+.calendar-mobile-chip-row { display:flex; gap:8px; overflow-x:auto; padding-bottom:2px; scrollbar-width: none; }
+.calendar-mobile-chip-row::-webkit-scrollbar { display:none; }
+.calendar-mobile-chip { flex:0 0 auto; min-width: 72px; border:1px solid var(--border); border-radius: 14px; background:#fff; color: var(--text-secondary); padding: 9px 11px; display:flex; align-items:center; justify-content:space-between; gap:10px; font-size: 12px; font-weight: 800; }
+.calendar-mobile-chip strong { display:inline-flex; min-width: 22px; height: 22px; align-items:center; justify-content:center; border-radius: 999px; background:#f2f8fc; color: var(--accent-dark); font-size: 11px; }
+.calendar-mobile-chip.active { background:#e9f8ff; border-color: rgba(0,174,239,.28); color: var(--accent-dark); box-shadow: 0 10px 24px rgba(0,174,239,.12); }
+.calendar-mobile-actions { display:none; }
+.calendar-mobile-summary { display:none; }
+.calendar-mobile-toggle { display:none; }
+
+@media (max-width: 900px) {
+  #sec-calendario .section-header p { max-width: 38ch; }
+  .calendar-mobile-hub { display:block; padding: 14px; margin-bottom: 14px; border-radius: 18px; background: linear-gradient(180deg, #ffffff 0%, #f8fbfe 100%); }
+  .calendar-mobile-actions { display:grid; grid-template-columns: 1fr 1fr; gap:8px; margin-top: 10px; }
+  .calendar-mobile-actions .btn { width:100%; justify-content:center; }
+  .calendar-mobile-summary { display:flex; flex-direction:column; gap:4px; margin-top: 10px; padding: 12px; border:1px solid var(--border); border-radius: 14px; background:#fff; color: var(--text-secondary); font-size: 13px; line-height: 1.45; }
+  .calendar-mobile-summary strong { color: var(--text-primary); font-size: 14px; }
+  .calendar-mobile-toggle { display:inline-flex; margin-left:auto; white-space: nowrap; }
+  #sec-calendario .calendar-month-head { align-items:center; }
+  #sec-calendario .calendar-month-meta { justify-content:flex-start; }
+  #sec-calendario .calendar-month-card { scroll-margin-top: 88px; }
+  #sec-calendario .calendar-month-card.is-collapsed .calendar-month-body { display:none; }
+  #sec-calendario .calendar-month-card.is-active-mobile { border-color: rgba(0,174,239,.26); box-shadow: 0 12px 28px rgba(0,0,0,.08); }
+  #sec-calendario .calendar-entry-form { padding: 12px; }
+  #sec-calendario .calendar-entry-grid { grid-template-columns: 1fr; }
+  #sec-calendario .calendar-entry-span-2 { grid-column: auto; }
+  #sec-calendario .calendar-entry-actions .btn { width: 100%; justify-content:center; }
+  #sec-calendario .calendar-item-row { padding: 12px; border-radius: 18px; }
+  #sec-calendario .calendar-item-main { grid-template-columns: 1fr; }
+  #sec-calendario .calendar-delete-btn { width: 100%; justify-content:center; }
+  #sec-calendario .calendar-derived-card-shell { padding: 14px; }
+  #sec-calendario .calendar-derived-card { padding: 14px; }
+}
+
+@media print {
+  #sec-calendario .calendar-mobile-hub,
+  #sec-calendario .calendar-mobile-toggle { display:none !important; }
+}
+
+
+/* v2.7.8 · KPIs móvil + micro-ajustes UX general */
+.kpi-mobile-focus { display:none; }
+
+@media (max-width: 900px) {
+  .section-header { padding: 22px 18px 12px; }
+  .section-header h1 { font-size: 30px; line-height: 1.06; }
+  .section-header p { font-size: 13px; line-height: 1.5; max-width: 34ch; }
+  .section-body { padding: 18px; gap: 18px; }
+  .note-box { padding: 14px; border-radius: 16px; font-size: 13px; line-height: 1.5; }
+  .card, .ops-card, .metric-tile, .kpi-card { border-radius: 18px; }
+  .btn, .topbar-btn, .mobile-inline-btn, .quick-card, .mobile-ops-btn, .kpi-mode-btn { min-height: 48px; }
+  .quick-card:hover, .mobile-ops-btn:hover, .topbar-btn:hover, .btn:hover { transform: none; box-shadow: none; }
+
+  #sec-kpis .kpi-mobile-focus {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    padding: 14px;
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    background: linear-gradient(180deg, #ffffff 0%, #f8fbfe 100%);
+  }
+  #sec-kpis .kpi-mobile-focus-head {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 12px;
+  }
+  #sec-kpis .kpi-mobile-kicker {
+    font-size: 11px;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: .08em;
+    color: var(--text-muted);
+    margin-bottom: 4px;
+  }
+  #sec-kpis .kpi-mobile-focus-head h2 { font-size: 20px; line-height: 1.08; }
+  #sec-kpis .kpi-mobile-focus-pill {
+    flex: 0 0 auto;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 8px 12px;
+    border-radius: 999px;
+    background: #f3f7fb;
+    border: 1px solid var(--border);
+    color: var(--text-secondary);
+    font-size: 12px;
+    font-weight: 800;
+    white-space: nowrap;
+  }
+  #sec-kpis .kpi-mobile-focus.is-warning .kpi-mobile-focus-pill { background: #fff8ea; color: #8a6d3b; border-color: rgba(214,158,46,.2); }
+  #sec-kpis .kpi-mobile-focus.is-danger .kpi-mobile-focus-pill { background: #fff5f5; color: #9b2c2c; border-color: rgba(229,62,62,.2); }
+  #sec-kpis .kpi-mobile-focus.is-success .kpi-mobile-focus-pill { background: #eefbf3; color: #2f855a; border-color: rgba(56,161,105,.2); }
+  #sec-kpis .kpi-mobile-focus-grid { display:grid; grid-template-columns: 1fr; gap: 10px; }
+  #sec-kpis .kpi-mobile-focus-card {
+    padding: 13px;
+    border-radius: 16px;
+    border: 1px solid var(--border);
+    background: #fff;
+  }
+  #sec-kpis .kpi-mobile-focus-label {
+    display:block;
+    margin-bottom: 7px;
+    font-size: 11px;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: .08em;
+    color: var(--text-muted);
+  }
+  #sec-kpis .kpi-mobile-focus-card strong { display:block; font-size: 15px; line-height: 1.25; color: var(--text-primary); margin-bottom: 7px; }
+  #sec-kpis .kpi-mobile-focus-card p { font-size: 12.5px; line-height: 1.5; color: var(--text-secondary); }
+  #sec-kpis .kpi-mobile-focus-actions { display:grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
+  #sec-kpis .kpi-mobile-focus-actions .btn { width: 100%; justify-content: center; min-height: 46px; }
+
+  #sec-kpis .kpi-toolbar { gap: 14px; }
+  #sec-kpis .kpi-toolbar-title { font-size: 20px; line-height: 1.1; }
+  #sec-kpis .kpi-toolbar-stack { gap: 10px; }
+  #sec-kpis .kpi-scope-box,
+  #sec-kpis .kpi-mode-box { padding: 12px; border-radius: 16px; }
+  #sec-kpis .kpi-mode-toggle { display:grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+  #sec-kpis .kpi-mode-btn { min-height: 44px; }
+  #sec-kpis .kpi-summary-strip {
+    display: grid;
+    grid-auto-flow: column;
+    grid-auto-columns: minmax(138px, 1fr);
+    overflow-x: auto;
+    gap: 10px;
+    padding-bottom: 4px;
+    scrollbar-width: none;
+  }
+  #sec-kpis .kpi-summary-strip::-webkit-scrollbar { display:none; }
+  #sec-kpis .kpi-summary-strip .metric-tile { min-height: 88px; }
+  #sec-kpis .kpi-grid-auto { grid-template-columns: 1fr; gap: 12px; }
+  #sec-kpis .kpi-card { padding: 16px; }
+  #sec-kpis .kpi-card-wide { grid-column: auto; }
+  #sec-kpis .ops-grid { grid-template-columns: 1fr; gap: 10px; }
+  #sec-kpis .btn-row { display:grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+
+  #sec-calendario .calendar-mobile-hub { padding: 12px; border-radius: 18px; }
+  #sec-calendario .calendar-mobile-chip { min-width: 68px; padding: 8px 10px; }
+  #sec-calendario .calendar-mobile-summary { padding: 10px 12px; }
+  #sec-calendario .calendar-entry-grid { gap: 10px; }
+  #sec-calendario .calendar-entry-input,
+  #sec-calendario .calendar-input,
+  #sec-kpis .kpi-scope-select,
+  #sec-kpis .kpi-period-input { min-height: 46px; }
+}
+
+@media (max-width: 640px) {
+  #sec-kpis .kpi-mobile-focus-actions { grid-template-columns: 1fr; }
+  #sec-kpis .btn-row { grid-template-columns: 1fr; }
+}

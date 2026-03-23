@@ -99,7 +99,7 @@ let backupReminderShown = false;
 let appReadyForDirtyTracking = false;
 let deferredInstallPrompt = null;
 const PWA_CACHE_LABEL = 'Polar3 PWA';
-const POLAR3_APP_VERSION = '2.7.6';
+const POLAR3_APP_VERSION = '2.7.7';
 const DEPRECATED_SECTION_REDIRECTS = {
   quien: 'inicio',
   pack: 'modalidades',
@@ -120,6 +120,7 @@ let lastScrollY = 0;
 let topbarCollapsedState = false;
 let topbarScrollTicking = false;
 let topbarScrollLockUntil = 0;
+let calendarMobileOpenMonthKey = null;
 const AI_PROVIDER_URLS = {
   chatgpt: 'https://chatgpt.com/',
   gemini: 'https://gemini.google.com/',
@@ -1598,6 +1599,161 @@ function syncCalendarPrintCopies(data) {
   });
 }
 
+
+function getCalendarShortMonthLabel(month) {
+  const label = CALENDAR_MONTH_LABELS[month] || month || '';
+  return label ? label.slice(0, 3) : '';
+}
+
+function getCalendarMonthCards() {
+  return [...document.querySelectorAll('#sec-calendario .calendar-month-card')].map(card => {
+    const dateField = card.querySelector('[id^="cal-"][id$="-date"]');
+    const match = dateField?.id?.match(/^cal\-([a-zñ]+)\-date$/i);
+    const month = match?.[1] || card.dataset.calendarMonth || '';
+    if (month) card.dataset.calendarMonth = month;
+    return { card, month };
+  }).filter(entry => entry.month);
+}
+
+function ensureCalendarMobileMonthStructure() {
+  getCalendarMonthCards().forEach(({ card, month }) => {
+    const head = card.querySelector('.calendar-month-head');
+    if (!head) return;
+
+    let body = card.querySelector('.calendar-month-body');
+    if (!body) {
+      body = document.createElement('div');
+      body.className = 'calendar-month-body';
+      [...card.children].forEach(child => {
+        if (child !== head) body.appendChild(child);
+      });
+      card.appendChild(body);
+    }
+
+    if (!head.querySelector('.calendar-mobile-toggle')) {
+      const toggle = document.createElement('button');
+      toggle.type = 'button';
+      toggle.className = 'btn btn-outline btn-sm calendar-mobile-toggle';
+      toggle.textContent = 'Abrir';
+      toggle.setAttribute('aria-expanded', 'false');
+      toggle.onclick = () => setCalendarMobileOpenMonth(month);
+      head.appendChild(toggle);
+    }
+  });
+}
+
+function isCalendarMobileViewport() {
+  return window.matchMedia ? window.matchMedia('(max-width: 900px)').matches : window.innerWidth <= 900;
+}
+
+function findCalendarNextActiveMonth(data) {
+  const currentIndex = new Date().getMonth();
+  const ordered = [...CALENDAR_MONTH_KEYS.slice(currentIndex), ...CALENDAR_MONTH_KEYS.slice(0, currentIndex)];
+  return ordered.find(month => (data?.[month]?.items || []).length) || CALENDAR_MONTH_KEYS[currentIndex] || CALENDAR_MONTH_KEYS[0];
+}
+
+function getCalendarMonthSummary(data, month) {
+  const monthData = data?.[month] || createEmptyCalendarMonth();
+  const items = sortCalendarItems(Array.isArray(monthData.items) ? monthData.items : []);
+  const today = getTodayIsoDate();
+  const next = items.find(item => item.date && item.date >= today) || items[0] || null;
+  return { items, next, notes: String(monthData.notes || '').trim() };
+}
+
+function renderCalendarMobileHub() {
+  const chips = document.getElementById('calendarMobileMonthChips');
+  const summary = document.getElementById('calendarMobileSummary');
+  if (!chips || !summary) return;
+
+  const data = getCalendarPlannerData();
+  const fallbackMonth = CALENDAR_MONTH_KEYS[new Date().getMonth()] || CALENDAR_MONTH_KEYS[0];
+  const activeMonth = calendarMobileOpenMonthKey || findCalendarNextActiveMonth(data) || fallbackMonth;
+
+  chips.innerHTML = CALENDAR_MONTH_KEYS.map(month => {
+    const count = (data?.[month]?.items || []).length;
+    const active = month === activeMonth ? ' active' : '';
+    return `<button class="calendar-mobile-chip${active}" type="button" onclick="setCalendarMobileOpenMonth('${month}')"><span>${escapeHtml(getCalendarShortMonthLabel(month))}</span><strong>${count}</strong></button>`;
+  }).join('');
+
+  const payload = getCalendarMonthSummary(data, activeMonth);
+  const monthLabel = CALENDAR_MONTH_LABELS[activeMonth] || activeMonth;
+  if (!payload.items.length) {
+    summary.innerHTML = `<strong>${escapeHtml(monthLabel)}</strong><span>Sin movimientos cargados todavía. Puedes usar este mes para cargar jornadas, reuniones o recordatorios.</span>`;
+    return;
+  }
+
+  const nextLabel = payload.next
+    ? `${formatCalendarDate(payload.next.date)}${payload.next.time ? ' · ' + formatCalendarTime(payload.next.time) : ''} · ${escapeHtml(payload.next.school || 'Sin colegio')}`
+    : 'Sin fecha próxima cargada.';
+  summary.innerHTML = `<strong>${escapeHtml(monthLabel)}</strong><span>${payload.items.length} ${payload.items.length === 1 ? 'ítem cargado' : 'ítems cargados'} · Próximo: ${nextLabel}</span>`;
+}
+
+function syncCalendarMobileLayout() {
+  ensureCalendarMobileMonthStructure();
+  const cards = getCalendarMonthCards();
+  if (!cards.length) return;
+
+  if (!isCalendarMobileViewport()) {
+    cards.forEach(({ card }) => {
+      card.classList.remove('is-collapsed', 'is-active-mobile');
+      const toggle = card.querySelector('.calendar-mobile-toggle');
+      if (toggle) {
+        toggle.textContent = 'Abrir';
+        toggle.setAttribute('aria-expanded', 'true');
+      }
+    });
+    renderCalendarMobileHub();
+    return;
+  }
+
+  const availableMonths = cards.map(entry => entry.month);
+  if (!calendarMobileOpenMonthKey || !availableMonths.includes(calendarMobileOpenMonthKey)) {
+    const data = getCalendarPlannerData();
+    calendarMobileOpenMonthKey = findCalendarNextActiveMonth(data) || availableMonths[new Date().getMonth()] || availableMonths[0];
+  }
+
+  cards.forEach(({ card, month }) => {
+    const isOpen = month === calendarMobileOpenMonthKey;
+    card.classList.toggle('is-collapsed', !isOpen);
+    card.classList.toggle('is-active-mobile', isOpen);
+    const toggle = card.querySelector('.calendar-mobile-toggle');
+    if (toggle) {
+      toggle.textContent = isOpen ? 'Activo' : 'Abrir';
+      toggle.setAttribute('aria-expanded', String(isOpen));
+    }
+  });
+
+  renderCalendarMobileHub();
+}
+
+function setCalendarMobileOpenMonth(month, options = {}) {
+  const targetMonth = CALENDAR_MONTH_KEYS.includes(month) ? month : (CALENDAR_MONTH_KEYS[new Date().getMonth()] || CALENDAR_MONTH_KEYS[0]);
+  calendarMobileOpenMonthKey = targetMonth;
+  syncCalendarMobileLayout();
+
+  if (isCalendarMobileViewport() && options.scroll !== false) {
+    const targetCard = document.querySelector(`#sec-calendario .calendar-month-card[data-calendar-month="${targetMonth}"]`);
+    targetCard?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }
+}
+
+function openCalendarCurrentMonth() {
+  const month = CALENDAR_MONTH_KEYS[new Date().getMonth()] || CALENDAR_MONTH_KEYS[0];
+  setCalendarMobileOpenMonth(month);
+}
+
+function openCalendarNextPlannedMonth() {
+  const data = getCalendarPlannerData();
+  const month = findCalendarNextActiveMonth(data);
+  if (!month) {
+    showToast('Todavía no hay actividad cargada en el calendario.', 'warning');
+    openCalendarCurrentMonth();
+    return;
+  }
+  setCalendarMobileOpenMonth(month);
+}
+
+
 function renderCalendarPlanner() {
   const data = getCalendarPlannerData();
   document.querySelectorAll('[data-calendar-notes]').forEach(field => {
@@ -1609,6 +1765,7 @@ function renderCalendarPlanner() {
   });
   syncCalendarPrintCopies(data);
   renderCalendarDerivedViews();
+  syncCalendarMobileLayout();
   updateCalendarSaveStatus('Autoguardado local activo', 'info');
 }
 
@@ -1654,6 +1811,7 @@ function addCalendarPlannerItem(month) {
   saveCalendarPlannerData(data);
   renderCalendarPlanner();
   clearCalendarMonthQuickForm(month);
+  setCalendarMobileOpenMonth(month, { scroll: false });
   updateCalendarSaveStatus('Fila operativa agregada · ' + new Date().toLocaleTimeString('es-AR', { hour: '2-digit', minute: '2-digit' }), 'success');
   showToast('Fila agregada al calendario anual.', 'success');
 }
@@ -2370,6 +2528,65 @@ function computeKpiMetrics() {
   };
 }
 
+
+function buildKpiMobileExecutive(metrics, healthVariant) {
+  if (!metrics.totalPayments && !metrics.schools.length) {
+    return { pill: 'Sin datos', title: 'Panel todavía vacío', meta: 'Carga al menos un colegio y un cobro para que la lectura móvil empiece a tener sentido.' };
+  }
+  if (healthVariant === 'danger') {
+    return { pill: 'Atención', title: 'Cobranza frágil', meta: `Solo ${formatPercent(metrics.effectiveRate)} del tablero está validado o liquidado. Conviene bajar a cobranzas y atacar pendientes.` };
+  }
+  if (healthVariant === 'warning') {
+    return { pill: 'Seguimiento', title: 'Pulso intermedio', meta: `${metrics.pendingCount} registro(s) siguen abiertos. Ya hay ${money(metrics.canon)} para reservar a cooperadora.` };
+  }
+  return { pill: 'Sano', title: 'Lectura saludable', meta: `${formatPercent(metrics.effectiveRate)} efectivo · ${metrics.activeSchools} institución(es) activa(s) · ${money(metrics.canon)} proyectados para canon.` };
+}
+
+function buildKpiMobileAction(metrics) {
+  if (!metrics.totalPayments && metrics.schools.length) {
+    return { title: 'Primero cargar cobros', meta: 'Ya tienes cartera, pero todavía no hay cobranzas. El siguiente paso real es alimentar el tablero financiero.' };
+  }
+  if (!metrics.totalPayments) {
+    return { title: 'Arrancar por cartera y cobranzas', meta: 'Sin datos financieros todavía. Carga un colegio y un primer cobro para activar el tablero.' };
+  }
+  if (metrics.undatedCount > 0 && metrics.periodMode !== 'all') {
+    return { title: 'Completar fechas faltantes', meta: `${metrics.undatedCount} registro(s) quedaron fuera del período porque no tienen fecha cargada.` };
+  }
+  if (metrics.effectiveRate < 40) {
+    return { title: 'Atacar pendientes y observados', meta: `${metrics.pendingCount} registro(s) todavía no entran como efectivos. Ese es el cuello de botella principal.` };
+  }
+  if (metrics.effectiveRate < 70) {
+    return { title: 'Empujar validación antes de producir', meta: 'La cobranza todavía está en zona media. Conviene validar más antes de comprometer volumen fuerte.' };
+  }
+  if (!metrics.scoped && metrics.activeSchools === 0 && metrics.schools.length) {
+    return { title: 'Revisar etapa de cartera', meta: 'Hay instituciones cargadas, pero ninguna figura activa. Vale la pena ordenar la cartera comercial.' };
+  }
+  return { title: 'Mantener ritmo y respaldo', meta: 'La lectura está bien. Usa este panel para no perder visibilidad y sigue exportando respaldo JSON con frecuencia.' };
+}
+
+function renderKpiMobileFocus(metrics, healthVariant) {
+  const executive = buildKpiMobileExecutive(metrics, healthVariant);
+  const action = buildKpiMobileAction(metrics);
+  const pill = document.getElementById('kpiMobileFocusPill');
+  const focus = document.getElementById('kpiMobileFocus');
+  const filterTitle = metrics.scoped ? `${metrics.scopeLabel} · ${metrics.periodStatus.replace('Período: ', '')}` : `${metrics.scopeLabel} · ${metrics.periodStatus.replace('Período: ', '')}`;
+  const filterMeta = `${metrics.scopeText} ${metrics.periodText}`;
+
+  setText('kpiMobileExecutiveTitle', executive.title);
+  setText('kpiMobileExecutiveMeta', executive.meta);
+  setText('kpiMobileActionTitle', action.title);
+  setText('kpiMobileActionMeta', action.meta);
+  setText('kpiMobileFilterTitle', filterTitle);
+  setText('kpiMobileFilterMeta', filterMeta);
+  if (pill) pill.textContent = executive.pill;
+  if (focus) {
+    focus.classList.remove('is-warning', 'is-danger', 'is-success');
+    if (healthVariant === 'warning') focus.classList.add('is-warning');
+    if (healthVariant === 'danger') focus.classList.add('is-danger');
+    if (healthVariant === 'success') focus.classList.add('is-success');
+  }
+}
+
 function renderKpiDashboard() {
   const metrics = computeKpiMetrics();
   syncKpiTicketModeButtons(metrics.ticketMode);
@@ -2450,6 +2667,8 @@ function renderKpiDashboard() {
     if (healthVariant === 'danger') healthCard.classList.add('ops-card-danger');
     if (healthVariant === 'success') healthCard.classList.add('ops-card-success');
   }
+
+  renderKpiMobileFocus(metrics, healthVariant);
 }
 
 function renderSchoolBoard() {
@@ -3585,7 +3804,7 @@ function initEvents() {
   });
 
   window.addEventListener('scroll', handleTopbarAutoCollapse, { passive: true });
-  window.addEventListener('resize', () => { lastScrollY = window.scrollY || window.pageYOffset || 0; handleTopbarAutoCollapse(); });
+  window.addEventListener('resize', () => { lastScrollY = window.scrollY || window.pageYOffset || 0; handleTopbarAutoCollapse(); syncCalendarMobileLayout(); });
   document.addEventListener('focusin', evt => {
     if (evt.target && ['INPUT','TEXTAREA','SELECT'].includes(evt.target.tagName)) setTopbarCollapsed(false, { force: true });
   });
@@ -3631,6 +3850,9 @@ window.closeSidebar = closeSidebar;
 window.openPolarWhatsApp = openPolarWhatsApp;
 window.openPolarMail = openPolarMail;
 window.focusAiQuickPanel = focusAiQuickPanel;
+window.setCalendarMobileOpenMonth = setCalendarMobileOpenMonth;
+window.openCalendarCurrentMonth = openCalendarCurrentMonth;
+window.openCalendarNextPlannedMonth = openCalendarNextPlannedMonth;
 window.setAiQuickTemplate = setAiQuickTemplate;
 window.syncAiQuickComposer = syncAiQuickComposer;
 window.copyAiQuickPrompt = copyAiQuickPrompt;

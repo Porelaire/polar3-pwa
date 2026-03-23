@@ -3,8 +3,8 @@
 <head>
 <meta charset="utf-8"/>
 <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
-<title>Polar[3] — Sistema Operativo 2026 · V2.7.6</title>
-<meta content="Sistema Operativo Polar3 V2.7.6 pulido para Android/PWA, con navegación más limpia, encabezado móvil estabilizado y flujo operativo simplificado." name="description"/>
+<title>Polar[3] — Sistema Operativo 2026 · V2.7.7</title>
+<meta content="Sistema Operativo Polar3 V2.7.7 pulido para Android/PWA, con navegación más limpia, encabezado móvil estabilizado y flujo operativo simplificado." name="description"/>
 <meta content="#161c26" name="theme-color"/>
 <meta content="yes" name="mobile-web-app-capable"/>
 <meta content="yes" name="apple-mobile-web-app-capable"/>
@@ -21,7 +21,7 @@
 <div class="sidebar-logo">
 <div class="logo-brand">Polar<span>[3]</span></div>
 <div class="logo-sub">Fotografía escolar · sistema operativo</div>
-<div class="logo-badge">V2.7.6 Android first · 2026</div>
+<div class="logo-badge">V2.7.7 Android first · 2026</div>
 </div>
 <div class="sidebar-nav">
 <a class="nav-item-direct active" data-section="inicio" data-space="operativo comercial" onclick="showSection('inicio')">
@@ -179,7 +179,7 @@
 <div class="ops-kicker">Consulta IA rápida</div>
 <h3>ChatGPT · Gemini · Claude</h3>
 </div>
-<div class="ops-badge">v2.7.6</div>
+<div class="ops-badge">v2.7.7</div>
 </div>
 <p class="ai-quick-copy">Arma un prompt breve con contexto de la sección actual, cópialo y abre tu IA preferida sin meter claves ni backend dentro de la app.</p>
 <div class="ai-quick-grid">
@@ -1029,6 +1029,16 @@
 <div class="calendar-derived-list" id="calendarWeekPrintList"></div>
 </article>
 </div>
+</div>
+<div class="card calendar-mobile-hub">
+<div class="sub-title" style="margin-bottom:6px">Calendario móvil</div>
+<p class="lead-tight">Navega mes por mes, abre solo el bloque que necesitas y salta rápido al mes actual o al próximo con actividad.</p>
+<div class="calendar-mobile-chip-row" id="calendarMobileMonthChips"></div>
+<div class="calendar-mobile-actions">
+<button class="btn btn-outline" onclick="openCalendarCurrentMonth()" type="button">Mes actual</button>
+<button class="btn btn-outline" onclick="openCalendarNextPlannedMonth()" type="button">Próximo con actividad</button>
+</div>
+<div class="calendar-mobile-summary" id="calendarMobileSummary">Calendario móvil listo para navegar por mes.</div>
 </div>
 <div class="calendar-year-grid">
 
@@ -3140,6 +3150,37 @@
 </div>
 <div class="section-body stack-6">
 <div class="note-box info"><span class="note-label">Fuente:</span> esta pantalla toma los datos cargados en <strong>Tablero de cobranzas</strong> y <strong>Cartera de colegios</strong>. No hay que recalcular nada a mano.</div>
+<div class="kpi-mobile-focus" id="kpiMobileFocus">
+<div class="kpi-mobile-focus-head">
+<div>
+<div class="kpi-mobile-kicker">Lectura móvil rápida</div>
+<h2>Resumen ejecutivo</h2>
+</div>
+<div class="kpi-mobile-focus-pill" id="kpiMobileFocusPill">Sin datos</div>
+</div>
+<div class="kpi-mobile-focus-grid">
+<article class="kpi-mobile-focus-card">
+<span class="kpi-mobile-focus-label">Estado general</span>
+<strong id="kpiMobileExecutiveTitle">Todavía sin lectura</strong>
+<p id="kpiMobileExecutiveMeta">Carga cobranzas y cartera para activar esta vista compacta.</p>
+</article>
+<article class="kpi-mobile-focus-card">
+<span class="kpi-mobile-focus-label">Próximo movimiento</span>
+<strong id="kpiMobileActionTitle">Sin prioridad definida</strong>
+<p id="kpiMobileActionMeta">La app te va a sugerir el siguiente paso operativo según la salud de la cobranza.</p>
+</article>
+<article class="kpi-mobile-focus-card">
+<span class="kpi-mobile-focus-label">Filtro activo</span>
+<strong id="kpiMobileFilterTitle">Global · todo el historial</strong>
+<p id="kpiMobileFilterMeta">Todavía sin filtro específico cargado.</p>
+</article>
+</div>
+<div class="kpi-mobile-focus-actions">
+<button class="btn btn-outline" type="button" onclick="showSection('cobranzas')">Cobranzas</button>
+<button class="btn btn-outline" type="button" onclick="showSection('cartera')">Cartera</button>
+<button class="btn btn-outline" type="button" onclick="showSection('inicio')">Inicio</button>
+</div>
+</div>
 <div class="kpi-toolbar">
 <div>
 <div class="kpi-toolbar-title">KPIs automáticos con filtro por colegio</div>
@@ -3889,7 +3930,7 @@
 </div>
 <div class="section" id="sec-cobranzas">
 <div class="section-header">
-<div class="breadcrumb">Post y entrega · V2.7.6</div>
+<div class="breadcrumb">Post y entrega · V2.7.7</div>
 <h1>Tablero de cobranzas</h1>
 <p>Versión móvil reforzada para cargar cobros con menos pasos, leer rápido el tablero y actuar con botones táctiles sin pelearte con una tabla chica.</p>
 </div>
