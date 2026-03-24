@@ -2,27 +2,18 @@ let precioActual = parseInt(localStorage.getItem('polar3_precio')) || 15000;
 const sectionMap = {
   inicio: 'sec-inicio',
   appcenter: 'sec-appcenter',
-  quien: 'sec-quien',
-  pack: 'sec-pack',
-  compromisos: 'sec-compromisos',
-  flujo: 'sec-flujo',
   calendario: 'sec-calendario',
-  economico: 'sec-economico',
   captacion: 'sec-captacion',
   scripts: 'sec-scripts',
   familias: 'sec-familias',
   marketing: 'sec-marketing',
   cartera: 'sec-cartera',
-  captura: 'sec-captura',
-  iluminacion: 'sec-iluminacion',
-  lightroom: 'sec-lightroom',
-  photoshop: 'sec-photoshop',
-  montaje: 'sec-montaje',
-  imprenta: 'sec-imprenta',
-  archivos: 'sec-archivos',
+  institucional: 'sec-institucional',
+  modalidades: 'sec-modalidades',
+  propuesta: 'sec-propuesta',
+  marca: 'sec-marca',
   checklist: 'sec-checklist',
   seguimiento: 'sec-seguimiento',
-  roles: 'sec-roles',
   emergencias: 'sec-emergencias',
   diagnostico: 'sec-diagnostico',
   sla: 'sec-sla',
@@ -33,36 +24,43 @@ const sectionMap = {
   kpis: 'sec-kpis',
   simulador: 'sec-simulador',
   respaldos: 'sec-respaldos',
-    institucional: 'sec-institucional',
-  modalidades: 'sec-modalidades',
-  propuesta: 'sec-propuesta',
-  marca: 'sec-marca',
   workspace: 'sec-workspace'
+};
+const legacyRedirects = {
+  quien: 'institucional',
+  pack: 'modalidades',
+  compromisos: 'marca',
+  flujo: 'calendario',
+  economico: 'simulador',
+  captura: 'checklist',
+  iluminacion: 'checklist',
+  lightroom: 'qa',
+  photoshop: 'qa',
+  montaje: 'qa',
+  imprenta: 'qa',
+  archivos: 'respaldos',
+  roles: 'checklist',
+  onboarding: 'appcenter',
+  glosario: 'appcenter',
+  'legal-consolidado': 'forms',
+  'legal-resumen': 'forms',
+  privacidad: 'forms'
 };
 const sectionSpaces = {
   inicio: ['operativo', 'comercial'],
   appcenter: ['operativo', 'comercial'],
-  quien: ['operativo', 'comercial'],
-  pack: ['operativo', 'comercial'],
-  compromisos: ['operativo', 'comercial'],
-  flujo: ['operativo'],
   calendario: ['operativo'],
-  economico: ['operativo'],
   captacion: ['operativo', 'comercial'],
   scripts: ['operativo', 'comercial'],
   familias: ['operativo', 'comercial'],
   marketing: ['operativo', 'comercial'],
   cartera: ['operativo', 'comercial'],
-  captura: ['operativo'],
-  iluminacion: ['operativo'],
-  lightroom: ['operativo'],
-  photoshop: ['operativo'],
-  montaje: ['operativo'],
-  imprenta: ['operativo'],
-  archivos: ['operativo'],
+  institucional: ['comercial'],
+  modalidades: ['comercial'],
+  propuesta: ['comercial'],
+  marca: ['comercial'],
   checklist: ['operativo'],
   seguimiento: ['operativo'],
-  roles: ['operativo'],
   emergencias: ['operativo'],
   diagnostico: ['operativo'],
   sla: ['operativo'],
@@ -73,18 +71,16 @@ const sectionSpaces = {
   kpis: ['operativo'],
   simulador: ['operativo', 'comercial'],
   respaldos: ['operativo'],
-  institucional: ['comercial'],
-  modalidades: ['comercial'],
-  propuesta: ['comercial'],
-  marca: ['comercial'],
   workspace: ['operativo', 'comercial']
 };
 const workspaceDefaults = {
   operativo: 'inicio',
   comercial: 'institucional'
 };
-let currentWorkspace = (['operativo', 'comercial'].includes(localStorage.getItem('polar3_workspace')) ? localStorage.getItem('polar3_workspace') : 'operativo');
-let meetingMode = false;
+const VALID_WORKSPACES = ['operativo', 'comercial'];
+let currentWorkspace = localStorage.getItem('polar3_workspace') || 'operativo';
+if (!VALID_WORKSPACES.includes(currentWorkspace)) currentWorkspace = 'operativo';
+let meetingMode = localStorage.getItem('polar3_meeting_mode') === '1';
 const POLAR3_STORAGE_PREFIX = 'polar3_';
 const BACKUP_META_KEY = 'polar3_backup_meta';
 const BACKUP_HISTORY_KEY = 'polar3_backup_history';
@@ -93,49 +89,6 @@ const BACKUP_HISTORY_LIMIT = 40;
 let toastTimer = null;
 let backupReminderShown = false;
 let appReadyForDirtyTracking = false;
-let deferredInstallPrompt = null;
-const PWA_CACHE_LABEL = 'Polar3 PWA';
-const POLAR3_APP_VERSION = '2.7.12';
-const DEPRECATED_SECTION_REDIRECTS = {
-  quien: 'inicio',
-  pack: 'modalidades',
-  compromisos: 'institucional',
-  flujo: 'calendario',
-  economico: 'simulador',
-  captura: 'checklist',
-  iluminacion: 'checklist',
-  lightroom: 'checklist',
-  photoshop: 'checklist',
-  montaje: 'checklist',
-  imprenta: 'checklist',
-  archivos: 'workspace',
-  roles: 'checklist',
-  onboarding: 'inicio',
-  glosario: 'inicio'
-};
-const SEARCH_EXCLUDED_SECTIONS = new Set(Object.keys(DEPRECATED_SECTION_REDIRECTS));
-let lastScrollY = 0;
-let topbarCollapsedState = false;
-let topbarScrollTicking = false;
-let topbarScrollLockUntil = 0;
-let calendarMobileOpenMonthKey = null;
-const AI_PROVIDER_URLS = {
-  chatgpt: 'https://chatgpt.com/',
-  gemini: 'https://gemini.google.com/app',
-  claude: 'https://claude.ai/'
-};
-const AI_PROVIDER_INTENTS = {
-  chatgpt: 'intent://chatgpt.com/#Intent;scheme=https;package=com.openai.chatgpt;S.browser_fallback_url=https%3A%2F%2Fchatgpt.com%2F;end',
-  gemini: 'intent://gemini.google.com/app#Intent;scheme=https;package=com.google.android.apps.bard;S.browser_fallback_url=https%3A%2F%2Fgemini.google.com%2Fapp;end',
-  claude: 'intent://claude.ai/#Intent;scheme=https;package=com.anthropic.claude;S.browser_fallback_url=https%3A%2F%2Fclaude.ai%2F;end'
-};
-const AI_TEMPLATE_LABELS = {
-  consulta: 'Consulta operativa',
-  cobranzas: 'Cobranzas / pagos',
-  jornada: 'Jornada de toma',
-  comercial: 'Mensaje comercial',
-  kpis: 'Lectura de KPIs'
-};
 
 function trackedSetItem(key, value, markDirty = true) {
   localStorage.setItem(key, value);
@@ -398,82 +351,10 @@ function renderBackupAdmin() {
   }
 }
 
-function summarizeUpcomingAgenda() {
-  const data = getCalendarPlannerData();
-  const items = sortCalendarItems(Object.values(data).flatMap(month => Array.isArray(month?.items) ? month.items : []));
-  const today = getTodayIsoDate();
-  const todays = items.filter(item => normalizePaymentDate(item.date) === today);
-  const next = items.find(item => normalizePaymentDate(item.date) && normalizePaymentDate(item.date) >= today) || null;
-  return { today, todays, next };
-}
-
-function renderMobileOpsDashboard() {
-  const nextTitle = document.getElementById('mobileNextActionTitle');
-  const nextMeta = document.getElementById('mobileNextActionMeta');
-  const payTitle = document.getElementById('mobilePendingPaymentsTitle');
-  const payMeta = document.getElementById('mobilePendingPaymentsMeta');
-  const followTitle = document.getElementById('mobileFollowupTitle');
-  const followMeta = document.getElementById('mobileFollowupMeta');
-  const backupTitle = document.getElementById('mobileBackupTitle');
-  const backupMeta = document.getElementById('mobileBackupMeta');
-  if (!nextTitle && !payTitle && !followTitle && !backupTitle) return;
-
-  const agenda = summarizeUpcomingAgenda();
-  if (nextTitle && nextMeta) {
-    if (agenda.todays.length) {
-      const first = agenda.todays[0];
-      nextTitle.textContent = `Hoy · ${agenda.todays.length} movimiento${agenda.todays.length > 1 ? 's' : ''}`;
-      nextMeta.textContent = `${first.time ? formatCalendarTime(first.time) + ' · ' : ''}${first.school || 'Sin colegio'} · ${getCalendarStatusLabel(first.status)}`;
-    } else if (agenda.next) {
-      nextTitle.textContent = agenda.next.school || 'Próxima agenda cargada';
-      nextMeta.textContent = `${formatCalendarDate(agenda.next.date)}${agenda.next.time ? ' · ' + formatCalendarTime(agenda.next.time) : ''} · ${getCalendarStatusLabel(agenda.next.status)}`;
-    } else {
-      nextTitle.textContent = 'Sin agenda próxima cargada';
-      nextMeta.textContent = 'Carga una fecha en Calendario anual para ver tu próxima acción.';
-    }
-  }
-
-  const payments = getPaymentBoardData();
-  const pendingPayments = payments.filter(item => ['pendiente', 'observado'].includes(item.status));
-  const pendingAmount = pendingPayments.reduce((sum, item) => sum + (Number(item.amount) || 0), 0);
-  if (payTitle && payMeta) {
-    payTitle.textContent = `${pendingPayments.length} cobro${pendingPayments.length === 1 ? '' : 's'} en seguimiento`;
-    payMeta.textContent = pendingPayments.length
-      ? `${money(pendingAmount)} pendientes entre observados y no validados.`
-      : 'Sin dinero pendiente por revisar.';
-  }
-
-  const followups = getFollowupData();
-  const openCases = followups.filter(item => item.status !== 'resuelto');
-  const openCount = openCases.reduce((sum, item) => sum + Number(item.count || 0), 0);
-  const retakeCount = openCases.filter(item => item.type === 'retoma').reduce((sum, item) => sum + Number(item.count || 0), 0);
-  if (followTitle && followMeta) {
-    followTitle.textContent = `${openCount} caso${openCount === 1 ? '' : 's'} abierto${openCount === 1 ? '' : 's'}`;
-    followMeta.textContent = openCount
-      ? `${retakeCount} en retoma · ${openCases.length} registro${openCases.length === 1 ? '' : 's'} operativos todavía activos.`
-      : 'Sin ausentes ni retomas abiertas.';
-  }
-
-  const backup = computeBackupReminderState();
-  if (backupTitle && backupMeta) {
-    backupTitle.textContent = backup.dirty ? 'Respaldo pendiente' : 'Respaldo al día';
-    backupMeta.textContent = `Último JSON: ${backup.lastBackupText}. ${backup.nextReminderText}`;
-  }
-}
-
-function updateMobileTabbar(activeSection) {
-  document.querySelectorAll('[data-mobile-tab]').forEach(btn => {
-    const key = btn.dataset.mobileTab;
-    const isActive = key !== 'menu' && key === activeSection;
-    btn.classList.toggle('active', isActive);
-  });
-}
-
 function updateBackupUI() {
   updateBackupChip();
   updateBackupReminderUI();
   renderBackupAdmin();
-  renderMobileOpsDashboard();
 }
 
 function showToast(message, tone = 'info') {
@@ -634,9 +515,9 @@ function clearBackupHistory() {
 }
 
 const paymentBoardSeed = [
-  { id: 'ex1', school: 'Jardín Arco Iris', date: '2026-03-08', name: 'Sofía Pérez', course: 'Sala 5 A', amount: 15000, status: 'validado', receipt: 'MP-3021', note: 'Pack base' },
-  { id: 'ex2', school: 'Instituto San Martín', date: '2026-03-11', name: 'Tomás Díaz', course: 'Sala 4 B', amount: 15000, status: 'observado', receipt: 'Comprobante ilegible', note: 'Pedir reenvío' },
-  { id: 'ex3', school: 'Escuela Modelo Sur', date: '2026-02-26', name: 'Emma Roldán', course: 'Sala 5 A', amount: 17500, status: 'liquidado', receipt: 'Transferencia', note: 'Pack + extra digital' }
+  { id: 'ex1', name: 'Sofía Pérez', course: 'Sala 5 A', amount: 15000, status: 'validado', receipt: 'MP-3021', note: 'Pack base' },
+  { id: 'ex2', name: 'Tomás Díaz', course: 'Sala 4 B', amount: 15000, status: 'observado', receipt: 'Comprobante ilegible', note: 'Pedir reenvío' },
+  { id: 'ex3', name: 'Emma Roldán', course: 'Sala 5 A', amount: 17500, status: 'liquidado', receipt: 'Transferencia', note: 'Pack + extra digital' }
 ];
 
 const schoolBoardSeed = [
@@ -755,104 +636,8 @@ function ensureWorkspaceForSection(id) {
   }
 }
 
-
-function resolveSectionTarget(id) {
-  return DEPRECATED_SECTION_REDIRECTS[id] || id;
-}
-
-function pruneDeprecatedUi() {
-  const sectionIdsToRemove = [
-    'sec-quien','sec-pack','sec-compromisos','sec-flujo','sec-economico',
-    'sec-captura','sec-iluminacion','sec-lightroom','sec-photoshop','sec-montaje','sec-imprenta','sec-archivos','sec-roles'
-  ];
-  sectionIdsToRemove.forEach(id => document.getElementById(id)?.remove());
-
-  ['#grp-presentacion', '#grp-tecnico'].forEach(sel => {
-    document.querySelectorAll(sel).forEach(node => node.remove());
-  });
-
-  ['flujo', 'economico', 'roles'].forEach(key => {
-    document.querySelectorAll(`[data-section="${key}"]`).forEach(node => {
-      const wrapper = node.closest('li, .quick-card, .nav-group') || node;
-      wrapper.remove();
-    });
-  });
-
-  document.querySelectorAll('.quick-card').forEach(card => {
-    const action = card.getAttribute('onclick') || '';
-    if (/showSection\('(quien|flujo)'\)/.test(action)) card.remove();
-  });
-
-  document.querySelectorAll('button[onclick], a[onclick]').forEach(node => {
-    const action = node.getAttribute('onclick') || '';
-    if (action.includes("showSection('flujo')")) {
-      node.setAttribute('onclick', "showSection('calendario')");
-      if (node.textContent?.trim() === 'Ver flujo completo') node.textContent = 'Ver calendario';
-    }
-    if (action.includes("showSection('pack')")) {
-      node.setAttribute('onclick', "showSection('modalidades')");
-      if (node.textContent?.trim() === 'Abrir pack y servicios') node.textContent = 'Abrir modalidades';
-    }
-    if (action.includes("showSection('compromisos')")) {
-      node.setAttribute('onclick', "showSection('institucional')");
-      if (node.textContent?.trim() === 'Ver compromisos') node.textContent = 'Ver propuesta base';
-    }
-    if (action.includes("showSection('archivos')")) {
-      node.setAttribute('onclick', "showSection('workspace')");
-      if (node.textContent?.trim() === 'Ver estructura de archivos') node.textContent = 'Ver estructura Workspace';
-    }
-  });
-}
-
-function setTopbarCollapsed(collapsed, { force = false } = {}) {
-  const next = !!collapsed;
-  if (!force && topbarCollapsedState === next) return;
-  topbarCollapsedState = next;
-  document.body.classList.toggle('topbar-collapsed', next);
-  topbarScrollLockUntil = Date.now() + 260;
-}
-
-function evaluateTopbarAutoCollapse(currentY) {
-  const isMobile = window.matchMedia('(max-width: 768px)').matches;
-  const sidebarOpen = document.getElementById('sidebar')?.classList.contains('open');
-  const hasFocusedField = ['INPUT', 'TEXTAREA', 'SELECT'].includes(document.activeElement?.tagName || '');
-
-  if (isMobile || sidebarOpen || hasFocusedField) {
-    setTopbarCollapsed(false, { force: false });
-    lastScrollY = currentY;
-    return;
-  }
-
-  if (Date.now() < topbarScrollLockUntil) {
-    lastScrollY = currentY;
-    return;
-  }
-
-  const delta = currentY - lastScrollY;
-
-  if (currentY <= 72) {
-    setTopbarCollapsed(false, { force: true });
-  } else if (!topbarCollapsedState && currentY > 168 && delta > 16) {
-    setTopbarCollapsed(true);
-  } else if (topbarCollapsedState && delta < -18) {
-    setTopbarCollapsed(false, { force: true });
-  }
-
-  lastScrollY = currentY;
-}
-
-function handleTopbarAutoCollapse() {
-  const scrollHost = getScrollContainer();
-  const currentY = scrollHost?.scrollTop || window.scrollY || window.pageYOffset || 0;
-  if (topbarScrollTicking) return;
-  topbarScrollTicking = true;
-  requestAnimationFrame(() => {
-    topbarScrollTicking = false;
-    evaluateTopbarAutoCollapse(currentY);
-  });
-}
-
 function switchWorkspace(workspace, preferredSection = null) {
+  if (!VALID_WORKSPACES.includes(workspace)) workspace = 'operativo';
   currentWorkspace = workspace;
   trackedSetItem('polar3_workspace', currentWorkspace);
   applyWorkspaceState();
@@ -890,12 +675,8 @@ function updateTopbar(id) {
   document.title = `Polar[3] · ${normalizeWorkspaceLabel(currentWorkspace)} — ${meta.title}`;
 }
 
-function getScrollContainer() {
-  return document.getElementById('main') || document.scrollingElement || document.documentElement;
-}
-
 function showSection(id, pushHash = true) {
-  id = resolveSectionTarget(id);
+  id = legacyRedirects[id] || id;
   if (!sectionMap[id]) id = 'inicio';
   ensureWorkspaceForSection(id);
   document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
@@ -905,15 +686,11 @@ function showSection(id, pushHash = true) {
   document.querySelectorAll(`[data-section="${id}"]`).forEach(a => a.classList.add('active'));
   openGroupForSection(id);
   updateTopbar(id);
-  document.body.dataset.section = id;
-  setTopbarCollapsed(false, { force: true });
-  updateMobileTabbar(id);
   if (pushHash && location.hash !== `#${id}`) history.replaceState(null, '', `#${id}`);
-  const scrollHost = getScrollContainer();
-  if (scrollHost && typeof scrollHost.scrollTo === 'function') {
-    scrollHost.scrollTo({ top: 0, behavior: 'auto' });
-  }
-  window.scrollTo({ top: 0, behavior: 'auto' });
+  const scrollHost = document.getElementById('main');
+  const behavior = 'instant' in window ? 'instant' : 'auto';
+  scrollHost?.scrollTo({ top: 0, behavior });
+  window.scrollTo({ top: 0, behavior });
   closeSidebar();
   return false;
 }
@@ -926,7 +703,6 @@ function toggleGroup(id) {
 function toggleSidebar() {
   document.getElementById('sidebar')?.classList.toggle('open');
   document.getElementById('sidebarOverlay')?.classList.toggle('open');
-  setTopbarCollapsed(false, { force: true });
 }
 
 function closeSidebar() {
@@ -935,17 +711,8 @@ function closeSidebar() {
 }
 
 function toggleAcc(header) {
-  if (!header) return;
-  const item = header.closest('.faq-item, .accordion-item, .accordion');
-  const body = (
-    header.nextElementSibling?.classList?.contains('acc-body')
-      ? header.nextElementSibling
-      : item?.querySelector('.acc-body, .faq-body')
-  ) || null;
-  const willOpen = !header.classList.contains('open');
-  header.classList.toggle('open', willOpen);
-  body?.classList.toggle('open', willOpen);
-  item?.classList.toggle('open', willOpen);
+  const item = header.closest('.faq-item, .accordion-item');
+  item?.classList.toggle('open');
 }
 
 function loadChecklist() {
@@ -1009,7 +776,7 @@ function filterGlosario() {
 }
 
 function buildSearchIndex() {
-  searchIndex = Object.entries(sectionMap).filter(([key]) => !SEARCH_EXCLUDED_SECTIONS.has(key)).map(([key, id]) => {
+  searchIndex = Object.entries(sectionMap).map(([key, id]) => {
     const section = document.getElementById(id);
     const title = section.querySelector('.section-header h1')?.textContent?.trim() || key;
     const kicker = section.querySelector('.breadcrumb')?.textContent?.trim() || 'Panel principal';
@@ -1091,8 +858,8 @@ function printCurrentSection() {
 }
 
 function toggleFocusMode() {
-  document.body.classList.remove('focus-mode');
-  try { localStorage.removeItem('polar3_focus_mode'); } catch (e) {}
+  document.body.classList.toggle('focus-mode');
+  trackedSetItem('polar3_focus_mode', document.body.classList.contains('focus-mode') ? '1' : '0');
 }
 
 function getSchoolBoardData() {
@@ -1101,1586 +868,6 @@ function getSchoolBoardData() {
 
 function saveSchoolBoardData(data) {
   trackedSetItem('polar3_school_board', JSON.stringify(data));
-}
-
-
-function formatPercent(value) {
-  const safe = Number.isFinite(Number(value)) ? Number(value) : 0;
-  const decimals = safe % 1 === 0 ? 0 : 1;
-  return safe.toLocaleString('es-AR', { minimumFractionDigits: decimals, maximumFractionDigits: 1 }) + '%';
-}
-
-const KPI_TICKET_MODE_KEY = 'polar3_kpi_ticket_mode';
-const KPI_SCOPE_KEY = 'polar3_kpi_scope';
-const KPI_PERIOD_MODE_KEY = 'polar3_kpi_period_mode';
-const KPI_PERIOD_VALUE_KEY = 'polar3_kpi_period_value';
-
-const CALENDAR_STORAGE_KEY = 'polar3_work_calendar_v2';
-const CALENDAR_LEGACY_STORAGE_KEY = 'polar3_work_calendar_v1';
-const CALENDAR_PRINT_REFERENCE_KEY = 'polar3_calendar_print_reference';
-const CALENDAR_PRINT_SCHOOL_FILTER_KEY = 'polar3_calendar_print_school_filter';
-const CALENDAR_DAY_SHEET_STORAGE_KEY = 'polar3_calendar_day_sheet_v1';
-const CALENDAR_DAY_CHECKLIST_STORAGE_KEY = 'polar3_calendar_day_checklist_v1';
-const CALENDAR_MONTH_KEYS = ['enero','febrero','marzo','abril','mayo','junio','julio','agosto','septiembre','octubre','noviembre','diciembre'];
-const CALENDAR_STATUS_LABELS = {
-  tentativo: 'Tentativo',
-  confirmado: 'Confirmado',
-  jornada: 'Jornada',
-  reunion: 'Reunión',
-  edicion: 'Edición',
-  entrega: 'Entrega',
-  retoma: 'Retoma',
-  cobranza: 'Cobranza',
-  administrativo: 'Administrativo'
-};
-const CALENDAR_STATUS_OPTIONS = Object.keys(CALENDAR_STATUS_LABELS);
-const CALENDAR_MONTH_LABELS = { enero: 'Enero', febrero: 'Febrero', marzo: 'Marzo', abril: 'Abril', mayo: 'Mayo', junio: 'Junio', julio: 'Julio', agosto: 'Agosto', septiembre: 'Septiembre', octubre: 'Octubre', noviembre: 'Noviembre', diciembre: 'Diciembre' };
-const CALENDAR_BASE_TEMPLATE = {
-  enero: 'Revisar equipo, actualizar precios, ordenar materiales comerciales y definir agenda tentativa.',
-  febrero: 'Contactar colegios, cerrar fechas, preparar formularios, contratos y materiales.',
-  marzo: 'Confirmar primeras jornadas, grupos y circuito de cobro. Preparar plan B por lluvia.',
-  abril: 'Sostener tomas masivas, controlar edición y entregas parciales.',
-  mayo: 'Continuar jornadas, revisar pendientes y mantener ritmo de producción.',
-  junio: 'Cerrar cuellos de botella y ordenar próximas entregas.',
-  julio: 'Avanzar edición acumulada, retomas y orden administrativo.',
-  agosto: 'Programar retomas, actos y campañas de segunda mitad del año.',
-  septiembre: 'Seguir retomas, campañas familiares y agenda de cierre.',
-  octubre: 'Últimas tomas, egresados y definición de plazos finales.',
-  noviembre: 'Edición masiva, producción, entregas y liquidaciones.',
-  diciembre: 'Cierre de cobranzas, rendiciones, KPIs y renovaciones.'
-};
-
-function createEmptyCalendarMonth() {
-  return { notes: '', items: [] };
-}
-
-function createEmptyCalendarDaySheet() {
-  return {
-    schedule: '',
-    courses: '',
-    equipment: '',
-    contacts: '',
-    observations: '',
-    pending: '',
-    retakes: ''
-  };
-}
-
-function createEmptyCalendarDayChecklist() {
-  return {
-    camera: false,
-    batteries: false,
-    cards: false,
-    background: false,
-    schedule: false,
-    contacts: false,
-    route: false,
-    space: false,
-    forms: false,
-    payments: false,
-    retakes: false,
-    closing: false
-  };
-}
-
-function getCalendarDayChecklistLabels() {
-  return {
-    camera: 'Cámara principal, lente y flash revisados',
-    batteries: 'Baterías cargadas y cargadores listos',
-    cards: 'Tarjetas vacías / respaldo preparado',
-    background: 'Fondo, soportes y extensiones cargados',
-    schedule: 'Horario, cursos y secuencia confirmados',
-    contacts: 'Referentes y contactos a mano',
-    route: 'Ruta, llegada y acceso revisados',
-    space: 'Espacio / set y plan B definidos',
-    forms: 'Formularios, autorizaciones y pendientes revisados',
-    payments: 'Sistema de cobro / QR / sobres listos',
-    retakes: 'Ausentes, retomas y casos especiales anotados',
-    closing: 'Plan de cierre, backup y próximo paso definido'
-  };
-}
-
-function normalizeCalendarDayChecklist(raw = {}) {
-  const base = createEmptyCalendarDayChecklist();
-  Object.keys(base).forEach(key => {
-    base[key] = Boolean(raw?.[key]);
-  });
-  return base;
-}
-
-function getCalendarDayChecklistStore() {
-  try {
-    const raw = localStorage.getItem(CALENDAR_DAY_CHECKLIST_STORAGE_KEY);
-    if (!raw) return {};
-    const parsed = JSON.parse(raw);
-    if (!parsed || typeof parsed !== 'object') return {};
-    const normalized = {};
-    Object.entries(parsed).forEach(([key, value]) => {
-      normalized[key] = normalizeCalendarDayChecklist(value);
-    });
-    return normalized;
-  } catch (e) {
-    return {};
-  }
-}
-
-function saveCalendarDayChecklistStore(store) {
-  const safe = {};
-  Object.entries(store || {}).forEach(([key, value]) => {
-    safe[key] = normalizeCalendarDayChecklist(value);
-  });
-  trackedSetItem(CALENDAR_DAY_CHECKLIST_STORAGE_KEY, JSON.stringify(safe));
-}
-
-function getCalendarDayChecklistValue(dateValue, schoolValue) {
-  const context = getCalendarDaySheetContext(dateValue, schoolValue);
-  const store = getCalendarDayChecklistStore();
-  return normalizeCalendarDayChecklist(store[context.key]);
-}
-
-function isCalendarDayChecklistEmpty(checklist) {
-  return Object.values(normalizeCalendarDayChecklist(checklist)).every(value => !value);
-}
-
-function getCalendarDayChecklistProgress(checklist) {
-  const values = Object.values(normalizeCalendarDayChecklist(checklist));
-  const done = values.filter(Boolean).length;
-  return { done, total: values.length };
-}
-
-function renderCalendarDayChecklist(reference, selectedSchool) {
-  const context = getCalendarDaySheetContext(reference, selectedSchool);
-  const checklist = getCalendarDayChecklistValue(context.date, context.school);
-  const title = document.getElementById('calendarDayChecklistTitle');
-  const meta = document.getElementById('calendarDayChecklistMeta');
-  const count = document.getElementById('calendarDayChecklistCount');
-  const progress = getCalendarDayChecklistProgress(checklist);
-
-  if (title) {
-    title.textContent = context.school
-      ? `Checklist de salida · ${context.school}`
-      : 'Checklist de salida · Todos los colegios';
-  }
-
-  if (count) {
-    count.textContent = `${progress.done} / ${progress.total}`;
-  }
-
-  if (meta) {
-    const scopeLabel = context.school ? `Colegio: ${context.school}` : 'Vista general del día';
-    meta.textContent = `Fecha: ${formatCalendarDate(context.date)} · ${scopeLabel} · ${progress.done} de ${progress.total} controles marcados.`;
-  }
-
-  document.querySelectorAll('[data-day-check-item]').forEach(input => {
-    const key = input.dataset.dayCheckItem;
-    input.checked = Boolean(checklist[key]);
-  });
-}
-
-function setCalendarDayChecklistItem(field, checked) {
-  const template = createEmptyCalendarDayChecklist();
-  if (!Object.prototype.hasOwnProperty.call(template, field)) return;
-
-  const context = getCalendarDaySheetContext();
-  const store = getCalendarDayChecklistStore();
-  const current = normalizeCalendarDayChecklist(store[context.key]);
-  current[field] = Boolean(checked);
-
-  if (isCalendarDayChecklistEmpty(current)) delete store[context.key];
-  else store[context.key] = current;
-
-  saveCalendarDayChecklistStore(store);
-  renderCalendarDayChecklist(context.date, context.school);
-  updateCalendarSaveStatus('Checklist de salida guardado · ' + new Date().toLocaleTimeString('es-AR', { hour: '2-digit', minute: '2-digit' }), 'success');
-}
-
-function normalizeCalendarDaySheet(raw = {}) {
-  const base = createEmptyCalendarDaySheet();
-  Object.keys(base).forEach(key => {
-    base[key] = String(raw?.[key] || '');
-  });
-  return base;
-}
-
-function getCalendarDaySheetKey(dateValue, schoolValue) {
-  const safeDate = normalizePaymentDate(dateValue) || getTodayIsoDate();
-  const schoolKey = normalizeSchoolKey(schoolValue) || '__general__';
-  return `${safeDate}__${schoolKey}`;
-}
-
-function getCalendarDaySheetStore() {
-  try {
-    const raw = localStorage.getItem(CALENDAR_DAY_SHEET_STORAGE_KEY);
-    if (!raw) return {};
-    const parsed = JSON.parse(raw);
-    if (!parsed || typeof parsed !== 'object') return {};
-    const normalized = {};
-    Object.entries(parsed).forEach(([key, value]) => {
-      normalized[key] = normalizeCalendarDaySheet(value);
-    });
-    return normalized;
-  } catch (e) {
-    return {};
-  }
-}
-
-function saveCalendarDaySheetStore(store) {
-  const safe = {};
-  Object.entries(store || {}).forEach(([key, value]) => {
-    safe[key] = normalizeCalendarDaySheet(value);
-  });
-  trackedSetItem(CALENDAR_DAY_SHEET_STORAGE_KEY, JSON.stringify(safe));
-}
-
-function getCalendarDaySheetContext(dateValue = getCalendarPrintReference(), schoolValue = getCalendarSchoolFilter()) {
-  const date = normalizePaymentDate(dateValue) || getTodayIsoDate();
-  const school = String(schoolValue || '').trim();
-  return {
-    date,
-    school,
-    key: getCalendarDaySheetKey(date, school),
-    schoolLabel: school || 'Todos los colegios'
-  };
-}
-
-function getCalendarDaySheetValue(dateValue, schoolValue) {
-  const context = getCalendarDaySheetContext(dateValue, schoolValue);
-  const store = getCalendarDaySheetStore();
-  return normalizeCalendarDaySheet(store[context.key]);
-}
-
-function isCalendarDaySheetEmpty(sheet) {
-  return Object.values(normalizeCalendarDaySheet(sheet)).every(value => !String(value || '').trim());
-}
-
-function getCalendarDaySheetFieldLabels() {
-  return {
-    schedule: 'Horario y secuencia',
-    courses: 'Cursos / salas',
-    equipment: 'Equipo y materiales',
-    contacts: 'Referentes y contactos',
-    observations: 'Observaciones de jornada',
-    pending: 'Pendientes del día',
-    retakes: 'Retomas del día'
-  };
-}
-
-function syncCalendarDaySheetCopies(sheet) {
-  const labels = getCalendarDaySheetFieldLabels();
-  Object.entries(labels).forEach(([field, label]) => {
-    const copy = document.querySelector(`[data-day-sheet-copy="${field}"]`);
-    if (!copy) return;
-    const value = String(sheet?.[field] || '').trim();
-    copy.innerHTML = `<strong>${escapeHtml(label)}:</strong> ${value ? escapeHtml(value).replace(/\n/g, '<br/>') : '<span class="muted-inline">Sin completar.</span>'}`;
-    copy.classList.toggle('is-empty', !value);
-  });
-}
-
-function renderCalendarDaySheet(reference, selectedSchool, dayItems) {
-  const context = getCalendarDaySheetContext(reference, selectedSchool);
-  const sheet = getCalendarDaySheetValue(context.date, context.school);
-  const title = document.getElementById('calendarDaySheetTitle');
-  const meta = document.getElementById('calendarDaySheetMeta');
-
-  if (title) {
-    title.textContent = context.school
-      ? `Hoja premium · ${context.school}`
-      : 'Hoja premium · Todos los colegios';
-  }
-
-  if (meta) {
-    const scopeLabel = context.school ? `Colegio: ${context.school}` : 'Vista general del día';
-    const base = `Fecha: ${formatCalendarDate(context.date)} · ${scopeLabel}`;
-    const extra = dayItems.length
-      ? ` · ${buildCalendarSummaryText(dayItems)}`
-      : ' · Sin movimientos cargados todavía en la agenda.';
-    meta.textContent = `${base}${extra}`;
-  }
-
-  document.querySelectorAll('[data-day-sheet-field]').forEach(field => {
-    const key = field.dataset.daySheetField;
-    field.value = sheet[key] || '';
-  });
-
-  syncCalendarDaySheetCopies(sheet);
-  renderCalendarDayTimeline(context.date, context.school, dayItems);
-  renderCalendarDayChecklist(context.date, context.school);
-}
-
-function setCalendarDaySheetField(field, value) {
-  const template = createEmptyCalendarDaySheet();
-  if (!Object.prototype.hasOwnProperty.call(template, field)) return;
-
-  const context = getCalendarDaySheetContext();
-  const store = getCalendarDaySheetStore();
-  const current = normalizeCalendarDaySheet(store[context.key]);
-  current[field] = String(value || '');
-
-  if (isCalendarDaySheetEmpty(current)) delete store[context.key];
-  else store[context.key] = current;
-
-  saveCalendarDaySheetStore(store);
-  syncCalendarDaySheetCopies(current);
-  updateCalendarSaveStatus('Hoja diaria premium guardada · ' + new Date().toLocaleTimeString('es-AR', { hour: '2-digit', minute: '2-digit' }), 'success');
-}
-
-function normalizeCalendarStatus(value) {
-  const safe = String(value || '').trim().toLowerCase();
-  return CALENDAR_STATUS_OPTIONS.includes(safe) ? safe : 'tentativo';
-}
-
-function normalizeCalendarTime(value) {
-  const raw = String(value || '').trim();
-  if (!raw) return '';
-  const match = raw.match(/^(\d{2}):(\d{2})$/);
-  if (!match) return '';
-  const h = Number(match[1]);
-  const m = Number(match[2]);
-  if (h < 0 || h > 23 || m < 0 || m > 59) return '';
-  return `${match[1]}:${match[2]}`;
-}
-
-function formatCalendarTime(value) {
-  const safe = normalizeCalendarTime(value);
-  return safe || 'Sin hora';
-}
-
-function buildCalendarDateTimeLabel(item) {
-  const parts = [];
-  if (item?.date) parts.push(formatCalendarDate(item.date));
-  if (item?.time) parts.push(formatCalendarTime(item.time));
-  return parts.join(' · ') || 'Sin fecha';
-}
-
-function buildCalendarItemId() {
-  try {
-    if (window.crypto?.randomUUID) return window.crypto.randomUUID();
-  } catch (e) {}
-  return 'cal_' + Date.now() + '_' + Math.random().toString(36).slice(2, 8);
-}
-
-function normalizeCalendarItem(item = {}) {
-  return {
-    id: String(item.id || buildCalendarItemId()),
-    school: String(item.school || '').trim(),
-    date: normalizePaymentDate(item.date || ''),
-    time: normalizeCalendarTime(item.time || ''),
-    status: normalizeCalendarStatus(item.status),
-    detail: String(item.detail || '').trim()
-  };
-}
-
-function sortCalendarItems(items = []) {
-  return [...items].sort((a, b) => {
-    const da = a.date || '9999-99-99';
-    const db = b.date || '9999-99-99';
-    if (da !== db) return da.localeCompare(db);
-    const ta = a.time || '99:99';
-    const tb = b.time || '99:99';
-    if (ta !== tb) return ta.localeCompare(tb);
-    return String(a.school || '').localeCompare(String(b.school || ''), 'es');
-  });
-}
-
-function normalizeCalendarData(raw) {
-  const data = {};
-  CALENDAR_MONTH_KEYS.forEach(key => {
-    const source = raw?.[key];
-    if (typeof source === 'string') {
-      data[key] = { notes: source, items: [] };
-      return;
-    }
-    if (source && typeof source === 'object') {
-      data[key] = {
-        notes: String(source.notes || ''),
-        items: sortCalendarItems(Array.isArray(source.items) ? source.items.map(normalizeCalendarItem) : [])
-      };
-      return;
-    }
-    data[key] = createEmptyCalendarMonth();
-  });
-  return data;
-}
-
-function getCalendarPlannerData() {
-  try {
-    const currentRaw = localStorage.getItem(CALENDAR_STORAGE_KEY);
-    if (currentRaw) return normalizeCalendarData(JSON.parse(currentRaw));
-  } catch (e) {}
-
-  try {
-    const legacyRaw = localStorage.getItem(CALENDAR_LEGACY_STORAGE_KEY);
-    if (legacyRaw) {
-      const migrated = normalizeCalendarData(JSON.parse(legacyRaw));
-      saveCalendarPlannerData(migrated);
-      return migrated;
-    }
-  } catch (e) {}
-
-  return normalizeCalendarData({});
-}
-
-function saveCalendarPlannerData(data) {
-  trackedSetItem(CALENDAR_STORAGE_KEY, JSON.stringify(normalizeCalendarData(data)));
-}
-
-function updateCalendarSaveStatus(message, tone) {
-  const el = document.getElementById('calendarSaveStatus');
-  if (!el) return;
-  el.textContent = message;
-  el.classList.remove('export', 'import');
-  if (tone === 'success') el.classList.add('export');
-  if (tone === 'info') el.classList.add('import');
-}
-
-function escapeHtml(value) {
-  return String(value || '')
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;')
-    .replace(/"/g, '&quot;')
-    .replace(/'/g, '&#39;');
-}
-
-function formatCalendarDate(value) {
-  const safe = normalizePaymentDate(value);
-  if (!safe) return 'Sin fecha';
-  const [year, month, day] = safe.split('-').map(Number);
-  const dt = new Date(year, month - 1, day);
-  return dt.toLocaleDateString('es-AR', { day: '2-digit', month: '2-digit', year: 'numeric' });
-}
-
-function getCalendarStatusLabel(value) {
-  return CALENDAR_STATUS_LABELS[normalizeCalendarStatus(value)] || 'Tentativo';
-}
-
-function buildCalendarStatusOptions(selectedValue) {
-  const safe = normalizeCalendarStatus(selectedValue);
-  return CALENDAR_STATUS_OPTIONS.map(key => `<option value="${key}" ${key === safe ? 'selected' : ''}>${CALENDAR_STATUS_LABELS[key]}</option>`).join('');
-}
-
-function renderCalendarMonthList(month, monthData) {
-  const container = document.querySelector(`[data-calendar-list="${month}"]`);
-  const countNode = document.getElementById(`calendar-count-${month}`);
-  if (!container) return;
-
-  const items = sortCalendarItems(Array.isArray(monthData?.items) ? monthData.items : []);
-  if (countNode) countNode.textContent = `${items.length} ${items.length === 1 ? 'ítem' : 'ítems'}`;
-
-  if (!items.length) {
-    container.innerHTML = '<div class="calendar-item-empty">Sin filas operativas cargadas para este mes.</div>';
-    return;
-  }
-
-  container.innerHTML = items.map(item => `
-    <div class="calendar-item-row calendar-status-${normalizeCalendarStatus(item.status)}">
-      <div class="calendar-item-main">
-        <input class="calendar-inline-input" type="text" value="${escapeHtml(item.school)}" placeholder="Colegio" onchange="setCalendarPlannerItemField('${month}', '${item.id}', 'school', this.value)" />
-        <input class="calendar-inline-input calendar-inline-date" type="date" value="${escapeHtml(item.date)}" onchange="setCalendarPlannerItemField('${month}', '${item.id}', 'date', this.value)" />
-        <input class="calendar-inline-input calendar-inline-time" type="time" value="${escapeHtml(item.time || '')}" onchange="setCalendarPlannerItemField('${month}', '${item.id}', 'time', this.value)" />
-        <select class="calendar-inline-input" onchange="setCalendarPlannerItemField('${month}', '${item.id}', 'status', this.value)">${buildCalendarStatusOptions(item.status)}</select>
-        <input class="calendar-inline-input calendar-inline-detail" type="text" value="${escapeHtml(item.detail)}" placeholder="Detalle operativo (opcional)" onchange="setCalendarPlannerItemField('${month}', '${item.id}', 'detail', this.value)" />
-      </div>
-      <button class="btn btn-danger btn-sm calendar-delete-btn" onclick="removeCalendarPlannerItem('${month}', '${item.id}')" type="button">Eliminar</button>
-    </div>
-  `).join('');
-}
-
-function syncCalendarPrintCopies(data) {
-  document.querySelectorAll('[data-calendar-print]').forEach(node => {
-    const key = node.dataset.calendarPrint;
-    const monthData = data?.[key] || createEmptyCalendarMonth();
-    const items = sortCalendarItems(Array.isArray(monthData.items) ? monthData.items : []);
-    const notes = String(monthData.notes || '').trim();
-
-    let text = '';
-    if (items.length) {
-      text += 'Agenda operativa:\n';
-      text += items.map(item => {
-        const parts = [formatCalendarDate(item.date), item.time ? formatCalendarTime(item.time) : '', item.school || 'Sin colegio', getCalendarStatusLabel(item.status)];
-        const main = parts.filter(Boolean).join(' · ');
-        return `• ${main}${item.detail ? ' — ' + item.detail : ''}`;
-      }).join('\n');
-    }
-    if (notes) {
-      text += (text ? '\n\n' : '') + 'Notas libres:\n' + notes;
-    }
-
-    node.textContent = text || 'Sin información cargada.';
-    node.classList.toggle('is-empty', !text);
-  });
-}
-
-
-function getCalendarShortMonthLabel(month) {
-  const label = CALENDAR_MONTH_LABELS[month] || month || '';
-  return label ? label.slice(0, 3) : '';
-}
-
-function getCalendarMonthCards() {
-  return [...document.querySelectorAll('#sec-calendario .calendar-month-card')].map(card => {
-    const dateField = card.querySelector('[id^="cal-"][id$="-date"]');
-    const match = dateField?.id?.match(/^cal\-([a-zñ]+)\-date$/i);
-    const month = match?.[1] || card.dataset.calendarMonth || '';
-    if (month) card.dataset.calendarMonth = month;
-    return { card, month };
-  }).filter(entry => entry.month);
-}
-
-function ensureCalendarMobileMonthStructure() {
-  getCalendarMonthCards().forEach(({ card, month }) => {
-    const head = card.querySelector('.calendar-month-head');
-    if (!head) return;
-
-    let body = card.querySelector('.calendar-month-body');
-    if (!body) {
-      body = document.createElement('div');
-      body.className = 'calendar-month-body';
-      [...card.children].forEach(child => {
-        if (child !== head) body.appendChild(child);
-      });
-      card.appendChild(body);
-    }
-
-    if (!head.querySelector('.calendar-mobile-toggle')) {
-      const toggle = document.createElement('button');
-      toggle.type = 'button';
-      toggle.className = 'btn btn-outline btn-sm calendar-mobile-toggle';
-      toggle.textContent = 'Abrir';
-      toggle.setAttribute('aria-expanded', 'false');
-      toggle.onclick = () => setCalendarMobileOpenMonth(month);
-      head.appendChild(toggle);
-    }
-  });
-}
-
-function isCalendarMobileViewport() {
-  return window.matchMedia ? window.matchMedia('(max-width: 900px)').matches : window.innerWidth <= 900;
-}
-
-function findCalendarNextActiveMonth(data) {
-  const currentIndex = new Date().getMonth();
-  const ordered = [...CALENDAR_MONTH_KEYS.slice(currentIndex), ...CALENDAR_MONTH_KEYS.slice(0, currentIndex)];
-  return ordered.find(month => (data?.[month]?.items || []).length) || CALENDAR_MONTH_KEYS[currentIndex] || CALENDAR_MONTH_KEYS[0];
-}
-
-function getCalendarMonthSummary(data, month) {
-  const monthData = data?.[month] || createEmptyCalendarMonth();
-  const items = sortCalendarItems(Array.isArray(monthData.items) ? monthData.items : []);
-  const today = getTodayIsoDate();
-  const next = items.find(item => item.date && item.date >= today) || items[0] || null;
-  return { items, next, notes: String(monthData.notes || '').trim() };
-}
-
-function renderCalendarMobileHub() {
-  const chips = document.getElementById('calendarMobileMonthChips');
-  const summary = document.getElementById('calendarMobileSummary');
-  if (!chips || !summary) return;
-
-  const data = getCalendarPlannerData();
-  const fallbackMonth = CALENDAR_MONTH_KEYS[new Date().getMonth()] || CALENDAR_MONTH_KEYS[0];
-  const activeMonth = calendarMobileOpenMonthKey || findCalendarNextActiveMonth(data) || fallbackMonth;
-
-  chips.innerHTML = CALENDAR_MONTH_KEYS.map(month => {
-    const count = (data?.[month]?.items || []).length;
-    const active = month === activeMonth ? ' active' : '';
-    return `<button class="calendar-mobile-chip${active}" type="button" onclick="setCalendarMobileOpenMonth('${month}')"><span>${escapeHtml(getCalendarShortMonthLabel(month))}</span><strong>${count}</strong></button>`;
-  }).join('');
-
-  const payload = getCalendarMonthSummary(data, activeMonth);
-  const monthLabel = CALENDAR_MONTH_LABELS[activeMonth] || activeMonth;
-  if (!payload.items.length) {
-    summary.innerHTML = `<strong>${escapeHtml(monthLabel)}</strong><span>Sin movimientos cargados todavía. Puedes usar este mes para cargar jornadas, reuniones o recordatorios.</span>`;
-    return;
-  }
-
-  const nextLabel = payload.next
-    ? `${formatCalendarDate(payload.next.date)}${payload.next.time ? ' · ' + formatCalendarTime(payload.next.time) : ''} · ${escapeHtml(payload.next.school || 'Sin colegio')}`
-    : 'Sin fecha próxima cargada.';
-  summary.innerHTML = `<strong>${escapeHtml(monthLabel)}</strong><span>${payload.items.length} ${payload.items.length === 1 ? 'ítem cargado' : 'ítems cargados'} · Próximo: ${nextLabel}</span>`;
-}
-
-function syncCalendarMobileLayout() {
-  ensureCalendarMobileMonthStructure();
-  const cards = getCalendarMonthCards();
-  if (!cards.length) return;
-
-  if (!isCalendarMobileViewport()) {
-    cards.forEach(({ card }) => {
-      card.classList.remove('is-collapsed', 'is-active-mobile');
-      const toggle = card.querySelector('.calendar-mobile-toggle');
-      if (toggle) {
-        toggle.textContent = 'Abrir';
-        toggle.setAttribute('aria-expanded', 'true');
-      }
-    });
-    renderCalendarMobileHub();
-    return;
-  }
-
-  const availableMonths = cards.map(entry => entry.month);
-  if (!calendarMobileOpenMonthKey || !availableMonths.includes(calendarMobileOpenMonthKey)) {
-    const data = getCalendarPlannerData();
-    calendarMobileOpenMonthKey = findCalendarNextActiveMonth(data) || availableMonths[new Date().getMonth()] || availableMonths[0];
-  }
-
-  cards.forEach(({ card, month }) => {
-    const isOpen = month === calendarMobileOpenMonthKey;
-    card.classList.toggle('is-collapsed', !isOpen);
-    card.classList.toggle('is-active-mobile', isOpen);
-    const toggle = card.querySelector('.calendar-mobile-toggle');
-    if (toggle) {
-      toggle.textContent = isOpen ? 'Activo' : 'Abrir';
-      toggle.setAttribute('aria-expanded', String(isOpen));
-    }
-  });
-
-  renderCalendarMobileHub();
-}
-
-function setCalendarMobileOpenMonth(month, options = {}) {
-  const targetMonth = CALENDAR_MONTH_KEYS.includes(month) ? month : (CALENDAR_MONTH_KEYS[new Date().getMonth()] || CALENDAR_MONTH_KEYS[0]);
-  calendarMobileOpenMonthKey = targetMonth;
-  syncCalendarMobileLayout();
-
-  if (isCalendarMobileViewport() && options.scroll !== false) {
-    const targetCard = document.querySelector(`#sec-calendario .calendar-month-card[data-calendar-month="${targetMonth}"]`);
-    targetCard?.scrollIntoView({ behavior: 'smooth', block: 'start' });
-  }
-}
-
-function openCalendarCurrentMonth() {
-  const month = CALENDAR_MONTH_KEYS[new Date().getMonth()] || CALENDAR_MONTH_KEYS[0];
-  setCalendarMobileOpenMonth(month);
-}
-
-function openCalendarNextPlannedMonth() {
-  const data = getCalendarPlannerData();
-  const month = findCalendarNextActiveMonth(data);
-  if (!month) {
-    showToast('Todavía no hay actividad cargada en el calendario.', 'warning');
-    openCalendarCurrentMonth();
-    return;
-  }
-  setCalendarMobileOpenMonth(month);
-}
-
-
-function renderCalendarPlanner() {
-  const data = getCalendarPlannerData();
-  document.querySelectorAll('[data-calendar-notes]').forEach(field => {
-    const key = field.dataset.calendarNotes;
-    if (Object.prototype.hasOwnProperty.call(data, key)) field.value = data[key].notes;
-  });
-  CALENDAR_MONTH_KEYS.forEach(month => {
-    renderCalendarMonthList(month, data[month]);
-  });
-  syncCalendarPrintCopies(data);
-  renderCalendarDerivedViews();
-  syncCalendarMobileLayout();
-  updateCalendarSaveStatus('Autoguardado local activo', 'info');
-}
-
-function setCalendarPlannerNotes(month, value) {
-  const data = getCalendarPlannerData();
-  data[month] = data[month] || createEmptyCalendarMonth();
-  data[month].notes = String(value || '');
-  saveCalendarPlannerData(data);
-  syncCalendarPrintCopies(data);
-  updateCalendarSaveStatus('Guardado automático · ' + new Date().toLocaleTimeString('es-AR', { hour: '2-digit', minute: '2-digit' }), 'success');
-}
-
-function clearCalendarMonthQuickForm(month) {
-  const ids = ['school', 'date', 'time', 'detail', 'status'];
-  ids.forEach(suffix => {
-    const el = document.getElementById(`cal-${month}-${suffix}`);
-    if (!el) return;
-    if (suffix === 'status') el.value = 'tentativo';
-    else el.value = '';
-  });
-}
-
-function addCalendarPlannerItem(month) {
-  const school = document.getElementById(`cal-${month}-school`)?.value?.trim() || '';
-  const date = normalizePaymentDate(document.getElementById(`cal-${month}-date`)?.value || '');
-  const time = normalizeCalendarTime(document.getElementById(`cal-${month}-time`)?.value || '');
-  const status = normalizeCalendarStatus(document.getElementById(`cal-${month}-status`)?.value || 'tentativo');
-  const detail = document.getElementById(`cal-${month}-detail`)?.value?.trim() || '';
-
-  if (!school) {
-    showToast('Completa al menos el nombre del colegio antes de agregar la fila.', 'warning');
-    return;
-  }
-  if (!date) {
-    showToast('Completa la fecha para que la agenda anual quede ordenada.', 'warning');
-    return;
-  }
-
-  const data = getCalendarPlannerData();
-  data[month] = data[month] || createEmptyCalendarMonth();
-  data[month].items.push(normalizeCalendarItem({ id: buildCalendarItemId(), school, date, time, status, detail }));
-  data[month].items = sortCalendarItems(data[month].items);
-  saveCalendarPlannerData(data);
-  renderCalendarPlanner();
-  clearCalendarMonthQuickForm(month);
-  setCalendarMobileOpenMonth(month, { scroll: false });
-  updateCalendarSaveStatus('Fila operativa agregada · ' + new Date().toLocaleTimeString('es-AR', { hour: '2-digit', minute: '2-digit' }), 'success');
-  showToast('Fila agregada al calendario anual.', 'success');
-}
-
-function setCalendarPlannerItemField(month, itemId, field, value) {
-  const data = getCalendarPlannerData();
-  const monthData = data[month] || createEmptyCalendarMonth();
-  const item = monthData.items.find(entry => entry.id === itemId);
-  if (!item) return;
-
-  if (field === 'school') item.school = String(value || '').trim();
-  if (field === 'date') item.date = normalizePaymentDate(value);
-  if (field === 'time') item.time = normalizeCalendarTime(value);
-  if (field === 'status') item.status = normalizeCalendarStatus(value);
-  if (field === 'detail') item.detail = String(value || '').trim();
-
-  monthData.items = sortCalendarItems(monthData.items.filter(entry => String(entry.school || '').trim() || String(entry.detail || '').trim() || entry.date));
-  data[month] = monthData;
-  saveCalendarPlannerData(data);
-  renderCalendarPlanner();
-  updateCalendarSaveStatus('Fila actualizada · ' + new Date().toLocaleTimeString('es-AR', { hour: '2-digit', minute: '2-digit' }), 'success');
-}
-
-function removeCalendarPlannerItem(month, itemId) {
-  const data = getCalendarPlannerData();
-  const monthData = data[month] || createEmptyCalendarMonth();
-  monthData.items = monthData.items.filter(entry => entry.id !== itemId);
-  data[month] = monthData;
-  saveCalendarPlannerData(data);
-  renderCalendarPlanner();
-  showToast('Fila eliminada del calendario.', 'success');
-}
-
-function seedCalendarPlanner() {
-  const data = getCalendarPlannerData();
-  let changes = 0;
-  CALENDAR_MONTH_KEYS.forEach(key => {
-    data[key] = data[key] || createEmptyCalendarMonth();
-    if (!String(data[key].notes || '').trim()) {
-      data[key].notes = CALENDAR_BASE_TEMPLATE[key] || '';
-      changes += 1;
-    }
-  });
-  saveCalendarPlannerData(data);
-  renderCalendarPlanner();
-  showToast(changes ? 'Base anual cargada en las notas vacías.' : 'No había meses vacíos para completar.', changes ? 'success' : 'warning');
-}
-
-function clearCalendarPlanner() {
-  if (!confirm('¿Limpiar toda la agenda anual y las notas del calendario?')) return;
-  trackedRemoveItem(CALENDAR_STORAGE_KEY);
-  trackedRemoveItem(CALENDAR_LEGACY_STORAGE_KEY);
-  renderCalendarPlanner();
-  showToast('Calendario anual limpiado.', 'success');
-}
-
-function printCalendarPlanner() {
-  showSection('calendario');
-  renderCalendarPlanner();
-  setCalendarPrintMode('annual');
-  window.print();
-}
-
-function getTodayIsoDate() {
-  const now = new Date();
-  const year = now.getFullYear();
-  const month = String(now.getMonth() + 1).padStart(2, '0');
-  const day = String(now.getDate()).padStart(2, '0');
-  return `${year}-${month}-${day}`;
-}
-
-function getCalendarPrintReference() {
-  const stored = normalizePaymentDate(localStorage.getItem(CALENDAR_PRINT_REFERENCE_KEY) || '');
-  return stored || getTodayIsoDate();
-}
-
-
-function getCalendarSchoolFilter() {
-  return String(localStorage.getItem(CALENDAR_PRINT_SCHOOL_FILTER_KEY) || '').trim();
-}
-
-function setCalendarSchoolFilter(value) {
-  trackedSetItem(CALENDAR_PRINT_SCHOOL_FILTER_KEY, String(value || '').trim());
-  renderCalendarDerivedViews();
-  updateCalendarSaveStatus('Filtro por colegio actualizado · ' + new Date().toLocaleTimeString('es-AR', { hour: '2-digit', minute: '2-digit' }), 'success');
-}
-
-function getCalendarFilterSchoolNames(data) {
-  const agendaNames = buildCalendarFlatItems(data).map(item => String(item.school || '').trim()).filter(Boolean);
-  const boardNames = getSchoolBoardData().map(item => String(item.name || '').trim()).filter(Boolean);
-  const paymentNames = getPaymentBoardData().map(item => String(item.school || '').trim()).filter(Boolean);
-  const selected = String(getCalendarSchoolFilter() || '').trim();
-  return [...new Set([...agendaNames, ...boardNames, ...paymentNames, selected].filter(Boolean))]
-    .sort((a, b) => a.localeCompare(b, 'es', { sensitivity: 'base' }));
-}
-
-function renderCalendarSchoolFilterOptions(data) {
-  const select = document.getElementById('calendarSchoolFilter');
-  if (!select) return;
-  const selected = String(getCalendarSchoolFilter() || '').trim();
-  const names = getCalendarFilterSchoolNames(data);
-  select.innerHTML = ['<option value="">Todos los colegios</option>']
-    .concat(names.map(name => `<option value="${escapeHtml(name)}">${escapeHtml(name)}</option>`))
-    .join('');
-  select.value = selected;
-}
-
-function parseIsoDateLocal(value) {
-  const safe = normalizePaymentDate(value);
-  if (!safe) return null;
-  const [year, month, day] = safe.split('-').map(Number);
-  const dt = new Date(year, month - 1, day);
-  return Number.isNaN(dt.getTime()) ? null : dt;
-}
-
-function toIsoDateLocal(date) {
-  const safe = date instanceof Date ? date : new Date(date);
-  if (!(safe instanceof Date) || Number.isNaN(safe.getTime())) return '';
-  return `${safe.getFullYear()}-${String(safe.getMonth() + 1).padStart(2, '0')}-${String(safe.getDate()).padStart(2, '0')}`;
-}
-
-function addDays(date, amount) {
-  const next = new Date(date.getFullYear(), date.getMonth(), date.getDate());
-  next.setDate(next.getDate() + amount);
-  return next;
-}
-
-function getStartOfWeek(date) {
-  const safe = date instanceof Date ? date : new Date(date);
-  const day = safe.getDay();
-  const diff = day === 0 ? -6 : 1 - day;
-  return addDays(safe, diff);
-}
-
-function formatCalendarDateLong(value) {
-  const dt = parseIsoDateLocal(value);
-  if (!dt) return 'Sin fecha';
-  return dt.toLocaleDateString('es-AR', { weekday: 'long', day: '2-digit', month: '2-digit', year: 'numeric' });
-}
-
-function getCalendarMonthKeyFromDate(value) {
-  const dt = parseIsoDateLocal(value);
-  if (!dt) return null;
-  return CALENDAR_MONTH_KEYS[dt.getMonth()] || null;
-}
-
-function getCalendarMonthTitle(value) {
-  const dt = parseIsoDateLocal(value);
-  if (!dt) return 'Mes de referencia';
-  const key = CALENDAR_MONTH_KEYS[dt.getMonth()];
-  return `${CALENDAR_MONTH_LABELS[key] || 'Mes'} ${dt.getFullYear()}`;
-}
-
-function buildCalendarFlatItems(data) {
-  const flat = [];
-  CALENDAR_MONTH_KEYS.forEach(month => {
-    const items = Array.isArray(data?.[month]?.items) ? data[month].items : [];
-    items.forEach(item => {
-      flat.push({ ...normalizeCalendarItem(item), month });
-    });
-  });
-  return sortCalendarItems(flat);
-}
-
-function buildCalendarSummaryText(items) {
-  if (!items.length) return 'Sin ítems cargados en este período.';
-  const counts = {};
-  items.forEach(item => {
-    const key = normalizeCalendarStatus(item.status);
-    counts[key] = (counts[key] || 0) + 1;
-  });
-  return Object.entries(counts)
-    .sort((a, b) => b[1] - a[1])
-    .map(([key, count]) => `${CALENDAR_STATUS_LABELS[key] || key}: ${count}`)
-    .join(' · ');
-}
-
-function buildCalendarDerivedItemsHtml(items) {
-  if (!items.length) return '<div class="calendar-derived-empty">Sin movimientos cargados para este tramo.</div>';
-  return items.map(item => `
-    <div class="calendar-derived-item">
-      <div class="calendar-derived-item-time">${escapeHtml(item.time ? formatCalendarTime(item.time) : '—')}</div>
-      <div class="calendar-derived-item-main">
-        <div class="calendar-derived-school">${escapeHtml(item.school || 'Sin colegio')}</div>
-        <div class="calendar-derived-subline">${escapeHtml(item.date ? formatCalendarDate(item.date) : 'Sin fecha')} · ${escapeHtml(getCalendarStatusLabel(item.status))}</div>
-        <div class="calendar-derived-detail">${item.detail ? escapeHtml(item.detail) : 'Sin detalle operativo cargado.'}</div>
-      </div>
-      <div class="calendar-derived-status">${escapeHtml(getCalendarStatusLabel(item.status))}</div>
-    </div>
-  `).join('');
-}
-
-function buildCalendarMonthPrintHtml(items) {
-  if (!items.length) return '<div class="calendar-derived-empty">No hay movimientos cargados en el mes elegido.</div>';
-  const groups = new Map();
-  items.forEach(item => {
-    const key = item.date || 'sin-fecha';
-    if (!groups.has(key)) groups.set(key, []);
-    groups.get(key).push(item);
-  });
-  return Array.from(groups.entries()).map(([date, group]) => `
-    <div class="calendar-derived-day">
-      <div class="calendar-derived-day-head">
-        <div>
-          <div class="calendar-derived-day-title">${escapeHtml(formatCalendarDateLong(date))}</div>
-          <div class="calendar-derived-day-sub">${escapeHtml(buildCalendarSummaryText(group))}</div>
-        </div>
-        <div class="calendar-derived-day-count">${group.length} ${group.length === 1 ? 'ítem' : 'ítems'}</div>
-      </div>
-      ${buildCalendarDerivedItemsHtml(group)}
-    </div>
-  `).join('');
-}
-
-function buildCalendarDayPrintHtml(items, reference) {
-  if (!items.length) return '<div class="calendar-derived-empty">No hay movimientos cargados en la fecha elegida.</div>';
-  return `
-    <div class="calendar-derived-day">
-      <div class="calendar-derived-day-head">
-        <div>
-          <div class="calendar-derived-day-title">${escapeHtml(formatCalendarDateLong(reference))}</div>
-          <div class="calendar-derived-day-sub">${escapeHtml(buildCalendarSummaryText(items))}</div>
-        </div>
-        <div class="calendar-derived-day-count">${items.length} ${items.length === 1 ? 'ítem' : 'ítems'}</div>
-      </div>
-      ${buildCalendarDerivedItemsHtml(items)}
-    </div>
-  `;
-}
-
-function buildCalendarWeekPrintHtml(items, weekStart) {
-  const days = Array.from({ length: 7 }, (_, idx) => addDays(weekStart, idx));
-  return days.map(day => {
-    const iso = toIsoDateLocal(day);
-    const dayItems = items.filter(item => item.date === iso);
-    return `
-      <div class="calendar-derived-day">
-        <div class="calendar-derived-day-head">
-          <div>
-            <div class="calendar-derived-day-title">${escapeHtml(formatCalendarDateLong(iso))}</div>
-            <div class="calendar-derived-day-sub">${escapeHtml(buildCalendarSummaryText(dayItems))}</div>
-          </div>
-          <div class="calendar-derived-day-count">${dayItems.length} ${dayItems.length === 1 ? 'ítem' : 'ítems'}</div>
-        </div>
-        ${buildCalendarDerivedItemsHtml(dayItems)}
-      </div>
-    `;
-  }).join('');
-}
-
-function buildCalendarDayTimelineHtml(items) {
-  const timed = sortCalendarItems(items).filter(item => item.time);
-  if (!timed.length) return '<div class="calendar-derived-empty">No hay horarios cargados todavía en la agenda del día.</div>';
-  return timed.map(item => `
-    <div class="calendar-day-timeline-item">
-      <div class="calendar-day-timeline-time">${escapeHtml(formatCalendarTime(item.time))}</div>
-      <div class="calendar-day-timeline-main">
-        <div class="calendar-day-timeline-school">${escapeHtml(item.school || 'Sin colegio')}</div>
-        <div class="calendar-day-timeline-detail">${item.detail ? escapeHtml(item.detail) : 'Sin detalle operativo cargado.'}</div>
-      </div>
-      <div class="calendar-day-timeline-status">${escapeHtml(getCalendarStatusLabel(item.status))}</div>
-    </div>
-  `).join('');
-}
-
-function renderCalendarDayTimeline(reference, selectedSchool, dayItems) {
-  const context = getCalendarDaySheetContext(reference, selectedSchool);
-  const title = document.getElementById('calendarDayTimelineTitle');
-  const meta = document.getElementById('calendarDayTimelineMeta');
-  const count = document.getElementById('calendarDayTimelineCount');
-  const list = document.getElementById('calendarDayTimelineList');
-  const timed = sortCalendarItems(dayItems).filter(item => item.time);
-
-  if (title) {
-    title.textContent = context.school
-      ? `Secuencia base · ${context.school}`
-      : 'Secuencia base · Todos los colegios';
-  }
-
-  if (count) count.textContent = `${timed.length} ${timed.length === 1 ? 'horario' : 'horarios'}`;
-
-  if (meta) {
-    meta.textContent = timed.length
-      ? `Fecha: ${formatCalendarDate(context.date)} · ${context.school ? 'Colegio: ' + context.school : 'Vista general del día'} · ordenado por hora real.`
-      : `Fecha: ${formatCalendarDate(context.date)} · ${context.school ? 'Colegio: ' + context.school : 'Vista general del día'} · todavía no cargaste horas en la agenda.`;
-  }
-
-  if (list) list.innerHTML = buildCalendarDayTimelineHtml(dayItems);
-}
-
-function renderCalendarDerivedViews() {
-  const data = getCalendarPlannerData();
-  renderCalendarSchoolFilterOptions(data);
-  const allItems = buildCalendarFlatItems(data);
-  const reference = getCalendarPrintReference();
-  const referenceInput = document.getElementById('calendarPrintReference');
-  if (referenceInput) referenceInput.value = reference;
-
-  const selectedSchool = String(getCalendarSchoolFilter() || '').trim();
-  const normalizedSelectedSchool = normalizeSchoolKey(selectedSchool);
-  const filteredItems = normalizedSelectedSchool
-    ? allItems.filter(item => normalizeSchoolKey(item.school) === normalizedSelectedSchool)
-    : allItems;
-  const schoolMetaText = selectedSchool ? ` · Colegio: ${selectedSchool}` : ' · Todos los colegios';
-
-  const referenceDate = parseIsoDateLocal(reference) || parseIsoDateLocal(getTodayIsoDate()) || new Date();
-  const dayItems = filteredItems.filter(item => item.date === reference);
-  const dayTitle = document.getElementById('calendarDayPrintTitle');
-  const dayCount = document.getElementById('calendarDayPrintCount');
-  const dayMeta = document.getElementById('calendarDayPrintMeta');
-  const dayList = document.getElementById('calendarDayPrintList');
-  const dayNotes = document.getElementById('calendarDayPrintNotes');
-  const dayMonthKey = getCalendarMonthKeyFromDate(reference);
-  const dayMonthNotes = dayMonthKey ? String(data?.[dayMonthKey]?.notes || '').trim() : '';
-
-  if (dayTitle) dayTitle.textContent = selectedSchool
-    ? `Jornada del ${formatCalendarDate(reference)} · ${selectedSchool}`
-    : `Jornada del ${formatCalendarDate(reference)}`;
-  if (dayCount) dayCount.textContent = `${dayItems.length} ${dayItems.length === 1 ? 'ítem' : 'ítems'}`;
-  if (dayMeta) dayMeta.textContent = dayItems.length
-    ? `Fecha: ${formatCalendarDate(reference)}${schoolMetaText} · ${buildCalendarSummaryText(dayItems)}`
-    : `Fecha: ${formatCalendarDate(reference)}${schoolMetaText} · sin movimientos cargados.`;
-  if (dayList) dayList.innerHTML = buildCalendarDayPrintHtml(dayItems, reference);
-  renderCalendarDaySheet(reference, selectedSchool, dayItems);
-  if (dayNotes) dayNotes.innerHTML = dayMonthNotes
-    ? `<strong>${selectedSchool ? 'Notas libres del mes (generales, no filtradas por colegio):' : 'Notas libres del mes:'}</strong>
-${escapeHtml(dayMonthNotes)}`
-    : `<strong>${selectedSchool ? 'Notas libres del mes (generales, no filtradas por colegio):' : 'Notas libres del mes:'}</strong> Sin notas cargadas.`;
-
-  const monthPrefix = reference.slice(0, 7);
-  const monthItems = filteredItems.filter(item => String(item.date || '').slice(0, 7) === monthPrefix);
-  const monthTitle = document.getElementById('calendarMonthPrintTitle');
-  const monthCount = document.getElementById('calendarMonthPrintCount');
-  const monthMeta = document.getElementById('calendarMonthPrintMeta');
-  const monthList = document.getElementById('calendarMonthPrintList');
-  const monthNotes = document.getElementById('calendarMonthPrintNotes');
-  const monthKey = getCalendarMonthKeyFromDate(reference);
-  const currentMonthNotes = monthKey ? String(data?.[monthKey]?.notes || '').trim() : '';
-
-  if (monthTitle) monthTitle.textContent = selectedSchool
-    ? `${getCalendarMonthTitle(reference)} · ${selectedSchool}`
-    : getCalendarMonthTitle(reference);
-  if (monthCount) monthCount.textContent = `${monthItems.length} ${monthItems.length === 1 ? 'ítem' : 'ítems'}`;
-  if (monthMeta) monthMeta.textContent = monthItems.length
-    ? `Período: ${getCalendarMonthTitle(reference)}${schoolMetaText} · ${buildCalendarSummaryText(monthItems)}`
-    : `Período: ${getCalendarMonthTitle(reference)}${schoolMetaText} · sin movimientos cargados.`;
-  if (monthList) monthList.innerHTML = buildCalendarMonthPrintHtml(monthItems);
-  if (monthNotes) monthNotes.innerHTML = currentMonthNotes
-    ? `<strong>${selectedSchool ? 'Notas libres del mes (generales, no filtradas por colegio):' : 'Notas libres del mes:'}</strong>
-${escapeHtml(currentMonthNotes)}`
-    : `<strong>${selectedSchool ? 'Notas libres del mes (generales, no filtradas por colegio):' : 'Notas libres del mes:'}</strong> Sin notas cargadas.`;
-
-  const weekStart = getStartOfWeek(referenceDate);
-  const weekEnd = addDays(weekStart, 6);
-  const weekStartIso = toIsoDateLocal(weekStart);
-  const weekEndIso = toIsoDateLocal(weekEnd);
-  const weekItems = filteredItems.filter(item => item.date && item.date >= weekStartIso && item.date <= weekEndIso);
-  const weekTitle = document.getElementById('calendarWeekPrintTitle');
-  const weekCount = document.getElementById('calendarWeekPrintCount');
-  const weekMeta = document.getElementById('calendarWeekPrintMeta');
-  const weekList = document.getElementById('calendarWeekPrintList');
-
-  if (weekTitle) weekTitle.textContent = selectedSchool
-    ? `Semana del ${formatCalendarDate(weekStartIso)} al ${formatCalendarDate(weekEndIso)} · ${selectedSchool}`
-    : `Semana del ${formatCalendarDate(weekStartIso)} al ${formatCalendarDate(weekEndIso)}`;
-  if (weekCount) weekCount.textContent = `${weekItems.length} ${weekItems.length === 1 ? 'ítem' : 'ítems'}`;
-  if (weekMeta) weekMeta.textContent = weekItems.length
-    ? `Período: ${formatCalendarDate(weekStartIso)} → ${formatCalendarDate(weekEndIso)}${schoolMetaText} · ${buildCalendarSummaryText(weekItems)}`
-    : `Período: ${formatCalendarDate(weekStartIso)} → ${formatCalendarDate(weekEndIso)}${schoolMetaText} · sin movimientos cargados.`;
-  if (weekList) weekList.innerHTML = buildCalendarWeekPrintHtml(weekItems, weekStart);
-}
-
-function setCalendarPrintReference(value) {
-  const safe = normalizePaymentDate(value) || getTodayIsoDate();
-  trackedSetItem(CALENDAR_PRINT_REFERENCE_KEY, safe);
-  renderCalendarDerivedViews();
-  updateCalendarSaveStatus('Fecha de referencia actualizada · ' + new Date().toLocaleTimeString('es-AR', { hour: '2-digit', minute: '2-digit' }), 'success');
-}
-
-function setCalendarPrintReferenceToday() {
-  setCalendarPrintReference(getTodayIsoDate());
-  showToast('Fecha de referencia llevada a hoy.', 'success');
-}
-
-function setCalendarPrintMode(mode) {
-  document.body.classList.remove('print-calendar-annual', 'print-calendar-month', 'print-calendar-week', 'print-calendar-day');
-  if (mode === 'annual') document.body.classList.add('print-calendar-annual');
-  if (mode === 'month') document.body.classList.add('print-calendar-month');
-  if (mode === 'week') document.body.classList.add('print-calendar-week');
-  if (mode === 'day') document.body.classList.add('print-calendar-day');
-}
-
-function clearCalendarPrintMode() {
-  document.body.classList.remove('print-calendar-annual', 'print-calendar-month', 'print-calendar-week', 'print-calendar-day');
-}
-
-function printCalendarDerived(mode) {
-  if (!['day', 'month', 'week'].includes(mode)) return;
-  showSection('calendario');
-  renderCalendarDerivedViews();
-  setCalendarPrintMode(mode);
-  window.print();
-}
-
-function normalizeFamilyKey(value) {
-  return String(value || '')
-    .trim()
-    .toLowerCase()
-    .normalize('NFD')
-    .replace(/[̀-ͯ]/g, '')
-    .replace(/\s+/g, ' ');
-}
-
-function normalizeSchoolKey(value) {
-  return String(value || '')
-    .trim()
-    .toLowerCase()
-    .normalize('NFD')
-    .replace(/[̀-ͯ]/g, '')
-    .replace(/\s+/g, ' ');
-}
-
-function getTodayIsoDate() {
-  return new Date().toISOString().slice(0, 10);
-}
-
-function getCurrentMonthValue() {
-  return getTodayIsoDate().slice(0, 7);
-}
-
-function getCurrentYearValue() {
-  return getTodayIsoDate().slice(0, 4);
-}
-
-function normalizePaymentDate(value) {
-  const raw = String(value || '').trim();
-  if (!raw) return '';
-  const match = raw.match(/^(\d{4})-(\d{2})-(\d{2})$/);
-  if (!match) return '';
-  const y = Number(match[1]);
-  const m = Number(match[2]);
-  const d = Number(match[3]);
-  if (m < 1 || m > 12 || d < 1 || d > 31) return '';
-  return `${match[1]}-${match[2]}-${match[3]}`;
-}
-
-function normalizeMonthValue(value) {
-  const raw = String(value || '').trim();
-  return /^\d{4}-\d{2}$/.test(raw) ? raw : '';
-}
-
-function formatMonthLabel(value) {
-  const safe = normalizeMonthValue(value);
-  if (!safe) return 'mes sin definir';
-  const [year, month] = safe.split('-').map(Number);
-  const dt = new Date(year, month - 1, 1);
-  return dt.toLocaleDateString('es-AR', { month: 'long', year: 'numeric' });
-}
-
-function syncPaymentDateDefault() {
-  const input = document.getElementById('paymentDate');
-  if (input && !input.value) input.value = getTodayIsoDate();
-}
-
-function getKpiTicketMode() {
-  const saved = localStorage.getItem(KPI_TICKET_MODE_KEY);
-  return saved === 'family' ? 'family' : 'payment';
-}
-
-function setKpiTicketMode(mode) {
-  const safeMode = mode === 'family' ? 'family' : 'payment';
-  trackedSetItem(KPI_TICKET_MODE_KEY, safeMode);
-  renderKpiDashboard();
-  renderCalendarPlanner();
-}
-
-function syncKpiTicketModeButtons(mode) {
-  document.querySelectorAll('[data-kpi-ticket-mode]').forEach(btn => {
-    btn.classList.toggle('active', btn.dataset.kpiTicketMode === mode);
-  });
-}
-
-function setText(id, value) {
-  const el = document.getElementById(id);
-  if (el) el.textContent = value;
-}
-
-function setTextMany(ids, value) {
-  ids.forEach(id => setText(id, value));
-}
-
-function getKpiScope() {
-  return localStorage.getItem(KPI_SCOPE_KEY) || '';
-}
-
-function setKpiScope(scope) {
-  trackedSetItem(KPI_SCOPE_KEY, String(scope || '').trim());
-  renderKpiDashboard();
-}
-
-function getKpiPeriodMode() {
-  const saved = localStorage.getItem(KPI_PERIOD_MODE_KEY);
-  return ['all', 'month_current', 'year_current', 'month_custom'].includes(saved) ? saved : 'all';
-}
-
-function getKpiPeriodValue() {
-  return normalizeMonthValue(localStorage.getItem(KPI_PERIOD_VALUE_KEY)) || getCurrentMonthValue();
-}
-
-function setKpiPeriodMode(mode) {
-  const safeMode = ['all', 'month_current', 'year_current', 'month_custom'].includes(mode) ? mode : 'all';
-  trackedSetItem(KPI_PERIOD_MODE_KEY, safeMode);
-  if (safeMode === 'month_custom' && !normalizeMonthValue(localStorage.getItem(KPI_PERIOD_VALUE_KEY))) {
-    trackedSetItem(KPI_PERIOD_VALUE_KEY, getCurrentMonthValue());
-  }
-  renderKpiDashboard();
-}
-
-function setKpiPeriodValue(value) {
-  const safeValue = normalizeMonthValue(value) || getCurrentMonthValue();
-  trackedSetItem(KPI_PERIOD_VALUE_KEY, safeValue);
-  if (getKpiPeriodMode() !== 'month_custom') {
-    trackedSetItem(KPI_PERIOD_MODE_KEY, 'month_custom');
-  }
-  renderKpiDashboard();
-}
-
-function getUnifiedSchoolNames() {
-  const scopeName = String(getKpiScope() || '').trim();
-  const schoolNames = getSchoolBoardData().map(item => String(item.name || '').trim()).filter(Boolean);
-  const paymentNames = getPaymentBoardData().map(item => String(item.school || '').trim()).filter(Boolean);
-  return [...new Set([...schoolNames, ...paymentNames, scopeName].filter(Boolean))]
-    .sort((a, b) => a.localeCompare(b, 'es', { sensitivity: 'base' }));
-}
-
-function renderPaymentSchoolOptions() {
-  const list = document.getElementById('paymentSchoolOptions');
-  if (!list) return;
-  const names = getUnifiedSchoolNames();
-  list.innerHTML = names.map(name => `<option value="${String(name).replace(/"/g, '&quot;')}"></option>`).join('');
-}
-
-function syncKpiScopeSelectors(scope) {
-  const names = getUnifiedSchoolNames();
-  document.querySelectorAll('[data-kpi-scope-selector]').forEach(select => {
-    const previous = scope || '';
-    const options = ['<option value="">Global · todos los colegios</option>']
-      .concat(names.map(name => `<option value="${String(name).replace(/"/g, '&quot;')}" ${name === previous ? 'selected' : ''}>${name}</option>`));
-    select.innerHTML = options.join('');
-    select.value = previous;
-  });
-}
-
-function syncKpiPeriodControls(mode, value) {
-  const safeMode = ['all', 'month_current', 'year_current', 'month_custom'].includes(mode) ? mode : 'all';
-  const safeValue = normalizeMonthValue(value) || getCurrentMonthValue();
-  const allDates = getPaymentBoardData().map(item => normalizePaymentDate(item.date)).filter(Boolean).sort();
-  const minMonth = allDates.length ? allDates[0].slice(0, 7) : '';
-  const maxMonth = allDates.length ? allDates[allDates.length - 1].slice(0, 7) : '';
-
-  document.querySelectorAll('[data-kpi-period-mode]').forEach(select => {
-    select.value = safeMode;
-  });
-
-  document.querySelectorAll('[data-kpi-period-month]').forEach(input => {
-    input.value = safeValue;
-    input.disabled = safeMode !== 'month_custom';
-    input.classList.toggle('disabled', safeMode !== 'month_custom');
-    if (minMonth) input.min = minMonth;
-    else input.removeAttribute('min');
-    if (maxMonth) input.max = maxMonth;
-    else input.removeAttribute('max');
-  });
-}
-
-function computeKpiMetrics() {
-  const allPayments = getPaymentBoardData();
-  const allSchools = getSchoolBoardData();
-  const ticketMode = getKpiTicketMode();
-  const scope = getKpiScope();
-  const periodMode = getKpiPeriodMode();
-  const periodValue = getKpiPeriodValue();
-  const normalizedScope = normalizeSchoolKey(scope);
-
-  const paymentsInScope = normalizedScope
-    ? allPayments.filter(item => normalizeSchoolKey(item.school) === normalizedScope)
-    : allPayments;
-
-  const undatedCount = paymentsInScope.filter(item => !normalizePaymentDate(item.date)).length;
-  const datedInScopeCount = paymentsInScope.length - undatedCount;
-
-  const payments = paymentsInScope.filter(item => {
-    const date = normalizePaymentDate(item.date);
-    if (periodMode === 'all') return true;
-    if (!date) return false;
-    if (periodMode === 'month_current') return date.slice(0, 7) === getCurrentMonthValue();
-    if (periodMode === 'year_current') return date.slice(0, 4) === getCurrentYearValue();
-    if (periodMode === 'month_custom') return date.slice(0, 7) === periodValue;
-    return true;
-  });
-
-  let schools = normalizedScope
-    ? allSchools.filter(item => normalizeSchoolKey(item.name) === normalizedScope)
-    : allSchools;
-
-  if (normalizedScope && !schools.length && scope) {
-    schools = [{ id: 'scope_only', name: scope, stage: 'sin-dato' }];
-  }
-
-  const totalPayments = payments.length;
-  const gross = payments.reduce((sum, item) => sum + (Number(item.amount) || 0), 0);
-  const effectiveCount = payments.filter(item => ['validado', 'liquidado'].includes(item.status)).length;
-  const pendingCount = Math.max(totalPayments - effectiveCount, 0);
-  const familyKeys = payments.map(item => normalizeFamilyKey(item.name) || item.id);
-  const uniqueFamilyCount = new Set(familyKeys).size;
-  const duplicatePaymentCount = Math.max(totalPayments - uniqueFamilyCount, 0);
-  const ticketPerPayment = totalPayments ? gross / totalPayments : 0;
-  const ticketPerFamily = uniqueFamilyCount ? gross / uniqueFamilyCount : 0;
-  const ticket = ticketMode === 'family' ? ticketPerFamily : ticketPerPayment;
-  const ticketFormula = ticketMode === 'family'
-    ? 'Facturación Bruta ÷ Familias Únicas'
-    : 'Facturación Bruta ÷ Total de Pagos';
-  const ticketMeta = ticketMode === 'family'
-    ? 'Monto promedio que ingresa por cada familia deduplicada según el nombre cargado en cobranzas.'
-    : 'Monto promedio que ingresa por cada familia compradora medida por registro de cobro.';
-  const ticketModeLabel = ticketMode === 'family' ? 'Modo actual: por familia única' : 'Modo actual: por pago';
-  const ticketDetail = ticketMode === 'family'
-    ? `${uniqueFamilyCount} familias únicas detectadas${duplicatePaymentCount > 0 ? ` · ${duplicatePaymentCount} registros duplicados absorbidos` : ''}`
-    : `${totalPayments} pagos tomados como base`;
-
-  const canon = gross * 0.2;
-  const effectiveRate = totalPayments ? (effectiveCount / totalPayments) * 100 : 0;
-  const activeSchools = schools.filter(item => item.stage === 'activo').length;
-  const scoped = !!normalizedScope;
-  const scopeLabel = scoped ? scope : 'Global · todos los colegios';
-  const scopeText = scoped
-    ? `Vista filtrada por ${scope}.`
-    : 'Vista consolidada de toda la operación.';
-  const scopeFootnote = scoped
-    ? 'Solo computa cobranzas asociadas a esa institución.'
-    : 'Suma todas las cobranzas y toda la cartera cargada.';
-
-  let periodStatus = 'Período: todo el historial';
-  let periodText = 'Sin filtro temporal. Incluye todas las cobranzas cargadas.';
-  if (periodMode === 'month_current') {
-    periodStatus = `Período: ${formatMonthLabel(getCurrentMonthValue())}`;
-    periodText = 'Solo computa cobranzas fechadas dentro del mes actual.';
-  } else if (periodMode === 'year_current') {
-    periodStatus = `Período: año ${getCurrentYearValue()}`;
-    periodText = 'Solo computa cobranzas fechadas dentro del año actual.';
-  } else if (periodMode === 'month_custom') {
-    periodStatus = `Período: ${formatMonthLabel(periodValue)}`;
-    periodText = 'Solo computa cobranzas fechadas dentro del mes seleccionado.';
-  }
-
-  const periodFootnote = periodMode === 'all'
-    ? (undatedCount > 0
-      ? `${undatedCount} registro(s) de esta vista siguen sin fecha. En filtros temporales quedarán fuera hasta completarlos.`
-      : 'Incluye todo el historial cargado, con o sin fecha.')
-    : (undatedCount > 0
-      ? `Filtro temporal activo. ${undatedCount} registro(s) de esta vista no tienen fecha y quedaron fuera del período.`
-      : 'Filtro temporal activo. Solo entra lo que tenga fecha dentro del período elegido.');
-
-  const institutionTitle = scoped ? 'Institución activa' : 'Instituciones activas';
-  const institutionFormula = scoped ? 'Institución seleccionada en etapa "Activo"' : 'Colegios en etapa "Activo"';
-  const institutionMeta = periodMode === 'all'
-    ? (scoped
-      ? 'Confirma si el colegio filtrado está efectivamente en producción.'
-      : 'Volumen de operaciones actualmente en producción.')
-    : (scoped
-      ? 'La lectura financiera está filtrada por período, pero este KPI sigue mostrando el estado actual de la cartera.'
-      : 'Con filtro temporal activo, este KPI sigue mostrando el estado actual de la cartera, no un histórico.');
-  const institutionDetail = scoped
-    ? `${activeSchools ? 'Sí' : 'No'} · ${scope}${schools.length ? '' : ' (aún no figura en cartera)'}`
-    : `${activeSchools} activas sobre ${schools.length} instituciones en cartera`;
-
-  return {
-    scope,
-    scoped,
-    scopeLabel,
-    scopeText,
-    scopeFootnote,
-    periodMode,
-    periodValue,
-    periodStatus,
-    periodText,
-    periodFootnote,
-    payments,
-    paymentsInScope,
-    schools,
-    totalPayments,
-    datedInScopeCount,
-    undatedCount,
-    gross,
-    effectiveCount,
-    pendingCount,
-    ticket,
-    ticketMode,
-    ticketFormula,
-    ticketMeta,
-    ticketModeLabel,
-    ticketDetail,
-    ticketPerPayment,
-    ticketPerFamily,
-    uniqueFamilyCount,
-    duplicatePaymentCount,
-    canon,
-    effectiveRate,
-    activeSchools,
-    institutionTitle,
-    institutionFormula,
-    institutionMeta,
-    institutionDetail
-  };
-}
-
-
-function buildKpiMobileExecutive(metrics, healthVariant) {
-  if (!metrics.totalPayments && !metrics.schools.length) {
-    return { pill: 'Sin datos', title: 'Panel todavía vacío', meta: 'Carga al menos un colegio y un cobro para que la lectura móvil empiece a tener sentido.' };
-  }
-  if (healthVariant === 'danger') {
-    return { pill: 'Atención', title: 'Cobranza frágil', meta: `Solo ${formatPercent(metrics.effectiveRate)} del tablero está validado o liquidado. Conviene bajar a cobranzas y atacar pendientes.` };
-  }
-  if (healthVariant === 'warning') {
-    return { pill: 'Seguimiento', title: 'Pulso intermedio', meta: `${metrics.pendingCount} registro(s) siguen abiertos. Ya hay ${money(metrics.canon)} para reservar a cooperadora.` };
-  }
-  return { pill: 'Sano', title: 'Lectura saludable', meta: `${formatPercent(metrics.effectiveRate)} efectivo · ${metrics.activeSchools} institución(es) activa(s) · ${money(metrics.canon)} proyectados para canon.` };
-}
-
-function buildKpiMobileAction(metrics) {
-  if (!metrics.totalPayments && metrics.schools.length) {
-    return { title: 'Primero cargar cobros', meta: 'Ya tienes cartera, pero todavía no hay cobranzas. El siguiente paso real es alimentar el tablero financiero.' };
-  }
-  if (!metrics.totalPayments) {
-    return { title: 'Arrancar por cartera y cobranzas', meta: 'Sin datos financieros todavía. Carga un colegio y un primer cobro para activar el tablero.' };
-  }
-  if (metrics.undatedCount > 0 && metrics.periodMode !== 'all') {
-    return { title: 'Completar fechas faltantes', meta: `${metrics.undatedCount} registro(s) quedaron fuera del período porque no tienen fecha cargada.` };
-  }
-  if (metrics.effectiveRate < 40) {
-    return { title: 'Atacar pendientes y observados', meta: `${metrics.pendingCount} registro(s) todavía no entran como efectivos. Ese es el cuello de botella principal.` };
-  }
-  if (metrics.effectiveRate < 70) {
-    return { title: 'Empujar validación antes de producir', meta: 'La cobranza todavía está en zona media. Conviene validar más antes de comprometer volumen fuerte.' };
-  }
-  if (!metrics.scoped && metrics.activeSchools === 0 && metrics.schools.length) {
-    return { title: 'Revisar etapa de cartera', meta: 'Hay instituciones cargadas, pero ninguna figura activa. Vale la pena ordenar la cartera comercial.' };
-  }
-  return { title: 'Mantener ritmo y respaldo', meta: 'La lectura está bien. Usa este panel para no perder visibilidad y sigue exportando respaldo JSON con frecuencia.' };
-}
-
-function renderKpiMobileFocus(metrics, healthVariant) {
-  const executive = buildKpiMobileExecutive(metrics, healthVariant);
-  const action = buildKpiMobileAction(metrics);
-  const pill = document.getElementById('kpiMobileFocusPill');
-  const focus = document.getElementById('kpiMobileFocus');
-  const filterTitle = metrics.scoped ? `${metrics.scopeLabel} · ${metrics.periodStatus.replace('Período: ', '')}` : `${metrics.scopeLabel} · ${metrics.periodStatus.replace('Período: ', '')}`;
-  const filterMeta = `${metrics.scopeText} ${metrics.periodText}`;
-
-  setText('kpiMobileExecutiveTitle', executive.title);
-  setText('kpiMobileExecutiveMeta', executive.meta);
-  setText('kpiMobileActionTitle', action.title);
-  setText('kpiMobileActionMeta', action.meta);
-  setText('kpiMobileFilterTitle', filterTitle);
-  setText('kpiMobileFilterMeta', filterMeta);
-  if (pill) pill.textContent = executive.pill;
-  if (focus) {
-    focus.classList.remove('is-warning', 'is-danger', 'is-success');
-    if (healthVariant === 'warning') focus.classList.add('is-warning');
-    if (healthVariant === 'danger') focus.classList.add('is-danger');
-    if (healthVariant === 'success') focus.classList.add('is-success');
-  }
-}
-
-function renderKpiDashboard() {
-  const metrics = computeKpiMetrics();
-  syncKpiTicketModeButtons(metrics.ticketMode);
-  syncKpiScopeSelectors(metrics.scope);
-  syncKpiPeriodControls(metrics.periodMode, metrics.periodValue);
-
-  setTextMany(['kpiTicketPromedio', 'inicioKpiTicketPromedio'], money(metrics.ticket));
-  setTextMany(['kpiFacturacionBruta', 'inicioKpiFacturacionBruta'], money(metrics.gross));
-  setTextMany(['kpiCanonCooperadoras', 'inicioKpiCanonCooperadoras'], money(metrics.canon));
-  setTextMany(['kpiTasaCobro', 'inicioKpiTasaCobro'], formatPercent(metrics.effectiveRate));
-  setTextMany(['kpiInstitucionesActivas', 'inicioKpiInstitucionesActivas'], String(metrics.activeSchools));
-  setText('kpiRecordsCount', String(metrics.totalPayments));
-  setText('kpiEffectiveCount', String(metrics.effectiveCount));
-  setText('kpiPendingCount', String(metrics.pendingCount));
-  setText('kpiSchoolCount', String(metrics.schools.length));
-  setText('kpiLastRefresh', new Date().toLocaleTimeString('es-AR', { hour: '2-digit', minute: '2-digit' }));
-  setTextMany(['kpiTasaDetalle', 'inicioKpiTasaDetalle'], `${metrics.effectiveCount} de ${metrics.totalPayments} registros efectivos`);
-  setTextMany(['kpiInstitucionesDetalle', 'inicioKpiInstitucionesDetalle'], metrics.institutionDetail);
-  setText('kpiTicketFormula', metrics.ticketFormula);
-  setText('kpiTicketMeta', metrics.ticketMeta);
-  setText('kpiTicketModeBadge', metrics.ticketModeLabel);
-  setText('kpiTicketDetalle', metrics.ticketDetail);
-  setText('inicioKpiTicketDetalle', metrics.ticketDetail);
-  setText('inicioKpiFacturacionDetalle', `${metrics.totalPayments} registros cargados`);
-  setTextMany(['kpiScopeStatus', 'inicioKpiScopeStatus'], metrics.scopeLabel);
-  setTextMany(['kpiScopeText', 'inicioKpiScopeText'], metrics.scopeText);
-  setTextMany(['kpiScopeFootnote', 'inicioKpiScopeFootnote'], metrics.scopeFootnote);
-  setTextMany(['kpiPeriodStatus', 'inicioKpiPeriodStatus'], metrics.periodStatus);
-  setTextMany(['kpiPeriodText', 'inicioKpiPeriodText'], metrics.periodText);
-  setTextMany(['kpiPeriodFootnote', 'inicioKpiPeriodFootnote'], metrics.periodFootnote);
-  setTextMany(['kpiInstitucionName', 'inicioKpiInstitucionName'], metrics.institutionTitle);
-  setText('kpiInstitucionesFormula', metrics.institutionFormula);
-  setText('kpiInstitucionesMeta', metrics.institutionMeta);
-
-  const healthCard = document.getElementById('kpiHealthCard');
-  const healthText = document.getElementById('kpiHealthText');
-  const homeHealthText = document.getElementById('inicioKpiHealthText');
-  const scopePrefix = metrics.scoped ? `${metrics.scope}: ` : '';
-  let healthMessage = 'Carga datos en cobranzas y cartera para habilitar la lectura automática.';
-  let healthVariant = '';
-
-  if (!metrics.totalPayments && !metrics.schools.length) {
-    healthMessage = metrics.scoped
-      ? `${scopePrefix}no hay cobranzas asociadas ni registro de esa institución en cartera.`
-      : 'Aún no hay datos cargados en cobranzas ni cartera. Los cinco KPIs se activan apenas registres pagos e instituciones.';
-  } else if (!metrics.totalPayments && metrics.periodMode !== 'all' && metrics.undatedCount > 0) {
-    healthVariant = 'warning';
-    healthMessage = metrics.scoped
-      ? `${scopePrefix}no aparecen cobros dentro de este período. Ojo: ${metrics.undatedCount} registro(s) de esta institución siguen sin fecha y quedaron fuera del filtro temporal.`
-      : `No aparecen cobros dentro del período elegido. Ojo: ${metrics.undatedCount} registro(s) del tablero siguen sin fecha y quedaron fuera del filtro temporal.`;
-  } else if (!metrics.totalPayments) {
-    healthVariant = 'warning';
-    healthMessage = metrics.scoped
-      ? `${scopePrefix}figura en cartera, pero todavía no tiene cobranzas asociadas en el tablero.`
-      : `Ya tienes ${metrics.schools.length} instituciones en cartera, pero todavía no hay cobranzas cargadas. El panel comercial existe, pero la lectura financiera aún está vacía.`;
-  } else if (metrics.effectiveRate < 40) {
-    healthVariant = 'danger';
-    healthMessage = metrics.scoped
-      ? `${scopePrefix}la cobranza está frágil: solo ${formatPercent(metrics.effectiveRate)} del tablero filtrado está validado o liquidado.`
-      : `La cobranza está frágil: solo ${formatPercent(metrics.effectiveRate)} del tablero está validado o liquidado. Antes de producir en volumen, conviene atacar pendientes y observados.`;
-  } else if (metrics.effectiveRate < 70) {
-    healthVariant = 'warning';
-    healthMessage = metrics.scoped
-      ? `${scopePrefix}${formatPercent(metrics.effectiveRate)} de efectividad y ${money(metrics.canon)} de canon proyectado en esta institución.`
-      : `La cobranza está en seguimiento: ${formatPercent(metrics.effectiveRate)} de efectividad y ${money(metrics.canon)} a reservar para cooperadora. Estás en zona intermedia.`;
-  } else {
-    healthVariant = 'success';
-    healthMessage = metrics.scoped
-      ? `${scopePrefix}buen pulso operativo: ${formatPercent(metrics.effectiveRate)} del tablero filtrado ya está validado o liquidado.`
-      : `Buen pulso operativo: ${formatPercent(metrics.effectiveRate)} del tablero ya está validado o liquidado, con ${metrics.activeSchools} instituciones activas y ${money(metrics.canon)} de canon proyectado.`;
-  }
-
-  if (healthText) healthText.textContent = healthMessage;
-  if (homeHealthText) homeHealthText.textContent = healthMessage;
-  if (healthCard) {
-    healthCard.className = 'ops-card';
-    if (healthVariant === 'warning') healthCard.classList.add('ops-card-warning');
-    if (healthVariant === 'danger') healthCard.classList.add('ops-card-danger');
-    if (healthVariant === 'success') healthCard.classList.add('ops-card-success');
-  }
-
-  renderKpiMobileFocus(metrics, healthVariant);
 }
 
 function renderSchoolBoard() {
@@ -2740,8 +927,6 @@ function renderSchoolBoard() {
     else if (pipeline > active) insight.textContent = 'El pipeline está creciendo. Prioriza cierre de propuestas y seguimiento de reuniones.';
     else insight.textContent = 'La cartera está relativamente estable. Puedes concentrarte en renovación y calidad de ejecución.';
   }
-
-  renderKpiDashboard();
 }
 
 function addSchoolRecord() {
@@ -2847,7 +1032,6 @@ function renderFollowupBoard() {
     else if (open > 0) insight.textContent = 'Quedan pendientes operativos. Conviene cerrarlos antes de edición e impresión.';
     else insight.textContent = 'Control limpio: no quedan abiertos relevantes en esta vista.';
   }
-  renderMobileOpsDashboard();
 }
 
 function addFollowupRecord() {
@@ -2894,259 +1078,78 @@ function clearFollowupBoard() {
   renderFollowupBoard();
 }
 
-
-const paymentBoardUiState = {
-  search: '',
-  status: ''
-};
-
-function getPaymentStatusLabel(status) {
-  return ({
-    pendiente: 'Pendiente',
-    observado: 'Observado',
-    validado: 'Validado',
-    liquidado: 'Liquidado'
-  })[status] || 'Pendiente';
-}
-
-function getPaymentFilteredData(data = getPaymentBoardData()) {
-  const search = String(paymentBoardUiState.search || '').trim().toLowerCase();
-  const status = paymentBoardUiState.status || '';
-  return data.filter(item => {
-    const matchesStatus = !status || item.status === status;
-    if (!matchesStatus) return false;
-    if (!search) return true;
-    const haystack = [item.school, item.name, item.course, item.receipt, item.note, item.date, item.status]
-      .map(value => String(value || '').toLowerCase())
-      .join(' ');
-    return haystack.includes(search);
-  });
-}
-
-function setPaymentSearch(value) {
-  paymentBoardUiState.search = String(value || '').trim();
-  renderPaymentBoard();
-}
-
-function setPaymentStatusFilter(value) {
-  paymentBoardUiState.status = value || '';
-  renderPaymentBoard();
-}
-
-function clearPaymentFilters() {
-  paymentBoardUiState.search = '';
-  paymentBoardUiState.status = '';
-  const searchEl = document.getElementById('paymentSearch');
-  const statusEl = document.getElementById('paymentFilterStatus');
-  if (searchEl) searchEl.value = '';
-  if (statusEl) statusEl.value = '';
-  renderPaymentBoard();
-}
-
-function setPaymentQuickStatus(id, status) {
-  setPaymentField(id, 'status', status);
-}
-
 function getPaymentBoardData() {
-  const data = JSON.parse(localStorage.getItem('polar3_payment_board') || '[]');
-  if (!Array.isArray(data)) return [];
-  return data.map(item => ({
-    ...item,
-    school: String(item.school || '').trim(),
-    name: String(item.name || '').trim(),
-    course: String(item.course || '').trim(),
-    receipt: String(item.receipt || '').trim(),
-    note: String(item.note || '').trim(),
-    date: normalizePaymentDate(item.date)
-  }));
+  return JSON.parse(localStorage.getItem('polar3_payment_board') || '[]');
 }
 
 function savePaymentBoardData(data) {
   trackedSetItem('polar3_payment_board', JSON.stringify(data));
 }
 
-
 function renderPaymentBoard() {
   const rows = document.getElementById('paymentsBoardRows');
-  const mobileList = document.getElementById('paymentMobileList');
   if (!rows) return;
   const data = getPaymentBoardData();
-  const filteredData = getPaymentFilteredData(data);
-  renderPaymentSchoolOptions();
-
-  const emptyRow = '<tr><td colspan="9" style="text-align:center;color:var(--text-muted)">Sin registros todavía.</td></tr>';
-  const emptyFilteredRow = '<tr><td colspan="9" style="text-align:center;color:var(--text-muted)">No hay registros para este filtro.</td></tr>';
-
   if (!data.length) {
-    rows.innerHTML = emptyRow;
-  } else if (!filteredData.length) {
-    rows.innerHTML = emptyFilteredRow;
+    rows.innerHTML = '<tr><td colspan="7" style="text-align:center;color:var(--text-muted)">Sin registros todavía.</td></tr>';
   } else {
-    rows.innerHTML = filteredData.map(item => {
-      const school = escapeHtml(item.school || '');
-      const date = escapeHtml(item.date || '');
-      const name = escapeHtml(item.name || '');
-      const course = escapeHtml(item.course || '');
-      const receipt = escapeHtml(item.receipt || '');
-      const note = escapeHtml(item.note || '');
-      return `
+    rows.innerHTML = data.map(item => `
       <tr>
-        <td>
-          <input class="inline-input" list="paymentSchoolOptions" value="${school}" onchange="setPaymentField('${item.id}','school', this.value)" placeholder="Asignar colegio" type="text">
-        </td>
-        <td>
-          <input class="inline-input inline-input-date" value="${date}" onchange="setPaymentField('${item.id}','date', this.value)" type="date">
-        </td>
-        <td><strong>${name || '—'}</strong></td>
-        <td>${course || '—'}</td>
+        <td><strong>${item.name || '—'}</strong></td>
+        <td>${item.course || '—'}</td>
         <td>${money(item.amount)}</td>
         <td>
-          <select class="inline-select status-${item.status}" onchange="setPaymentField('${item.id}','status', this.value)">
+          <select class="inline-select status-${item.status}" onchange="setPaymentStatus('${item.id}', this.value)">
             <option value="pendiente" ${item.status === 'pendiente' ? 'selected' : ''}>Pendiente</option>
             <option value="observado" ${item.status === 'observado' ? 'selected' : ''}>Observado</option>
             <option value="validado" ${item.status === 'validado' ? 'selected' : ''}>Validado</option>
             <option value="liquidado" ${item.status === 'liquidado' ? 'selected' : ''}>Liquidado</option>
           </select>
         </td>
-        <td>${receipt || '—'}</td>
-        <td>${note || '—'}</td>
+        <td>${item.receipt || '—'}</td>
+        <td>${item.note || '—'}</td>
         <td><button class="mini-btn danger" type="button" onclick="removePaymentRecord('${item.id}')">Eliminar</button></td>
       </tr>
-    `;
-    }).join('');
-  }
-
-  if (mobileList) {
-    if (!data.length) {
-      mobileList.innerHTML = '<div class="payment-mobile-empty">Todavía no hay registros de cobranzas.</div>';
-    } else if (!filteredData.length) {
-      mobileList.innerHTML = '<div class="payment-mobile-empty">No hay resultados con ese filtro.</div>';
-    } else {
-      mobileList.innerHTML = filteredData.map(item => {
-        const school = escapeHtml(item.school || 'Sin institución');
-        const name = escapeHtml(item.name || 'Sin nombre');
-        const course = escapeHtml(item.course || 'Sin curso');
-        const receipt = escapeHtml(item.receipt || 'Sin comprobante');
-        const note = escapeHtml(item.note || 'Sin observación');
-        const prettyDate = escapeHtml(formatCalendarDate(item.date));
-        const statusLabel = escapeHtml(getPaymentStatusLabel(item.status));
-        return `
-        <article class="payment-mobile-card status-${item.status}">
-          <div class="payment-mobile-card-top">
-            <div>
-              <div class="payment-mobile-school">${school}</div>
-              <h4>${name}</h4>
-              <p>${course}</p>
-            </div>
-            <div class="payment-mobile-amount-wrap">
-              <strong class="payment-mobile-amount">${money(item.amount)}</strong>
-              <span class="payment-status-pill status-${item.status}">${statusLabel}</span>
-            </div>
-          </div>
-          <div class="payment-mobile-meta">
-            <span>📅 ${prettyDate}</span>
-            <span>🧾 ${receipt}</span>
-          </div>
-          <div class="payment-mobile-note">${note}</div>
-          <div class="payment-mobile-edit-grid">
-            <label class="payment-mobile-edit">
-              <span>Fecha</span>
-              <input class="inline-input inline-input-date" value="${escapeHtml(item.date || '')}" onchange="setPaymentField('${item.id}','date', this.value)" type="date">
-            </label>
-            <label class="payment-mobile-edit">
-              <span>Estado</span>
-              <select class="inline-select status-${item.status}" onchange="setPaymentField('${item.id}','status', this.value)">
-                <option value="pendiente" ${item.status === 'pendiente' ? 'selected' : ''}>Pendiente</option>
-                <option value="observado" ${item.status === 'observado' ? 'selected' : ''}>Observado</option>
-                <option value="validado" ${item.status === 'validado' ? 'selected' : ''}>Validado</option>
-                <option value="liquidado" ${item.status === 'liquidado' ? 'selected' : ''}>Liquidado</option>
-              </select>
-            </label>
-          </div>
-          <div class="payment-mobile-actions">
-            <button class="payment-chip-btn" type="button" onclick="setPaymentQuickStatus('${item.id}','pendiente')">Pend.</button>
-            <button class="payment-chip-btn" type="button" onclick="setPaymentQuickStatus('${item.id}','observado')">Obs.</button>
-            <button class="payment-chip-btn" type="button" onclick="setPaymentQuickStatus('${item.id}','validado')">Validar</button>
-            <button class="payment-chip-btn primary" type="button" onclick="setPaymentQuickStatus('${item.id}','liquidado')">Liquidar</button>
-            <button class="payment-chip-btn danger" type="button" onclick="removePaymentRecord('${item.id}')">Eliminar</button>
-          </div>
-        </article>`;
-      }).join('');
-    }
+    `).join('');
   }
 
   const total = data.reduce((sum, item) => sum + (Number(item.amount) || 0), 0);
   const pending = data.filter(item => ['pendiente','observado'].includes(item.status)).reduce((sum, item) => sum + (Number(item.amount) || 0), 0);
   const settled = data.filter(item => item.status === 'liquidado').reduce((sum, item) => sum + (Number(item.amount) || 0), 0);
-  const assignedSchools = new Set(data.map(item => normalizeSchoolKey(item.school)).filter(Boolean)).size;
-  const unassigned = data.filter(item => !normalizeSchoolKey(item.school)).length;
-  const undated = data.filter(item => !normalizePaymentDate(item.date)).length;
-
   document.getElementById('payCount') && (document.getElementById('payCount').textContent = String(data.length));
   document.getElementById('payTotal') && (document.getElementById('payTotal').textContent = money(total));
   document.getElementById('payPending') && (document.getElementById('payPending').textContent = money(pending));
   document.getElementById('paySettled') && (document.getElementById('paySettled').textContent = money(settled));
-  document.getElementById('paySchoolsLinked') && (document.getElementById('paySchoolsLinked').textContent = `${assignedSchools} vinculados · ${unassigned} sin colegio · ${undated} sin fecha`);
 
   const insight = document.getElementById('paymentInsight');
   if (insight) {
     if (!data.length) insight.textContent = 'Aún no hay datos cargados.';
-    else if (undated > 0) insight.textContent = `Hay ${undated} cobro(s) sin fecha. Completa esa columna para habilitar KPIs confiables por período.`;
-    else if (unassigned > 0) insight.textContent = `Hay ${unassigned} cobro(s) sin institución asignada. Completa esa columna para habilitar KPIs confiables por colegio.`;
     else if (pending > settled && pending > 0) insight.textContent = 'Hoy tienes más dinero en seguimiento que liquidado. Conviene atacar observados y pendientes antes de producir.';
     else if (settled >= total * 0.6) insight.textContent = 'Buen nivel de cierre: la mayor parte del tablero ya está liquidada o lista para conciliación.';
     else insight.textContent = 'Tablero equilibrado, pero todavía conviene revisar observados para no frenar producción.';
   }
-
-  const feedback = document.getElementById('paymentFilterFeedback');
-  if (feedback) {
-    if (!data.length) feedback.textContent = 'Sin registros cargados todavía.';
-    else if (!paymentBoardUiState.search && !paymentBoardUiState.status) feedback.textContent = `Mostrando todos los registros (${data.length}).`;
-    else feedback.textContent = `Mostrando ${filteredData.length} de ${data.length} registro(s)${paymentBoardUiState.status ? ` · estado ${getPaymentStatusLabel(paymentBoardUiState.status).toLowerCase()}` : ''}${paymentBoardUiState.search ? ` · búsqueda “${paymentBoardUiState.search}”` : ''}.`;
-  }
-
-  syncKpiScopeSelectors(getKpiScope());
-  renderKpiDashboard();
-  renderMobileOpsDashboard();
 }
 
 function addPaymentRecord() {
-
-  const school = document.getElementById('paymentSchool')?.value.trim();
   const name = document.getElementById('paymentName')?.value.trim();
   const course = document.getElementById('paymentCourse')?.value.trim();
-  const date = normalizePaymentDate(document.getElementById('paymentDate')?.value) || getTodayIsoDate();
   const amount = parseInt(document.getElementById('paymentAmount')?.value || '0', 10);
   const status = document.getElementById('paymentStatus')?.value || 'pendiente';
   const receipt = document.getElementById('paymentReceipt')?.value.trim();
   const note = document.getElementById('paymentNote')?.value.trim();
   if (!name || !amount) return;
   const data = getPaymentBoardData();
-  data.unshift({ id: 'pay_' + Date.now(), school, date, name, course, amount, status, receipt, note });
+  data.unshift({ id: 'pay_' + Date.now(), name, course, amount, status, receipt, note });
   savePaymentBoardData(data);
-  ['paymentSchool','paymentName','paymentCourse','paymentAmount','paymentReceipt','paymentNote'].forEach(id => { const el = document.getElementById(id); if (el) el.value = ''; });
+  ['paymentName','paymentCourse','paymentAmount','paymentReceipt','paymentNote'].forEach(id => { const el = document.getElementById(id); if (el) el.value = ''; });
   const statusEl = document.getElementById('paymentStatus'); if (statusEl) statusEl.value = 'pendiente';
-  const dateEl = document.getElementById('paymentDate'); if (dateEl) dateEl.value = getTodayIsoDate();
-  showToast('Registro de cobranza guardado.', 'success');
-  renderPaymentBoard();
-  const nextField = document.getElementById('paymentName');
-  if (nextField) nextField.focus();
-}
-
-function setPaymentField(id, field, value) {
-  const data = getPaymentBoardData().map(item => {
-    if (item.id !== id) return item;
-    let nextValue = value;
-    if (field === 'school') nextValue = String(value || '').trim();
-    if (field === 'date') nextValue = normalizePaymentDate(value);
-    return { ...item, [field]: nextValue };
-  });
-  savePaymentBoardData(data);
   renderPaymentBoard();
 }
 
 function setPaymentStatus(id, status) {
-  setPaymentField(id, 'status', status);
+  const data = getPaymentBoardData().map(item => item.id === id ? { ...item, status } : item);
+  savePaymentBoardData(data);
+  renderPaymentBoard();
 }
 
 function removePaymentRecord(id) {
@@ -3165,19 +1168,6 @@ function clearPaymentBoard() {
   if (!confirm('¿Vaciar el tablero de cobranzas?')) return;
   trackedRemoveItem('polar3_payment_board');
   renderPaymentBoard();
-}
-
-function fillMissingPaymentDates() {
-  const data = getPaymentBoardData();
-  const missing = data.filter(item => !normalizePaymentDate(item.date)).length;
-  if (!missing) {
-    showToast('No hay registros sin fecha para completar.', 'warning');
-    return;
-  }
-  const today = getTodayIsoDate();
-  savePaymentBoardData(data.map(item => normalizePaymentDate(item.date) ? item : { ...item, date: today }));
-  renderPaymentBoard();
-  showToast(`Se completaron ${missing} fecha(s) faltante(s) con ${today}.`, 'success');
 }
 
 function getSimulatorValues() {
@@ -3396,15 +1386,23 @@ function syncProposalWithPack() {
 }
 
 function applyMeetingMode() {
-  meetingMode = false;
-  document.body.classList.remove('meeting-mode');
-  try { localStorage.removeItem('polar3_meeting_mode'); } catch (e) {}
+  document.body.classList.toggle('meeting-mode', !!meetingMode);
+  const btn = document.getElementById('meetingModeBtn');
+  const chip = document.getElementById('modeChip');
+  const strip = document.getElementById('meetingStrip');
+  if (btn) {
+    btn.classList.toggle('active-mode', !!meetingMode);
+    btn.textContent = meetingMode ? 'Salir reunión' : 'Modo reunión';
+  }
+  if (chip) chip.textContent = meetingMode ? 'Modo: Reunión' : 'Modo: Interno';
+  if (strip) strip.hidden = !meetingMode;
 }
 
 function toggleMeetingMode(forceValue) {
-  meetingMode = false;
-  document.body.classList.remove('meeting-mode');
-  try { localStorage.removeItem('polar3_meeting_mode'); } catch (e) {}
+  meetingMode = typeof forceValue === 'boolean' ? forceValue : !meetingMode;
+  trackedSetItem('polar3_meeting_mode', meetingMode ? '1' : '0');
+  applyMeetingMode();
+  if (meetingMode) switchWorkspace('comercial', 'institucional');
 }
 
 // --- LÓGICA DEL HUB GOOGLE WORKSPACE ---
@@ -3442,298 +1440,35 @@ function loadWorkspaceUI() {
 }
 // ----------------------------------------
 
-function copyPlainText(text) {
-  if (!text) return Promise.resolve(false);
-  if (navigator.clipboard?.writeText) return navigator.clipboard.writeText(text).then(() => true).catch(() => false);
-  try {
-    const helper = document.createElement('textarea');
-    helper.value = text;
-    helper.setAttribute('readonly', 'readonly');
-    helper.style.position = 'fixed';
-    helper.style.opacity = '0';
-    document.body.appendChild(helper);
-    helper.select();
-    document.execCommand('copy');
-    helper.remove();
-    return Promise.resolve(true);
-  } catch (error) {
-    return Promise.resolve(false);
-  }
-}
-
-function getCurrentSectionContext() {
-  const hash = location.hash.replace('#', '') || 'inicio';
-  const title = document.getElementById('currentSectionTitle')?.textContent?.trim() || 'Inicio';
-  return { hash, title, workspace: currentWorkspace };
-}
-
-function getAiQuickTemplateValue() {
-  const select = document.getElementById('aiTemplateSelect');
-  return select?.value || localStorage.getItem('polar3_ai_template') || 'consulta';
-}
-
-function getAiQuickNotesValue() {
-  const notes = document.getElementById('aiQuickNotes')?.value || '';
-  return notes.trim();
-}
-
-function buildAiQuickPrompt() {
-  const template = getAiQuickTemplateValue();
-  const notes = getAiQuickNotesValue();
-  const ctx = getCurrentSectionContext();
-  const contextLine = `Contexto Polar[3]: sección ${ctx.title} (${ctx.hash}), espacio ${ctx.workspace}.`;
-  const common = 'Responde en español, directo, breve y accionable. Si falta un dato, dilo con claridad y no inventes.';
-  let body = '';
-  switch (template) {
-    case 'cobranzas':
-      body = 'Actúa como apoyo administrativo para fotografía escolar. Ayúdame con seguimiento de pagos, redacción breve de mensajes, orden de estados y próximos pasos.';
-      break;
-    case 'jornada':
-      body = 'Actúa como coordinador operativo de una jornada de fotografía escolar. Ayúdame con checklist, tiempos, contingencias, retomas y organización del día.';
-      break;
-    case 'comercial':
-      body = 'Actúa como consultor comercial para fotografía escolar en Argentina. Ayúdame a redactar mensajes, objeciones, propuestas y seguimiento de instituciones.';
-      break;
-    case 'kpis':
-      body = 'Actúa como analista de negocio para fotografía escolar. Ayúdame a interpretar KPIs, detectar alertas y proponer decisiones concretas.';
-      break;
-    default:
-      body = 'Actúa como asistente operativo para mi negocio de fotografía escolar Polar[3].';
-      break;
-  }
-  const userRequest = notes || 'Necesito una consulta rápida con foco práctico.';
-  return `${body}
-${contextLine}
-${common}
-Consulta puntual: ${userRequest}`.trim();
-}
-
-function syncAiQuickComposer() {
-  const preview = document.getElementById('aiQuickPromptPreview');
-  const contextChip = document.getElementById('aiQuickContextChip');
-  const template = getAiQuickTemplateValue();
-  const ctx = getCurrentSectionContext();
-  if (contextChip) contextChip.textContent = `${ctx.title} · ${ctx.workspace}`;
-  if (preview) preview.value = buildAiQuickPrompt();
-  try {
-    trackedSetItem('polar3_ai_template', JSON.stringify(template), false);
-    trackedSetItem('polar3_ai_notes', JSON.stringify(document.getElementById('aiQuickNotes')?.value || ''), false);
-  } catch (error) {}
-}
-
-function setAiQuickTemplate(value) {
-  const select = document.getElementById('aiTemplateSelect');
-  if (select) select.value = value;
-  syncAiQuickComposer();
-}
-
-function loadAiQuickComposer() {
-  const savedTemplate = safeReadJsonKey('polar3_ai_template', 'consulta');
-  const savedNotes = safeReadJsonKey('polar3_ai_notes', '');
-  const select = document.getElementById('aiTemplateSelect');
-  const notes = document.getElementById('aiQuickNotes');
-  if (select) select.value = typeof savedTemplate === 'string' ? savedTemplate : 'consulta';
-  if (notes) notes.value = typeof savedNotes === 'string' ? savedNotes : '';
-  syncAiQuickComposer();
-}
-
-function focusAiQuickPanel() {
-  showSection('appcenter');
-  setTimeout(() => {
-    document.getElementById('aiQuickPanel')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
-    document.getElementById('aiQuickNotes')?.focus();
-  }, 120);
-}
-
-function copyAiQuickPrompt() {
-  const prompt = buildAiQuickPrompt();
-  copyPlainText(prompt).then(success => {
-    showToast(success ? 'Prompt copiado.' : 'No pude copiar el prompt automáticamente.', success ? 'success' : 'warning');
-  });
-}
-
-function isAndroidLikeDevice() {
-  return /Android/i.test(navigator.userAgent || '');
-}
-
-function openAiQuickProvider(provider) {
-  const webUrl = AI_PROVIDER_URLS[provider];
-  const intentUrl = AI_PROVIDER_INTENTS[provider];
-  if (!webUrl) return;
-  const label = provider === 'chatgpt' ? 'ChatGPT' : provider === 'gemini' ? 'Gemini' : 'Claude';
-  copyPlainText(buildAiQuickPrompt()).then(success => {
-    showToast(success ? `Prompt copiado. Intentando abrir ${label}.` : `Intentando abrir ${label}. Si hace falta, copia el prompt manualmente.`, success ? 'success' : 'info');
-  });
-  if (isAndroidLikeDevice() && intentUrl) {
-    window.location.href = intentUrl;
-    return;
-  }
-  window.open(webUrl, '_blank', 'noopener');
-}
-
-function openPolarWhatsApp() {
-  const ctx = getCurrentSectionContext();
-  const text = `Hola Adrián, consulta rápida desde Polar[3]. Contexto: ${ctx.title}.`;
-  const url = `https://wa.me/5491155238266?text=${encodeURIComponent(text)}`;
-  window.open(url, '_blank', 'noopener');
-}
-
-function openPolarMail() {
-  const ctx = getCurrentSectionContext();
-  const subject = `Polar[3] · Consulta desde ${ctx.title}`;
-  const body = `Hola Adrián,\n\nTe escribo desde Polar[3].\nContexto: ${ctx.title}.\n\nConsulta:\n`;
-  window.location.href = `mailto:polar3fotografia@gmail.com?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
-}
-
-function isPwaSecureContext() {
-  return location.protocol === 'https:' || ['localhost', '127.0.0.1'].includes(location.hostname);
-}
-
-function isStandalonePwa() {
-  return !!(window.matchMedia && window.matchMedia('(display-mode: standalone)').matches) || window.navigator.standalone === true;
-}
-
-function updatePwaUi() {
-  const modeChip = document.getElementById('pwaModeChip');
-  const offlineChip = document.getElementById('pwaOfflineChip');
-  const scopeChip = document.getElementById('pwaScopeChip');
-  const installBtn = document.getElementById('pwaInstallBtn');
-  const mobileInstallPanel = document.getElementById('mobileInstallPanel');
-  const mobileInstallTitle = document.getElementById('mobileInstallTitle');
-  const mobileInstallMeta = document.getElementById('mobileInstallMeta');
-  const mobileInstallActionBtn = document.getElementById('mobileInstallActionBtn');
-  const standalone = isStandalonePwa();
-  const controlled = !!navigator.serviceWorker?.controller;
-  const canInstall = !standalone && !!deferredInstallPrompt;
-  const secureContextReady = isPwaSecureContext();
-
-  if (modeChip) {
-    modeChip.textContent = standalone ? 'Modo app activo' : 'Modo navegador';
-    modeChip.dataset.tone = standalone ? 'success' : 'info';
-  }
-
-  if (offlineChip) {
-    if (!('serviceWorker' in navigator)) {
-      offlineChip.textContent = 'Cache web: no soportado';
-      offlineChip.dataset.tone = 'warning';
-    } else if (!secureContextReady) {
-      offlineChip.textContent = 'Cache web: requiere localhost / HTTPS';
-      offlineChip.dataset.tone = 'warning';
-    } else if (controlled) {
-      offlineChip.textContent = `${PWA_CACHE_LABEL}: activo`;
-      offlineChip.dataset.tone = 'success';
-    } else {
-      offlineChip.textContent = `${PWA_CACHE_LABEL}: pendiente`;
-      offlineChip.dataset.tone = 'info';
-    }
-  }
-
-  if (scopeChip) {
-    if (!secureContextReady) {
-      scopeChip.textContent = 'Instalable solo desde localhost / HTTPS';
-      scopeChip.dataset.tone = 'warning';
-    } else if (canInstall) {
-      scopeChip.textContent = 'Instalación lista en este navegador';
-      scopeChip.dataset.tone = 'success';
-    } else if (standalone) {
-      scopeChip.textContent = 'App instalada en este dispositivo';
-      scopeChip.dataset.tone = 'success';
-    } else {
-      scopeChip.textContent = 'PWA lista; el aviso depende del navegador';
-      scopeChip.dataset.tone = 'info';
-    }
-  }
-
-  if (installBtn) installBtn.hidden = !canInstall;
-
-  if (mobileInstallPanel && mobileInstallTitle && mobileInstallMeta && mobileInstallActionBtn) {
-    mobileInstallPanel.hidden = standalone;
-    if (!secureContextReady) {
-      mobileInstallTitle.textContent = 'Instalación deshabilitada en este contexto';
-      mobileInstallMeta.textContent = 'Para instalar Polar[3] abre la app desde HTTPS o localhost. Si entraste desde archivo local, no se podrá instalar.';
-      mobileInstallActionBtn.textContent = 'Ver centro de app';
-      mobileInstallActionBtn.onclick = () => showSection('appcenter');
-    } else if (canInstall) {
-      mobileInstallTitle.textContent = 'Polar[3] lista para instalar';
-      mobileInstallMeta.textContent = 'Puedes instalarla ahora. Si ya la agregaste a pantalla principal, ábrela desde el icono para evitar la barra del navegador.';
-      mobileInstallActionBtn.textContent = 'Instalar / abrir como app';
-      mobileInstallActionBtn.onclick = () => installPolarApp();
-    } else {
-      mobileInstallTitle.textContent = 'Abrir desde el icono para usar modo app';
-      mobileInstallMeta.textContent = 'Si ya la agregaste a pantalla principal, cierra esta pestaña y abre Polar[3] desde el icono del teléfono. Si no, usa el menú del navegador y elige “Agregar a pantalla principal”.';
-      mobileInstallActionBtn.textContent = 'Centro de app';
-      mobileInstallActionBtn.onclick = () => showSection('appcenter');
-    }
-  }
-}
-
-async function registerPolarServiceWorker() {
-  if (!('serviceWorker' in navigator) || !isPwaSecureContext()) {
-    updatePwaUi();
-    return;
-  }
-  try {
-    const registration = await navigator.serviceWorker.register('./sw.js');
-    registration.addEventListener('updatefound', updatePwaUi);
-    navigator.serviceWorker.addEventListener('controllerchange', updatePwaUi);
-  } catch (error) {
-    console.warn('No pude registrar el service worker de Polar[3].', error);
-  }
-  updatePwaUi();
-}
-
-async function installPolarApp() {
-  if (isStandalonePwa()) {
-    showToast('Polar[3] ya está abierta en modo app.', 'success');
-    return;
-  }
-  if (deferredInstallPrompt) {
-    deferredInstallPrompt.prompt();
-    try {
-      await deferredInstallPrompt.userChoice;
-    } catch (error) {
-      console.warn('La instalación PWA fue cancelada o no respondió.', error);
-    }
-    deferredInstallPrompt = null;
-    updatePwaUi();
-    return;
-  }
-  if (!isPwaSecureContext()) {
-    showToast('Para instalar Polar[3] como app debes abrirla desde localhost o HTTPS, no directamente como archivo local.', 'warning');
-    return;
-  }
-  showToast('Si tu navegador no muestra el aviso, usa el menú y elige “Instalar app” o “Agregar a pantalla de inicio”.', 'info');
-}
-
-function initPwa() {
-  updatePwaUi();
-  window.addEventListener('beforeinstallprompt', event => {
-    event.preventDefault();
-    deferredInstallPrompt = event;
-    updatePwaUi();
-  });
-  window.addEventListener('appinstalled', () => {
-    deferredInstallPrompt = null;
-    showToast('Polar[3] quedó instalada como app.', 'success');
-    updatePwaUi();
-  });
-  window.addEventListener('online', updatePwaUi);
-  window.addEventListener('offline', updatePwaUi);
-  document.addEventListener('visibilitychange', updatePwaUi);
-  if (window.matchMedia) {
-    const mq = window.matchMedia('(display-mode: standalone)');
-    if (typeof mq.addEventListener === 'function') mq.addEventListener('change', updatePwaUi);
-    else if (typeof mq.addListener === 'function') mq.addListener(updatePwaUi);
-  }
-  registerPolarServiceWorker();
-}
-
 function initEvents() {
-  document.querySelectorAll('[data-section]').forEach(link => {
-    link.addEventListener('click', evt => {
+  document.addEventListener('click', evt => {
+    const sectionTrigger = evt.target.closest('[data-section]');
+    if (sectionTrigger) {
       evt.preventDefault();
-      showSection(link.dataset.section);
-    });
+      showSection(sectionTrigger.dataset.section);
+      return;
+    }
+
+    const workspaceTrigger = evt.target.closest('[data-action="switch-workspace"][data-workspace]');
+    if (workspaceTrigger) {
+      evt.preventDefault();
+      switchWorkspace(workspaceTrigger.dataset.workspace);
+      return;
+    }
+
+    const actionTrigger = evt.target.closest('[data-action]');
+    if (actionTrigger) {
+      const action = actionTrigger.dataset.action;
+      if (action === 'toggle-sidebar') return void toggleSidebar();
+      if (action === 'close-sidebar') return void closeSidebar();
+      if (action === 'toggle-group') return void toggleGroup(actionTrigger.dataset.group);
+      if (action === 'toggle-focus') return void toggleFocusMode();
+      if (action === 'toggle-meeting') return void toggleMeetingMode();
+      if (action === 'exit-meeting') return void toggleMeetingMode(false);
+      if (action === 'import-backup') return void triggerBackupImport();
+      if (action === 'export-backup') return void exportBackupJson();
+      if (action === 'print-section') return void printCurrentSection();
+    }
   });
 
   const modal = document.getElementById('modal-precio');
@@ -3786,24 +1521,6 @@ function initEvents() {
     });
   }
 
-  document.querySelectorAll('[data-calendar-notes]').forEach(field => {
-    field.addEventListener('input', evt => {
-      setCalendarPlannerNotes(field.dataset.calendarNotes, evt.target.value);
-    });
-  });
-
-  document.querySelectorAll('[data-day-sheet-field]').forEach(field => {
-    field.addEventListener('input', evt => {
-      setCalendarDaySheetField(field.dataset.daySheetField, evt.target.value);
-    });
-  });
-
-  document.querySelectorAll('[data-day-check-item]').forEach(input => {
-    input.addEventListener('change', evt => {
-      setCalendarDayChecklistItem(input.dataset.dayCheckItem, evt.target.checked);
-    });
-  });
-
   ['simStudents','simConversion','simPackPrice','simExtraAvg','simCanonPct','simPrintCost','simAssistant','simTravel','simEditHours','simHourRate'].forEach(id => { const el = document.getElementById(id); if (el) el.addEventListener('input', updateSimulador); });
   ['propSchool','propAudience','propLevel','propModality','propStudents','propPackPrice','propValidity','propPaymentModel','propFocus','propNotes'].forEach(id => { const el = document.getElementById(id); if (el) el.addEventListener('input', updateProposalGenerator); if (el) el.addEventListener('change', updateProposalGenerator); });
 
@@ -3820,21 +1537,13 @@ function initEvents() {
   });
 
   window.addEventListener('hashchange', () => {
-    const target = location.hash.replace('#', '') || 'inicio';
+    const hashTarget = location.hash.replace('#', '');
+    const target = legacyRedirects[hashTarget] || hashTarget || 'inicio';
     showSection(target, false);
   });
-
-  getScrollContainer()?.addEventListener('scroll', handleTopbarAutoCollapse, { passive: true });
-  window.addEventListener('resize', () => { const host = getScrollContainer(); lastScrollY = host?.scrollTop || window.scrollY || window.pageYOffset || 0; handleTopbarAutoCollapse(); syncCalendarMobileLayout(); });
-  document.addEventListener('focusin', evt => {
-    if (evt.target && ['INPUT','TEXTAREA','SELECT'].includes(evt.target.tagName)) setTopbarCollapsed(false, { force: true });
-  });
-  window.addEventListener('afterprint', clearCalendarPrintMode);
 }
 
-
 function initApp() {
-  pruneDeprecatedUi();
   actualizarPreciosEnApp();
   loadChecklist();
   loadSimulatorState();
@@ -3842,22 +1551,17 @@ function initApp() {
   renderSchoolBoard();
   renderFollowupBoard();
   renderPaymentBoard();
-  renderKpiDashboard();
-  renderCalendarPlanner();
-  syncPaymentDateDefault();
   updateProposalGenerator();
   buildSearchIndex();
   initEvents();
-  initPwa();
-  loadAiQuickComposer();
-  renderMobileOpsDashboard();
   updateBackupUI();
   applyWorkspaceState();
   applyMeetingMode();
-  handleTopbarAutoCollapse();
-  document.body.classList.remove('focus-mode');
-  try { localStorage.removeItem('polar3_focus_mode'); } catch (e) {}
-  const target = location.hash.replace('#', '') || workspaceDefaults[currentWorkspace] || 'inicio';
+  if (localStorage.getItem('polar3_focus_mode') === '1') {
+    document.body.classList.add('focus-mode');
+  }
+  const hashTarget = location.hash.replace('#', '');
+  const target = legacyRedirects[hashTarget] || hashTarget || workspaceDefaults[currentWorkspace] || 'inicio';
   showSection(target, false);
   appReadyForDirtyTracking = true;
   updateBackupUI();
@@ -3868,16 +1572,6 @@ window.showSection = showSection;
 window.toggleGroup = toggleGroup;
 window.toggleSidebar = toggleSidebar;
 window.closeSidebar = closeSidebar;
-window.openPolarWhatsApp = openPolarWhatsApp;
-window.openPolarMail = openPolarMail;
-window.focusAiQuickPanel = focusAiQuickPanel;
-window.setCalendarMobileOpenMonth = setCalendarMobileOpenMonth;
-window.openCalendarCurrentMonth = openCalendarCurrentMonth;
-window.openCalendarNextPlannedMonth = openCalendarNextPlannedMonth;
-window.setAiQuickTemplate = setAiQuickTemplate;
-window.syncAiQuickComposer = syncAiQuickComposer;
-window.copyAiQuickPrompt = copyAiQuickPrompt;
-window.openAiQuickProvider = openAiQuickProvider;
 window.toggleAcc = toggleAcc;
 window.toggleCheck = toggleCheck;
 window.resetChecklist = resetChecklist;
@@ -3904,16 +1598,10 @@ window.removeFollowupRecord = removeFollowupRecord;
 window.seedFollowupBoard = seedFollowupBoard;
 window.clearFollowupBoard = clearFollowupBoard;
 window.addPaymentRecord = addPaymentRecord;
-window.setPaymentField = setPaymentField;
 window.setPaymentStatus = setPaymentStatus;
 window.removePaymentRecord = removePaymentRecord;
 window.seedPaymentBoard = seedPaymentBoard;
 window.clearPaymentBoard = clearPaymentBoard;
-window.fillMissingPaymentDates = fillMissingPaymentDates;
-window.setKpiTicketMode = setKpiTicketMode;
-window.setKpiScope = setKpiScope;
-window.setKpiPeriodMode = setKpiPeriodMode;
-window.setKpiPeriodValue = setKpiPeriodValue;
 window.updateProposalGenerator = updateProposalGenerator;
 window.copyProposalText = copyProposalText;
 window.syncProposalWithPack = syncProposalWithPack;
@@ -3922,19 +1610,6 @@ window.exportBackupJson = exportBackupJson;
 window.triggerBackupImport = triggerBackupImport;
 window.saveWorkspaceLink = saveWorkspaceLink;
 window.openWorkspaceLink = openWorkspaceLink;
-window.seedCalendarPlanner = seedCalendarPlanner;
-window.clearCalendarPlanner = clearCalendarPlanner;
-window.printCalendarPlanner = printCalendarPlanner;
-window.printCalendarDerived = printCalendarDerived;
-window.setCalendarDaySheetField = setCalendarDaySheetField;
-window.setCalendarDayChecklistItem = setCalendarDayChecklistItem;
-window.setCalendarPrintReference = setCalendarPrintReference;
-window.setCalendarPrintReferenceToday = setCalendarPrintReferenceToday;
-window.setCalendarSchoolFilter = setCalendarSchoolFilter;
-window.addCalendarPlannerItem = addCalendarPlannerItem;
-window.setCalendarPlannerItemField = setCalendarPlannerItemField;
-window.removeCalendarPlannerItem = removeCalendarPlannerItem;
-window.installPolarApp = installPolarApp;
 
 if (document.readyState === 'loading') {
   document.addEventListener('DOMContentLoaded', initApp);
