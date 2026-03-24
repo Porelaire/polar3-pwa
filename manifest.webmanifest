@@ -1,7 +1,7 @@
 {
-  "name": "Polar[3] · Sistema Operativo v2.7.14",
+  "name": "Polar[3] · Sistema Operativo v2.7.13",
   "short_name": "Polar[3]",
-  "description": "Polar[3] v2.7.14: limpieza de navegación, Centro de app más claro, intento de apertura de apps IA y corrección de overflow móvil.",
+  "description": "Polar[3] v2.7.13: consolidación sobre la base estable 2.7.12, limpieza de navegación legacy y PWA coherente.",
   "lang": "es-AR",
   "start_url": "./index.html#inicio",
   "scope": "./",
