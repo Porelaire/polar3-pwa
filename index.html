@@ -1,3008 +1,673 @@
 <!DOCTYPE html>
-
 <html lang="es">
 <head>
-<meta charset="utf-8"/>
-<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
-<title>Polar[3] — Sistema Operativo 2026 · V2.7.13</title>
-<meta content="Sistema Operativo Polar3 V2.7.13 consolidado sobre la base estable 2.7.13, con navegación más limpia, PWA coherente y saneamiento de secciones legacy." name="description"/>
-<meta content="#161c26" name="theme-color"/>
-<meta content="yes" name="mobile-web-app-capable"/>
-<meta content="yes" name="apple-mobile-web-app-capable"/>
-<meta content="black-translucent" name="apple-mobile-web-app-status-bar-style"/>
-<meta content="Polar[3]" name="apple-mobile-web-app-title"/>
-<link href="styles.css" rel="stylesheet"/>
-<link href="manifest.webmanifest" rel="manifest"/>
-<link href="icons/polar3-icon-192.png" rel="icon" sizes="192x192" type="image/png"/>
-<link href="icons/apple-touch-icon.png" rel="apple-touch-icon" sizes="180x180"/>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <meta name="theme-color" content="#161c26">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="description" content="Polar[3] Sistema Operativo — Gestión de fotografía escolar">
+
+  <title>Polar[3] — Sistema Operativo</title>
+
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="icon" href="./icons/polar3-icon-192.png" sizes="192x192">
+  <link rel="apple-touch-icon" href="./icons/polar3-icon-192.png">
+
+  <!-- Fuente Inter -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap">
+
+  <!-- Estilos -->
+  <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-<div class="sidebar-overlay" data-action="close-sidebar" id="sidebarOverlay"></div>
-<nav id="sidebar">
-<div class="sidebar-logo">
-<div class="logo-brand">Polar<span>[3]</span></div>
-<div class="logo-sub">Fotografía escolar · sistema operativo</div>
-<div class="logo-badge">V2.7.13 Android first · 2026</div>
-</div>
-<div class="sidebar-nav">
-<a class="nav-item-direct active" data-section="inicio" data-space="operativo comercial">
-<span class="nav-icon">🏠</span> Inicio
-    </a>
-<a class="nav-item-direct" data-section="appcenter" data-space="operativo comercial">
-<span class="nav-icon">⚙️</span> Centro de app
-    </a>
-<div class="nav-section-label" data-space="operativo comercial">Negocio</div>
-<div class="nav-group" data-space="operativo" id="grp-sistema">
-<div class="nav-group-header" data-group-target="grp-sistema">
-<span class="nav-icon">🔄</span>
-<span>Sistema de trabajo</span>
-<span class="nav-arrow">▶</span>
-</div>
-<ul class="nav-sub">
-<li><a data-section="calendario" href="#">Calendario anual</a></li>
-</ul>
-</div>
-<div class="nav-group" data-space="operativo comercial" id="grp-comercial">
-<div class="nav-group-header" data-group-target="grp-comercial">
-<span class="nav-icon">📢</span>
-<span>Comercial</span>
-<span class="nav-arrow">▶</span>
-</div>
-<ul class="nav-sub">
-<li><a data-section="captacion" href="#">Captación de colegios</a></li>
-<li><a data-section="scripts" href="#">Scripts y pitch</a></li>
-<li><a data-section="familias" href="#">Familias</a></li>
-<li><a data-section="marketing" href="#">Marketing trimestral</a></li>
-<li><a data-section="cartera" href="#">Cartera y pipeline</a></li>
-</ul>
-</div><div class="nav-section-label" data-space="comercial">Presentación comercial</div><div class="nav-group" data-space="comercial" id="grp-publico">
-<div class="nav-group-header" data-group-target="grp-publico">
-<span class="nav-icon">🤝</span>
-<span>Instituciones y marca</span>
-<span class="nav-arrow">▶</span>
-</div>
-<ul class="nav-sub">
-<li><a data-section="institucional" href="#">Presentación institucional</a></li>
-<li><a data-section="modalidades" href="#">Modalidades y propuesta</a></li>
-<li><a data-section="propuesta" href="#">Generador de propuesta</a></li>
-<li><a data-section="marca" href="#">Marca y autoridad</a></li>
-</ul>
-</div>
-<div class="nav-section-label" data-space="operativo">Producción</div>
-<div class="nav-group" data-space="operativo" id="grp-jornada">
-<div class="nav-group-header" data-group-target="grp-jornada">
-<span class="nav-icon">📋</span>
-<span>Jornada de toma</span>
-<span class="nav-arrow">▶</span>
-</div>
-<ul class="nav-sub">
-<li><a data-section="checklist" href="#">Checklist (interactivo)</a></li>
-<li><a data-section="seguimiento" href="#">Pendientes y retomas</a></li>
-<li><a data-section="emergencias" href="#">Emergencias</a></li>
-<li><a data-section="diagnostico" href="#">Diagnóstico en campo</a></li>
-</ul>
-</div>
-<div class="nav-group" data-space="operativo" id="grp-post">
-<div class="nav-group-header" data-group-target="grp-post">
-<span class="nav-icon">📦</span>
-<span>Post y entrega</span>
-<span class="nav-arrow">▶</span>
-</div>
-<ul class="nav-sub">
-<li><a data-section="sla" href="#">SLA de producción</a></li>
-<li><a data-section="qa" href="#">Control de calidad</a></li>
-<li><a data-section="pagos" href="#">Seguimiento de pagos</a></li>
-<li><a data-section="cobranzas" href="#">Tablero de cobranzas</a></li>
-<li><a data-section="forms" href="#">Google Forms y T&amp;C</a></li>
-</ul>
-</div>
-<div class="nav-section-label" data-space="operativo">Herramientas</div>
-<div class="nav-group" data-space="operativo" id="grp-herramientas">
-<div class="nav-group-header" data-group-target="grp-herramientas">
-<span class="nav-icon">📊</span>
-<span>KPIs y herramientas</span>
-<span class="nav-arrow">▶</span>
-</div>
-<ul class="nav-sub">
-<li><a data-section="workspace" href="#">Google Workspace</a></li>
-<li><a data-section="kpis" href="#">KPIs de rentabilidad</a></li>
-<li><a data-section="simulador" href="#">Simulador económico</a></li>
-<li><a data-section="respaldos" href="#">Administración de respaldos</a></li>
-</ul>
-</div></div>
-<div class="sidebar-footer">
-<div class="sidebar-contact">
-<strong>Adrián Fernández</strong>
-      📞 11 5523-8266<br/>
-      ✉ polar3fotografia@gmail.com<br/>
-      📍 CABA
-      <div class="sidebar-contact-actions">
-<button class="sidebar-contact-btn" onclick="openPolarWhatsApp()" type="button">WhatsApp</button>
-<button class="sidebar-contact-btn" onclick="openPolarMail()" type="button">Mail</button>
-</div>
-</div>
-</div>
-</nav>
-<main id="main">
-<div class="app-topbar" id="appTopbar">
-<div class="topbar-main topbar-main-minimal">
-<div class="topbar-context">
-<div class="context-kicker" id="currentSectionKicker">Panel principal</div>
-<div class="context-title" id="currentSectionTitle">Inicio</div>
-</div>
-</div>
-<div class="backup-reminder-bar" hidden="" id="backupReminderBar"></div>
-</div>
-<input accept="application/json,.json" hidden="" id="backupFileInput" type="file"/>
-<div class="section" id="sec-appcenter">
-<div class="section-header">
-<div class="breadcrumb">Centro de app</div>
-<h1>Centro de app</h1>
-<p>Búsqueda global, respaldos, cambio de espacio y estado de la PWA en un módulo aparte.</p>
-</div>
-<div class="section-body">
-<div class="ops-booster appcenter-shell">
-<div class="ops-booster-head">
-<div>
-<div class="ops-kicker">Control general</div>
-<h3>Herramientas de app</h3>
-</div>
-<div class="ops-badge">Polar[3] móvil</div>
-</div>
-<div class="appcenter-stack">
-<div class="search-wrap appcenter-search">
-<input autocomplete="off" class="global-search" id="globalSearch" placeholder="Buscar módulos, procesos, términos o tareas…" type="search"/>
-<div class="search-results" hidden="" id="searchResults"></div>
-</div>
-<div class="appcenter-actions">
-<button class="topbar-btn" onclick="triggerBackupImport()" type="button">Importar JSON</button>
-<button class="topbar-btn topbar-btn-primary" onclick="exportBackupJson()" type="button">Respaldar JSON</button>
-</div>
-<div class="contact-quick-actions">
-<button class="topbar-btn contact-btn contact-btn-wa" onclick="openPolarWhatsApp()" type="button">💬 WhatsApp</button>
-<button class="topbar-btn contact-btn contact-btn-mail" onclick="openPolarMail()" type="button">✉️ Mail</button>
-</div>
-<div class="workspace-switcher workspace-switcher-panel" id="workspaceSwitcher">
-<button class="workspace-btn active" data-workspace="operativo" type="button">Operativo</button>
-<button class="workspace-btn" data-workspace="comercial" type="button">Comercial</button>
-</div>
-<div class="pwa-status-bar pwa-status-panel" id="pwaStatusBar">
-<span class="topbar-chip pwa-chip" data-tone="neutral" id="pwaModeChip">Modo navegador</span>
-<span class="topbar-chip pwa-chip" data-tone="neutral" id="pwaOfflineChip">Cache web: pendiente</span>
-<span class="topbar-chip pwa-chip" data-tone="neutral" id="pwaScopeChip">Instalable desde localhost / HTTPS</span>
-<button class="topbar-btn" data-action="install-pwa" hidden="" id="pwaInstallBtn" type="button">Instalar app</button>
-</div>
-<div class="ai-quick-shell" id="aiQuickPanel">
-<div class="ops-booster-head ai-quick-head">
-<div>
-<div class="ops-kicker">Consulta IA rápida</div>
-<h3>ChatGPT · Gemini · Claude</h3>
-</div>
-<div class="ops-badge">v2.7.13</div>
-</div>
-<p class="ai-quick-copy">Arma un prompt breve con contexto de la sección actual. La app intenta abrir la IA elegida en Android y, si no puede, usa la versión web.</p>
-<div class="ai-quick-grid">
-<div class="field">
-<label for="aiTemplateSelect">Plantilla</label>
-<select id="aiTemplateSelect" onchange="setAiQuickTemplate(this.value)">
-<option value="consulta">Consulta operativa</option>
-<option value="cobranzas">Cobranzas / pagos</option>
-<option value="jornada">Jornada de toma</option>
-<option value="comercial">Mensaje comercial</option>
-<option value="kpis">Lectura de KPIs</option>
-</select>
-</div>
-<div class="field ai-provider-inline">
-<label>Contexto detectado</label>
-<div class="ai-context-chip" id="aiQuickContextChip">Inicio · operativo</div>
-</div>
-</div>
-<div class="field">
-<label for="aiQuickNotes">Pedido puntual para la IA</label>
-<div class="field-help">Esto se agrega al final del prompt como tu consulta concreta. La plantilla define el rol y el contexto detectado aporta la sección actual.</div>
-<textarea id="aiQuickNotes" oninput="syncAiQuickComposer()" placeholder="Ejemplo: necesito redactar un mensaje breve para una cooperadora que demora el pago, o que me ayude a revisar la jornada de mañana."></textarea>
-</div>
-<div class="field">
-<label for="aiQuickPromptPreview">Prompt listo</label>
-<textarea id="aiQuickPromptPreview" readonly=""></textarea>
-</div>
-<div class="ai-quick-actions">
-<button class="topbar-btn" onclick="copyAiQuickPrompt()" type="button">📋 Copiar prompt</button>
-<button class="topbar-btn topbar-btn-primary" onclick="openAiQuickProvider('chatgpt')" type="button">Abrir ChatGPT</button>
-<button class="topbar-btn" onclick="openAiQuickProvider('gemini')" type="button">Abrir Gemini</button>
-<button class="topbar-btn" onclick="openAiQuickProvider('claude')" type="button">Abrir Claude</button>
-</div>
-<div class="ai-quick-foot">La app copia el prompt y primero intenta abrir la app instalada en Android. Si no puede, usa la versión web.</div>
-</div>
-</div>
-</div>
-</div>
-</div>
-<div class="section active" id="sec-inicio">
-<div class="mobile-ops-shell">
-<div class="mobile-install-panel" hidden="" id="mobileInstallPanel">
-<div class="mobile-install-copy">
-<div class="summary-kicker">Instalación</div>
-<strong id="mobileInstallTitle">Polar[3] lista para instalar</strong>
-<p id="mobileInstallMeta">Si ya la agregaste a pantalla principal, ábrela desde el icono para usarla como app independiente.</p>
-</div>
-<div class="mobile-install-actions">
-<button class="topbar-btn topbar-btn-primary" data-action="install-pwa" id="mobileInstallActionBtn" type="button">Instalar / abrir como app</button>
-<button class="topbar-btn" data-section="appcenter" type="button">Centro de app</button>
-</div>
-</div>
-<div class="mobile-ops-head">
-<div>
-<div class="summary-kicker">Modo campo</div>
-<h2>Acceso rápido</h2>
-<p>Las acciones clave para usar Polar[3] con una mano durante la jornada.</p>
-</div>
-<div class="ops-badge">Android first</div>
-</div>
-<div class="mobile-ops-grid">
-<button class="mobile-ops-btn" data-section="calendario" type="button">
-<span class="mobile-ops-icon">🗓️</span>
-<strong>Calendario</strong>
-<small>Agenda anual y vistas diarias</small>
-</button>
-<button class="mobile-ops-btn" data-section="cobranzas" type="button">
-<span class="mobile-ops-icon">💳</span>
-<strong>Cobranzas</strong>
-<small>Altas rápidas y control de pagos</small>
-</button>
-<button class="mobile-ops-btn" data-section="checklist" type="button">
-<span class="mobile-ops-icon">📋</span>
-<strong>Jornada</strong>
-<small>Checklist operativo y hoja del día</small>
-</button>
-<button class="mobile-ops-btn" data-section="kpis" type="button">
-<span class="mobile-ops-icon">📊</span>
-<strong>KPIs</strong>
-<small>Lectura de negocio en tiempo real</small>
-</button>
-</div>
-<div class="mobile-ops-insights">
-<div class="mobile-ops-insight">
-<span>Agenda</span>
-<strong id="mobileNextActionTitle">Sin agenda próxima cargada</strong>
-<small id="mobileNextActionMeta">Carga una fecha en Calendario anual para ver tu próxima acción.</small>
-</div>
-<div class="mobile-ops-insight">
-<span>Cobranzas</span>
-<strong id="mobilePendingPaymentsTitle">0 cobros en seguimiento</strong>
-<small id="mobilePendingPaymentsMeta">Sin dinero pendiente por revisar.</small>
-</div>
-<div class="mobile-ops-insight">
-<span>Pendientes</span>
-<strong id="mobileFollowupTitle">0 casos abiertos</strong>
-<small id="mobileFollowupMeta">Sin ausentes ni retomas abiertas.</small>
-</div>
-<div class="mobile-ops-insight">
-<span>Respaldo</span>
-<strong id="mobileBackupTitle">Sin información</strong>
-<small id="mobileBackupMeta">Todavía no hay estado de respaldo disponible.</small>
-</div>
-</div>
-</div>
-<div class="mobile-inline-actions">
-<button class="mobile-inline-btn" data-section="appcenter" type="button">⚙️ Centro de app</button>
-<button class="mobile-inline-btn" onclick="focusAiQuickPanel()" type="button">🤖 IA rápida</button>
-<button class="mobile-inline-btn" onclick="exportBackupJson()" type="button">💾 Respaldo rápido</button>
-</div>
-<div class="quick-grid home-quick-grid">
-<div class="quick-card quick-card-install" onclick="installPolarApp()">
-<div class="qc-icon">📲</div>
-<div class="qc-text">
-<div class="qc-title">Modo móvil / PWA</div>
-<div class="qc-desc">Instala Polar[3] como app cuando lo abras desde navegador seguro</div>
-</div>
-</div>
-<div class="quick-card" onclick="openPolarWhatsApp()">
-<div class="qc-icon">💬</div>
-<div class="qc-text">
-<div class="qc-title">WhatsApp directo</div>
-<div class="qc-desc">Abrir mensaje rápido a tu número operativo</div>
-</div>
-</div>
-<div class="quick-card" onclick="focusAiQuickPanel()">
-<div class="qc-icon">🤖</div>
-<div class="qc-text">
-<div class="qc-title">Consulta IA rápida</div>
-<div class="qc-desc">Copiar prompt y abrir ChatGPT, Gemini o Claude</div>
-</div>
-</div>
-<div class="quick-card" data-section="workspace" role="button" tabindex="0">
-<div class="qc-icon">🔗</div>
-<div class="qc-text">
-<div class="qc-title">Hub Workspace</div>
-<div class="qc-desc">Tus Docs, Sheets y Drive centralizados</div>
-</div>
-</div>
-<div class="quick-card" data-section="checklist" role="button" tabindex="0">
-<div class="qc-icon">✅</div>
-<div class="qc-text">
-<div class="qc-title">Checklist interactivo</div>
-<div class="qc-desc">Control de jornada paso a paso</div>
-</div>
-</div>
-<div class="quick-card" data-section="captacion" role="button" tabindex="0">
-<div class="qc-icon">🏫</div>
-<div class="qc-text">
-<div class="qc-title">Captación de colegios</div>
-<div class="qc-desc">Sistema comercial y objeciones</div>
-</div>
-</div>
-<div class="quick-card" data-section="kpis" role="button" tabindex="0">
-<div class="qc-icon">📊</div>
-<div class="qc-text">
-<div class="qc-title">KPIs de rentabilidad</div>
-<div class="qc-desc">5 métricas clave del negocio</div>
-</div>
-</div>
-<div class="quick-card" data-section="institucional" role="button" tabindex="0">
-<div class="qc-icon">🤝</div>
-<div class="qc-text">
-<div class="qc-title">Modo comercial</div>
-<div class="qc-desc">Presentación institucional y modalidades</div>
-</div>
-</div>
-<div class="quick-card" data-section="simulador" role="button" tabindex="0">
-<div class="qc-icon">🧮</div>
-<div class="qc-text">
-<div class="qc-title">Simulador económico</div>
-<div class="qc-desc">Evalúa rentabilidad por colegio antes de cerrar</div>
-</div>
-</div>
-<div class="quick-card" data-section="propuesta" role="button" tabindex="0">
-<div class="qc-icon">📝</div>
-<div class="qc-text">
-<div class="qc-title">Generador de propuesta</div>
-<div class="qc-desc">Arma un borrador comercial y cópialo</div>
-</div>
-</div>
-<div class="quick-card" data-section="cartera" role="button" tabindex="0">
-<div class="qc-icon">📍</div>
-<div class="qc-text">
-<div class="qc-title">Cartera y renovaciones</div>
-<div class="qc-desc">Pipeline, riesgo y próximos pasos por institución</div>
-</div>
-</div>
-<div class="quick-card" data-section="seguimiento" role="button" tabindex="0">
-<div class="qc-icon">🧾</div>
-<div class="qc-text">
-<div class="qc-title">Ausentes y retomas</div>
-<div class="qc-desc">Control operativo de pendientes por jornada</div>
-</div>
-</div>
-</div>
-<div class="status-bar">
-<div class="status-item"><div class="status-dot"></div> Sistema activo — Ciclo 2026</div>
-<div class="status-item"><div class="status-dot"></div> Pack: $<span id="precio-display">15.000</span> · Canon 20%</div>
-<div class="status-item" style="margin-left:auto">
-<button class="btn btn-outline" onclick="editarPrecio()" style="font-size:11px;padding:4px 12px">✏️ Editar precio</button>
-</div>
-</div>
-<div class="inicio-summary">
-<div class="inicio-summary-head">
-<div>
-<div class="summary-kicker">Resumen ejecutivo</div>
-<h2>KPIs en tiempo real</h2>
-<p>Lectura compacta del negocio desde cobranzas y cartera, sin salir del inicio.</p>
-<div class="kpi-scope-pill" id="inicioKpiScopeStatus">Global · todos los colegios</div>
-<div class="kpi-scope-copy" id="inicioKpiScopeText">Vista consolidada de toda la operación.</div>
-<div class="kpi-period-pill" id="inicioKpiPeriodStatus">Período: todo el historial</div>
-<div class="kpi-scope-copy" id="inicioKpiPeriodText">Sin filtro temporal. Incluye todas las cobranzas cargadas.</div>
-</div>
-<div class="kpi-toolbar-stack">
-<div class="kpi-scope-box">
-<div class="kpi-mode-label">Vista de KPIs</div>
-<select class="kpi-scope-select" data-kpi-scope-selector="" onchange="setKpiScope(this.value)"><option value="">Global · todos los colegios</option></select>
-<div class="kpi-scope-help" id="inicioKpiScopeFootnote">Suma todas las cobranzas y toda la cartera cargada.</div>
-</div>
-<div class="kpi-scope-box">
-<div class="kpi-mode-label">Período de análisis</div>
-<select class="kpi-scope-select" data-kpi-period-mode="" onchange="setKpiPeriodMode(this.value)">
-<option value="all">Todo el historial</option>
-<option value="month_current">Mes actual</option>
-<option value="year_current">Año actual</option>
-<option value="month_custom">Mes específico</option>
-</select>
-<input class="kpi-period-input" data-kpi-period-month="" onchange="setKpiPeriodValue(this.value)" type="month"/>
-<div class="kpi-scope-help" id="inicioKpiPeriodFootnote">Filtra cobranzas por fecha de cobro. KPI 05 sigue leyendo la cartera actual.</div>
-</div>
-<div class="kpi-mode-box">
-<div class="kpi-mode-label">KPI 01 · modo de cálculo</div>
-<div class="kpi-mode-toggle">
-<button class="kpi-mode-btn active" data-kpi-ticket-mode="payment" onclick="setKpiTicketMode('payment')" type="button">Por pago</button>
-<button class="kpi-mode-btn" data-kpi-ticket-mode="family" onclick="setKpiTicketMode('family')" type="button">Por familia única</button>
-</div>
-</div>
-</div>
-</div>
-<div class="dashboard-stats dashboard-stats-5 inicio-kpi-grid">
-<div class="metric-tile metric-tile-kpi">
-<span>KPI 01 · Ticket promedio</span>
-<strong id="inicioKpiTicketPromedio">$0</strong>
-<small id="inicioKpiTicketDetalle">0 pagos tomados como base</small>
-</div>
-<div class="metric-tile metric-tile-kpi">
-<span>KPI 02 · Facturación bruta</span>
-<strong id="inicioKpiFacturacionBruta">$0</strong>
-<small id="inicioKpiFacturacionDetalle">0 registros cargados</small>
-</div>
-<div class="metric-tile metric-tile-kpi">
-<span>KPI 03 · Canon cooperadoras</span>
-<strong id="inicioKpiCanonCooperadoras">$0</strong>
-<small>Reserva automática al 20%</small>
-</div>
-<div class="metric-tile metric-tile-kpi">
-<span>KPI 04 · Cobro efectivo</span>
-<strong id="inicioKpiTasaCobro">0%</strong>
-<small id="inicioKpiTasaDetalle">0 de 0 registros efectivos</small>
-</div>
-<div class="metric-tile metric-tile-kpi">
-<span id="inicioKpiInstitucionName">KPI 05 · Instituciones activas</span>
-<strong id="inicioKpiInstitucionesActivas">0</strong>
-<small id="inicioKpiInstitucionesDetalle">0 activas sobre 0 instituciones</small>
-</div>
-</div>
-<div class="inicio-summary-foot">
-<div class="inicio-summary-note" id="inicioKpiHealthText">Carga datos en cobranzas y cartera para habilitar la lectura automática.</div>
-<div class="btn-row">
-<button class="btn btn-outline" data-section="kpis" type="button">Abrir panel de KPIs</button>
-<button class="btn btn-outline" data-section="cobranzas" type="button">Ir a cobranzas</button>
-<button class="btn btn-outline" data-section="cartera" type="button">Ir a cartera</button>
-</div>
-</div>
-</div>
-</div>
 
+  <!-- ═══════════════════════════════════════════════════════════
+       SIDEBAR
+  ═══════════════════════════════════════════════════════════════ -->
 
+  <nav id="sidebar" aria-label="Navegación principal">
 
-
-<div class="section" id="sec-calendario">
-<div class="section-header">
-<div class="breadcrumb">Sistema de trabajo</div>
-<h1>Calendario anual editable</h1>
-<p>Agenda operativa anual con carga estructurada por colegio, fecha y estado. Se guarda en este navegador y puede imprimirse cuando necesites una hoja de ruta del año.</p>
-</div>
-<div class="section-body stack-6">
-<div class="card calendar-planner-card">
-<div class="calendar-toolbar">
-<div>
-<div class="sub-title" style="margin-bottom:6px">Agenda anual Polar[3]</div>
-<p class="lead-tight">Cada mes combina dos capas: agenda operativa con filas editables y notas libres del mes. Úsalo para jornadas, reuniones, entregas, retomas, cobranzas o tareas internas.</p>
-</div>
-<div class="calendar-toolbar-actions">
-<button class="btn btn-outline" onclick="printCalendarPlanner()" type="button">🖨 Imprimir calendario</button>
-<button class="btn btn-outline" onclick="seedCalendarPlanner()" type="button">🧩 Cargar base sugerida</button>
-<button class="btn btn-danger" onclick="clearCalendarPlanner()" type="button">🗑 Limpiar calendario</button>
-</div>
-</div>
-<div class="calendar-savebar">
-<span class="history-tag" id="calendarSaveStatus">Autoguardado local activo</span>
-<span class="muted-text">Tip: usa una fila por colegio/acción y reserva las notas libres para recordatorios generales.</span>
-</div>
-<div class="card calendar-derived-card-shell">
-<div class="calendar-derived-toolbar">
-<div>
-<div class="sub-title" style="margin-bottom:6px">Vista diaria / semanal / mensual imprimible</div>
-<p class="lead-tight">Se arma automáticamente desde tu agenda anual. Elegí una fecha de referencia y el sistema prepara una hoja diaria, semanal y mensual listas para imprimir.</p>
-</div>
-<div class="calendar-derived-actions">
-<div class="calendar-derived-filter-grid">
-<div>
-<label class="calendar-label" for="calendarPrintReference">Fecha de referencia</label>
-<input class="calendar-entry-input calendar-derived-date" id="calendarPrintReference" onchange="setCalendarPrintReference(this.value)" type="date"/>
-</div>
-<div>
-<label class="calendar-label" for="calendarSchoolFilter">Colegio</label>
-<select class="calendar-entry-input calendar-derived-school-filter" id="calendarSchoolFilter" onchange="setCalendarSchoolFilter(this.value)">
-<option value="">Todos los colegios</option>
-</select>
-</div>
-</div>
-<div class="calendar-derived-input-row">
-<button class="btn btn-outline" onclick="setCalendarPrintReferenceToday()" type="button">Hoy</button>
-<button class="btn btn-outline" onclick="printCalendarDerived('month')" type="button">🖨 Imprimir mensual</button>
-<button class="btn btn-outline" onclick="printCalendarDerived('day')" type="button">🖨 Imprimir diaria</button>
-<button class="btn btn-outline" onclick="printCalendarDerived('week')" type="button">🖨 Imprimir semanal</button>
-</div>
-</div>
-</div>
-<div class="calendar-derived-grid">
-<article class="calendar-derived-card" data-print-mode="month">
-<div class="calendar-derived-head">
-<div>
-<div class="calendar-month-kicker">Vista mensual</div>
-<h3 id="calendarMonthPrintTitle">Mes de referencia</h3>
-</div>
-<span class="calendar-count-pill" id="calendarMonthPrintCount">0 ítems</span>
-</div>
-<div class="calendar-derived-meta" id="calendarMonthPrintMeta">Sin datos cargados.</div>
-<div class="calendar-derived-list" id="calendarMonthPrintList"></div>
-<div class="calendar-derived-notes" id="calendarMonthPrintNotes"></div>
-</article>
-<article class="calendar-derived-card calendar-day-sheet-card" data-print-mode="day">
-<div class="calendar-derived-head">
-<div>
-<div class="calendar-month-kicker">Vista diaria</div>
-<h3 id="calendarDayPrintTitle">Hoja diaria de jornada</h3>
-</div>
-<span class="calendar-count-pill" id="calendarDayPrintCount">0 ítems</span>
-</div>
-<div class="calendar-derived-meta" id="calendarDayPrintMeta">Sin datos cargados.</div>
-<div class="calendar-derived-list" id="calendarDayPrintList"></div>
-<section class="calendar-day-sheet-premium">
-<div class="calendar-day-sheet-head">
-<div>
-<div class="calendar-month-kicker">Hoja de jornada premium</div>
-<h4 id="calendarDaySheetTitle">Plan operativo del día</h4>
-</div>
-<span class="history-tag import">Guardado local</span>
-</div>
-<p class="calendar-day-sheet-meta" id="calendarDaySheetMeta">Completa esta ficha para preparar la jornada y luego imprimirla como hoja operativa.</p>
-<div class="calendar-day-timeline-block">
-<div class="calendar-day-timeline-head">
-<div>
-<div class="calendar-month-kicker">Columna horaria real</div>
-<h4 id="calendarDayTimelineTitle">Secuencia base del día</h4>
-</div>
-<span class="calendar-count-pill" id="calendarDayTimelineCount">0 horarios</span>
-</div>
-<p class="calendar-day-sheet-meta" id="calendarDayTimelineMeta">La agenda con hora cargada se ordena automáticamente y queda visible como base real de la jornada.</p>
-<div class="calendar-day-timeline" id="calendarDayTimelineList"></div>
-</div>
-<div class="calendar-day-sheet-grid">
-<div class="calendar-day-sheet-block calendar-day-sheet-block-wide">
-<label class="calendar-label" for="calendarDaySheetSchedule">Horario y secuencia</label>
-<textarea class="calendar-input calendar-day-sheet-textarea" data-day-sheet-field="schedule" id="calendarDaySheetSchedule" placeholder="Ej.: 7:15 llegada · 7:30 armado · 8:00 sala de 5 · 9:00 1° A · 10:30 grupales..."></textarea>
-<div class="calendar-day-sheet-copy" data-day-sheet-copy="schedule"></div>
-</div>
-<div class="calendar-day-sheet-block">
-<label class="calendar-label" for="calendarDaySheetCourses">Cursos / salas</label>
-<textarea class="calendar-input calendar-day-sheet-textarea" data-day-sheet-field="courses" id="calendarDaySheetCourses" placeholder="Ej.: Sala Roja, Sala Verde, 1° A, 1° B, docentes responsables..."></textarea>
-<div class="calendar-day-sheet-copy" data-day-sheet-copy="courses"></div>
-</div>
-<div class="calendar-day-sheet-block">
-<label class="calendar-label" for="calendarDaySheetEquipment">Equipo y materiales</label>
-<textarea class="calendar-input calendar-day-sheet-textarea" data-day-sheet-field="equipment" id="calendarDaySheetEquipment" placeholder="Cámara, lentes, flashes, fondo, notebook, planillas, sobres, cargadores..."></textarea>
-<div class="calendar-day-sheet-copy" data-day-sheet-copy="equipment"></div>
-</div>
-<div class="calendar-day-sheet-block">
-<label class="calendar-label" for="calendarDaySheetContacts">Referentes y contactos</label>
-<textarea class="calendar-input calendar-day-sheet-textarea" data-day-sheet-field="contacts" id="calendarDaySheetContacts" placeholder="Directivo, cooperadora, preceptoría, portería, asistentes, teléfonos clave..."></textarea>
-<div class="calendar-day-sheet-copy" data-day-sheet-copy="contacts"></div>
-</div>
-<div class="calendar-day-sheet-block">
-<label class="calendar-label" for="calendarDaySheetObservations">Observaciones de jornada</label>
-<textarea class="calendar-input calendar-day-sheet-textarea" data-day-sheet-field="observations" id="calendarDaySheetObservations" placeholder="Espacio asignado, luz ambiente, restricciones, clima, horarios especiales, indicaciones del colegio..."></textarea>
-<div class="calendar-day-sheet-copy" data-day-sheet-copy="observations"></div>
-</div>
-<div class="calendar-day-sheet-block">
-<label class="calendar-label" for="calendarDaySheetPending">Pendientes del día</label>
-<textarea class="calendar-input calendar-day-sheet-textarea" data-day-sheet-field="pending" id="calendarDaySheetPending" placeholder="Cobros a revisar, autorizaciones, formularios faltantes, familias pendientes..."></textarea>
-<div class="calendar-day-sheet-copy" data-day-sheet-copy="pending"></div>
-</div>
-<div class="calendar-day-sheet-block calendar-day-sheet-block-wide">
-<label class="calendar-label" for="calendarDaySheetRetakes">Retomas del día</label>
-<textarea class="calendar-input calendar-day-sheet-textarea" data-day-sheet-field="retakes" id="calendarDaySheetRetakes" placeholder="Alumnos ausentes, repeticiones, grupales pendientes, criterio de seguimiento..."></textarea>
-<div class="calendar-day-sheet-copy" data-day-sheet-copy="retakes"></div>
-</div>
-</div>
-<div class="calendar-day-checklist-section">
-<div class="calendar-day-checklist-head">
-<div>
-<div class="calendar-month-kicker">Checklist imprimible de salida</div>
-<h4 id="calendarDayChecklistTitle">Control rápido de jornada</h4>
-</div>
-<span class="calendar-count-pill" id="calendarDayChecklistCount">0 / 12</span>
-</div>
-<p class="calendar-day-sheet-meta" id="calendarDayChecklistMeta">Marca lo que ya dejaste listo antes de salir y úsalo también como control de cierre al volver.</p>
-<div class="calendar-day-checklist-grid" id="calendarDayChecklistGrid">
-<div class="calendar-day-check-group">
-<div class="calendar-day-check-group-title">Equipo técnico</div>
-<label class="calendar-day-check-item"><input data-day-check-item="camera" type="checkbox"/><span class="calendar-day-check-box"></span><span class="calendar-day-check-text">Cámara principal, lente y flash revisados</span></label>
-<label class="calendar-day-check-item"><input data-day-check-item="batteries" type="checkbox"/><span class="calendar-day-check-box"></span><span class="calendar-day-check-text">Baterías cargadas y cargadores listos</span></label>
-<label class="calendar-day-check-item"><input data-day-check-item="cards" type="checkbox"/><span class="calendar-day-check-box"></span><span class="calendar-day-check-text">Tarjetas vacías / respaldo preparado</span></label>
-<label class="calendar-day-check-item"><input data-day-check-item="background" type="checkbox"/><span class="calendar-day-check-box"></span><span class="calendar-day-check-text">Fondo, soportes y extensiones cargados</span></label>
-</div>
-<div class="calendar-day-check-group">
-<div class="calendar-day-check-group-title">Operativo y coordinación</div>
-<label class="calendar-day-check-item"><input data-day-check-item="schedule" type="checkbox"/><span class="calendar-day-check-box"></span><span class="calendar-day-check-text">Horario, cursos y secuencia confirmados</span></label>
-<label class="calendar-day-check-item"><input data-day-check-item="contacts" type="checkbox"/><span class="calendar-day-check-box"></span><span class="calendar-day-check-text">Referentes y contactos a mano</span></label>
-<label class="calendar-day-check-item"><input data-day-check-item="route" type="checkbox"/><span class="calendar-day-check-box"></span><span class="calendar-day-check-text">Ruta, llegada y acceso revisados</span></label>
-<label class="calendar-day-check-item"><input data-day-check-item="space" type="checkbox"/><span class="calendar-day-check-box"></span><span class="calendar-day-check-text">Espacio / set y plan B definidos</span></label>
-</div>
-<div class="calendar-day-check-group">
-<div class="calendar-day-check-group-title">Cobranza y seguimiento</div>
-<label class="calendar-day-check-item"><input data-day-check-item="forms" type="checkbox"/><span class="calendar-day-check-box"></span><span class="calendar-day-check-text">Formularios, autorizaciones y pendientes revisados</span></label>
-<label class="calendar-day-check-item"><input data-day-check-item="payments" type="checkbox"/><span class="calendar-day-check-box"></span><span class="calendar-day-check-text">Sistema de cobro / QR / sobres listos</span></label>
-<label class="calendar-day-check-item"><input data-day-check-item="retakes" type="checkbox"/><span class="calendar-day-check-box"></span><span class="calendar-day-check-text">Ausentes, retomas y casos especiales anotados</span></label>
-<label class="calendar-day-check-item"><input data-day-check-item="closing" type="checkbox"/><span class="calendar-day-check-box"></span><span class="calendar-day-check-text">Plan de cierre, backup y próximo paso definido</span></label>
-</div>
-</div>
-</div>
-</section>
-<div class="calendar-derived-notes" id="calendarDayPrintNotes"></div>
-</article>
-<article class="calendar-derived-card" data-print-mode="week">
-<div class="calendar-derived-head">
-<div>
-<div class="calendar-month-kicker">Vista semanal</div>
-<h3 id="calendarWeekPrintTitle">Semana de referencia</h3>
-</div>
-<span class="calendar-count-pill" id="calendarWeekPrintCount">0 ítems</span>
-</div>
-<div class="calendar-derived-meta" id="calendarWeekPrintMeta">Sin datos cargados.</div>
-<div class="calendar-derived-list" id="calendarWeekPrintList"></div>
-</article>
-</div>
-</div>
-<div class="card calendar-mobile-hub">
-<div class="sub-title" style="margin-bottom:6px">Calendario móvil</div>
-<p class="lead-tight">Navega mes por mes, abre solo el bloque que necesitas y salta rápido al mes actual o al próximo con actividad.</p>
-<div class="calendar-mobile-chip-row" id="calendarMobileMonthChips"></div>
-<div class="calendar-mobile-actions">
-<button class="btn btn-outline" onclick="openCalendarCurrentMonth()" type="button">Mes actual</button>
-<button class="btn btn-outline" onclick="openCalendarNextPlannedMonth()" type="button">Próximo con actividad</button>
-</div>
-<div class="calendar-mobile-summary" id="calendarMobileSummary">Calendario móvil listo para navegar por mes.</div>
-</div>
-<div class="calendar-year-grid">
-<article class="calendar-month-card month-prep">
-<div class="calendar-month-head">
-<div>
-<div class="calendar-month-kicker">Enero</div>
-<h3>Receso + planificación</h3>
-</div>
-<div class="calendar-month-meta">
-<span class="calendar-stage-badge badge-green">Preparación</span>
-<span class="calendar-count-pill" id="calendar-count-enero">0 items</span>
-</div>
-</div>
-<p class="calendar-month-base"><strong>Base operativa:</strong> mantenimiento de equipo, compras, actualización de precios, armado comercial y agenda tentativa.</p>
-<div class="calendar-entry-form">
-<div class="calendar-entry-grid">
-<div>
-<label class="calendar-label" for="cal-enero-school">Colegio</label>
-<input class="calendar-entry-input" id="cal-enero-school" placeholder="Nombre del colegio" type="text"/>
-</div>
-<div>
-<label class="calendar-label" for="cal-enero-date">Fecha</label>
-<input class="calendar-entry-input" id="cal-enero-date" type="date"/>
-</div>
-<div>
-<label class="calendar-label" for="cal-enero-time">Hora</label>
-<input class="calendar-entry-input" id="cal-enero-time" type="time"/>
-</div>
-<div>
-<label class="calendar-label" for="cal-enero-status">Estado</label>
-<select class="calendar-entry-input" id="cal-enero-status"><option value="tentativo">Tentativo</option>
-<option value="confirmado">Confirmado</option>
-<option value="jornada">Jornada</option>
-<option value="reunion">Reunión</option>
-<option value="edicion">Edición</option>
-<option value="entrega">Entrega</option>
-<option value="retoma">Retoma</option>
-<option value="cobranza">Cobranza</option>
-<option value="administrativo">Administrativo</option></select>
-</div>
-<div class="calendar-entry-span-2">
-<label class="calendar-label" for="cal-enero-detail">Detalle operativo</label>
-<input class="calendar-entry-input" id="cal-enero-detail" placeholder="Jornada, reunión, entrega, retoma, observación..." type="text"/>
-</div>
-</div>
-<div class="calendar-entry-actions">
-<button class="btn btn-outline" onclick="addCalendarPlannerItem('enero')" type="button">＋ Agregar al mes</button>
-</div>
-</div>
-<div class="calendar-month-agenda">
-<div class="calendar-agenda-head">Agenda del mes</div>
-<div class="calendar-month-list" data-calendar-list="enero"></div>
-</div>
-<label class="calendar-label" for="cal-enero-notes">Notas libres del mes</label>
-<textarea class="calendar-input" data-calendar-notes="enero" id="cal-enero-notes" placeholder="Notas generales, recordatorios o tareas del mes que no quieras cargar como fila operativa."></textarea>
-<div class="calendar-print-copy" data-calendar-print="enero"></div>
-</article>
-<article class="calendar-month-card month-prep">
-<div class="calendar-month-head">
-<div>
-<div class="calendar-month-kicker">Febrero</div>
-<h3>Preventa</h3>
-</div>
-<div class="calendar-month-meta">
-<span class="calendar-stage-badge badge-green">Preparación</span>
-<span class="calendar-count-pill" id="calendar-count-febrero">0 items</span>
-</div>
-</div>
-<p class="calendar-month-base"><strong>Base operativa:</strong> contacto con colegios, propuestas, cierre de fechas, formularios y materiales.</p>
-<div class="calendar-entry-form">
-<div class="calendar-entry-grid">
-<div>
-<label class="calendar-label" for="cal-febrero-school">Colegio</label>
-<input class="calendar-entry-input" id="cal-febrero-school" placeholder="Nombre del colegio" type="text"/>
-</div>
-<div>
-<label class="calendar-label" for="cal-febrero-date">Fecha</label>
-<input class="calendar-entry-input" id="cal-febrero-date" type="date"/>
-</div>
-<div>
-<label class="calendar-label" for="cal-febrero-time">Hora</label>
-<input class="calendar-entry-input" id="cal-febrero-time" type="time"/>
-</div>
-<div>
-<label class="calendar-label" for="cal-febrero-status">Estado</label>
-<select class="calendar-entry-input" id="cal-febrero-status"><option value="tentativo">Tentativo</option>
-<option value="confirmado">Confirmado</option>
-<option value="jornada">Jornada</option>
-<option value="reunion">Reunión</option>
-<option value="edicion">Edición</option>
-<option value="entrega">Entrega</option>
-<option value="retoma">Retoma</option>
-<option value="cobranza">Cobranza</option>
-<option value="administrativo">Administrativo</option></select>
-</div>
-<div class="calendar-entry-span-2">
-<label class="calendar-label" for="cal-febrero-detail">Detalle operativo</label>
-<input class="calendar-entry-input" id="cal-febrero-detail" placeholder="Jornada, reunión, entrega, retoma, observación..." type="text"/>
-</div>
-</div>
-<div class="calendar-entry-actions">
-<button class="btn btn-outline" onclick="addCalendarPlannerItem('febrero')" type="button">＋ Agregar al mes</button>
-</div>
-</div>
-<div class="calendar-month-agenda">
-<div class="calendar-agenda-head">Agenda del mes</div>
-<div class="calendar-month-list" data-calendar-list="febrero"></div>
-</div>
-<label class="calendar-label" for="cal-febrero-notes">Notas libres del mes</label>
-<textarea class="calendar-input" data-calendar-notes="febrero" id="cal-febrero-notes" placeholder="Notas generales, recordatorios o tareas del mes que no quieras cargar como fila operativa."></textarea>
-<div class="calendar-print-copy" data-calendar-print="febrero"></div>
-</article>
-<article class="calendar-month-card month-alta">
-<div class="calendar-month-head">
-<div>
-<div class="calendar-month-kicker">Marzo</div>
-<h3>Inicio de temporada</h3>
-</div>
-<div class="calendar-month-meta">
-<span class="calendar-stage-badge badge-orange">Alta demanda</span>
-<span class="calendar-count-pill" id="calendar-count-marzo">0 items</span>
-</div>
-</div>
-<p class="calendar-month-base"><strong>Base operativa:</strong> tomas de inicio de ciclo, grupos, primeros packs, plan B por lluvia y primeras entregas.</p>
-<div class="calendar-entry-form">
-<div class="calendar-entry-grid">
-<div>
-<label class="calendar-label" for="cal-marzo-school">Colegio</label>
-<input class="calendar-entry-input" id="cal-marzo-school" placeholder="Nombre del colegio" type="text"/>
-</div>
-<div>
-<label class="calendar-label" for="cal-marzo-date">Fecha</label>
-<input class="calendar-entry-input" id="cal-marzo-date" type="date"/>
-</div>
-<div>
-<label class="calendar-label" for="cal-marzo-time">Hora</label>
-<input class="calendar-entry-input" id="cal-marzo-time" type="time"/>
-</div>
-<div>
-<label class="calendar-label" for="cal-marzo-status">Estado</label>
-<select class="calendar-entry-input" id="cal-marzo-status"><option value="tentativo">Tentativo</option>
-<option value="confirmado">Confirmado</option>
-<option value="jornada">Jornada</option>
-<option value="reunion">Reunión</option>
-<option value="edicion">Edición</option>
-<option value="entrega">Entrega</option>
-<option value="retoma">Retoma</option>
-<option value="cobranza">Cobranza</option>
-<option value="administrativo">Administrativo</option></select>
-</div>
-<div class="calendar-entry-span-2">
-<label class="calendar-label" for="cal-marzo-detail">Detalle operativo</label>
-<input class="calendar-entry-input" id="cal-marzo-detail" placeholder="Jornada, reunión, entrega, retoma, observación..." type="text"/>
-</div>
-</div>
-<div class="calendar-entry-actions">
-<button class="btn btn-outline" onclick="addCalendarPlannerItem('marzo')" type="button">＋ Agregar al mes</button>
-</div>
-</div>
-<div class="calendar-month-agenda">
-<div class="calendar-agenda-head">Agenda del mes</div>
-<div class="calendar-month-list" data-calendar-list="marzo"></div>
-</div>
-<label class="calendar-label" for="cal-marzo-notes">Notas libres del mes</label>
-<textarea class="calendar-input" data-calendar-notes="marzo" id="cal-marzo-notes" placeholder="Notas generales, recordatorios o tareas del mes que no quieras cargar como fila operativa."></textarea>
-<div class="calendar-print-copy" data-calendar-print="marzo"></div>
-</article>
-<article class="calendar-month-card month-peak">
-<div class="calendar-month-head">
-<div>
-<div class="calendar-month-kicker">Abril</div>
-<h3>Alta demanda</h3>
-</div>
-<div class="calendar-month-meta">
-<span class="calendar-stage-badge badge-peak">Temporada pico</span>
-<span class="calendar-count-pill" id="calendar-count-abril">0 items</span>
-</div>
-</div>
-<p class="calendar-month-base"><strong>Base operativa:</strong> tomas masivas, actos puntuales, control de edición y entrega continua.</p>
-<div class="calendar-entry-form">
-<div class="calendar-entry-grid">
-<div>
-<label class="calendar-label" for="cal-abril-school">Colegio</label>
-<input class="calendar-entry-input" id="cal-abril-school" placeholder="Nombre del colegio" type="text"/>
-</div>
-<div>
-<label class="calendar-label" for="cal-abril-date">Fecha</label>
-<input class="calendar-entry-input" id="cal-abril-date" type="date"/>
-</div>
-<div>
-<label class="calendar-label" for="cal-abril-time">Hora</label>
-<input class="calendar-entry-input" id="cal-abril-time" type="time"/>
-</div>
-<div>
-<label class="calendar-label" for="cal-abril-status">Estado</label>
-<select class="calendar-entry-input" id="cal-abril-status"><option value="tentativo">Tentativo</option>
-<option value="confirmado">Confirmado</option>
-<option value="jornada">Jornada</option>
-<option value="reunion">Reunión</option>
-<option value="edicion">Edición</option>
-<option value="entrega">Entrega</option>
-<option value="retoma">Retoma</option>
-<option value="cobranza">Cobranza</option>
-<option value="administrativo">Administrativo</option></select>
-</div>
-<div class="calendar-entry-span-2">
-<label class="calendar-label" for="cal-abril-detail">Detalle operativo</label>
-<input class="calendar-entry-input" id="cal-abril-detail" placeholder="Jornada, reunión, entrega, retoma, observación..." type="text"/>
-</div>
-</div>
-<div class="calendar-entry-actions">
-<button class="btn btn-outline" onclick="addCalendarPlannerItem('abril')" type="button">＋ Agregar al mes</button>
-</div>
-</div>
-<div class="calendar-month-agenda">
-<div class="calendar-agenda-head">Agenda del mes</div>
-<div class="calendar-month-list" data-calendar-list="abril"></div>
-</div>
-<label class="calendar-label" for="cal-abril-notes">Notas libres del mes</label>
-<textarea class="calendar-input" data-calendar-notes="abril" id="cal-abril-notes" placeholder="Notas generales, recordatorios o tareas del mes que no quieras cargar como fila operativa."></textarea>
-<div class="calendar-print-copy" data-calendar-print="abril"></div>
-</article>
-<article class="calendar-month-card month-peak">
-<div class="calendar-month-head">
-<div>
-<div class="calendar-month-kicker">Mayo</div>
-<h3>Alta demanda</h3>
-</div>
-<div class="calendar-month-meta">
-<span class="calendar-stage-badge badge-peak">Temporada pico</span>
-<span class="calendar-count-pill" id="calendar-count-mayo">0 items</span>
-</div>
-</div>
-<p class="calendar-month-base"><strong>Base operativa:</strong> continuidad de jornadas, seguimiento fino de edición y entregas.</p>
-<div class="calendar-entry-form">
-<div class="calendar-entry-grid">
-<div>
-<label class="calendar-label" for="cal-mayo-school">Colegio</label>
-<input class="calendar-entry-input" id="cal-mayo-school" placeholder="Nombre del colegio" type="text"/>
-</div>
-<div>
-<label class="calendar-label" for="cal-mayo-date">Fecha</label>
-<input class="calendar-entry-input" id="cal-mayo-date" type="date"/>
-</div>
-<div>
-<label class="calendar-label" for="cal-mayo-time">Hora</label>
-<input class="calendar-entry-input" id="cal-mayo-time" type="time"/>
-</div>
-<div>
-<label class="calendar-label" for="cal-mayo-status">Estado</label>
-<select class="calendar-entry-input" id="cal-mayo-status"><option value="tentativo">Tentativo</option>
-<option value="confirmado">Confirmado</option>
-<option value="jornada">Jornada</option>
-<option value="reunion">Reunión</option>
-<option value="edicion">Edición</option>
-<option value="entrega">Entrega</option>
-<option value="retoma">Retoma</option>
-<option value="cobranza">Cobranza</option>
-<option value="administrativo">Administrativo</option></select>
-</div>
-<div class="calendar-entry-span-2">
-<label class="calendar-label" for="cal-mayo-detail">Detalle operativo</label>
-<input class="calendar-entry-input" id="cal-mayo-detail" placeholder="Jornada, reunión, entrega, retoma, observación..." type="text"/>
-</div>
-</div>
-<div class="calendar-entry-actions">
-<button class="btn btn-outline" onclick="addCalendarPlannerItem('mayo')" type="button">＋ Agregar al mes</button>
-</div>
-</div>
-<div class="calendar-month-agenda">
-<div class="calendar-agenda-head">Agenda del mes</div>
-<div class="calendar-month-list" data-calendar-list="mayo"></div>
-</div>
-<label class="calendar-label" for="cal-mayo-notes">Notas libres del mes</label>
-<textarea class="calendar-input" data-calendar-notes="mayo" id="cal-mayo-notes" placeholder="Notas generales, recordatorios o tareas del mes que no quieras cargar como fila operativa."></textarea>
-<div class="calendar-print-copy" data-calendar-print="mayo"></div>
-</article>
-<article class="calendar-month-card month-peak">
-<div class="calendar-month-head">
-<div>
-<div class="calendar-month-kicker">Junio</div>
-<h3>Alta demanda</h3>
-</div>
-<div class="calendar-month-meta">
-<span class="calendar-stage-badge badge-peak">Temporada pico</span>
-<span class="calendar-count-pill" id="calendar-count-junio">0 items</span>
-</div>
-</div>
-<p class="calendar-month-base"><strong>Base operativa:</strong> tomas intensivas, control de cuellos de botella y entregas continuas.</p>
-<div class="calendar-entry-form">
-<div class="calendar-entry-grid">
-<div>
-<label class="calendar-label" for="cal-junio-school">Colegio</label>
-<input class="calendar-entry-input" id="cal-junio-school" placeholder="Nombre del colegio" type="text"/>
-</div>
-<div>
-<label class="calendar-label" for="cal-junio-date">Fecha</label>
-<input class="calendar-entry-input" id="cal-junio-date" type="date"/>
-</div>
-<div>
-<label class="calendar-label" for="cal-junio-time">Hora</label>
-<input class="calendar-entry-input" id="cal-junio-time" type="time"/>
-</div>
-<div>
-<label class="calendar-label" for="cal-junio-status">Estado</label>
-<select class="calendar-entry-input" id="cal-junio-status"><option value="tentativo">Tentativo</option>
-<option value="confirmado">Confirmado</option>
-<option value="jornada">Jornada</option>
-<option value="reunion">Reunión</option>
-<option value="edicion">Edición</option>
-<option value="entrega">Entrega</option>
-<option value="retoma">Retoma</option>
-<option value="cobranza">Cobranza</option>
-<option value="administrativo">Administrativo</option></select>
-</div>
-<div class="calendar-entry-span-2">
-<label class="calendar-label" for="cal-junio-detail">Detalle operativo</label>
-<input class="calendar-entry-input" id="cal-junio-detail" placeholder="Jornada, reunión, entrega, retoma, observación..." type="text"/>
-</div>
-</div>
-<div class="calendar-entry-actions">
-<button class="btn btn-outline" onclick="addCalendarPlannerItem('junio')" type="button">＋ Agregar al mes</button>
-</div>
-</div>
-<div class="calendar-month-agenda">
-<div class="calendar-agenda-head">Agenda del mes</div>
-<div class="calendar-month-list" data-calendar-list="junio"></div>
-</div>
-<label class="calendar-label" for="cal-junio-notes">Notas libres del mes</label>
-<textarea class="calendar-input" data-calendar-notes="junio" id="cal-junio-notes" placeholder="Notas generales, recordatorios o tareas del mes que no quieras cargar como fila operativa."></textarea>
-<div class="calendar-print-copy" data-calendar-print="junio"></div>
-</article>
-<article class="calendar-month-card month-admin">
-<div class="calendar-month-head">
-<div>
-<div class="calendar-month-kicker">Julio</div>
-<h3>Receso + producción</h3>
-</div>
-<div class="calendar-month-meta">
-<span class="calendar-stage-badge badge-gray">Administrativo</span>
-<span class="calendar-count-pill" id="calendar-count-julio">0 items</span>
-</div>
-</div>
-<p class="calendar-month-base"><strong>Base operativa:</strong> edición acumulada, retomas planificadas y orden administrativo.</p>
-<div class="calendar-entry-form">
-<div class="calendar-entry-grid">
-<div>
-<label class="calendar-label" for="cal-julio-school">Colegio</label>
-<input class="calendar-entry-input" id="cal-julio-school" placeholder="Nombre del colegio" type="text"/>
-</div>
-<div>
-<label class="calendar-label" for="cal-julio-date">Fecha</label>
-<input class="calendar-entry-input" id="cal-julio-date" type="date"/>
-</div>
-<div>
-<label class="calendar-label" for="cal-julio-time">Hora</label>
-<input class="calendar-entry-input" id="cal-julio-time" type="time"/>
-</div>
-<div>
-<label class="calendar-label" for="cal-julio-status">Estado</label>
-<select class="calendar-entry-input" id="cal-julio-status"><option value="tentativo">Tentativo</option>
-<option value="confirmado">Confirmado</option>
-<option value="jornada">Jornada</option>
-<option value="reunion">Reunión</option>
-<option value="edicion">Edición</option>
-<option value="entrega">Entrega</option>
-<option value="retoma">Retoma</option>
-<option value="cobranza">Cobranza</option>
-<option value="administrativo">Administrativo</option></select>
-</div>
-<div class="calendar-entry-span-2">
-<label class="calendar-label" for="cal-julio-detail">Detalle operativo</label>
-<input class="calendar-entry-input" id="cal-julio-detail" placeholder="Jornada, reunión, entrega, retoma, observación..." type="text"/>
-</div>
-</div>
-<div class="calendar-entry-actions">
-<button class="btn btn-outline" onclick="addCalendarPlannerItem('julio')" type="button">＋ Agregar al mes</button>
-</div>
-</div>
-<div class="calendar-month-agenda">
-<div class="calendar-agenda-head">Agenda del mes</div>
-<div class="calendar-month-list" data-calendar-list="julio"></div>
-</div>
-<label class="calendar-label" for="cal-julio-notes">Notas libres del mes</label>
-<textarea class="calendar-input" data-calendar-notes="julio" id="cal-julio-notes" placeholder="Notas generales, recordatorios o tareas del mes que no quieras cargar como fila operativa."></textarea>
-<div class="calendar-print-copy" data-calendar-print="julio"></div>
-</article>
-<article class="calendar-month-card month-alta">
-<div class="calendar-month-head">
-<div>
-<div class="calendar-month-kicker">Agosto</div>
-<h3>Media temporada</h3>
-</div>
-<div class="calendar-month-meta">
-<span class="calendar-stage-badge badge-orange">Alta demanda</span>
-<span class="calendar-count-pill" id="calendar-count-agosto">0 items</span>
-</div>
-</div>
-<p class="calendar-month-base"><strong>Base operativa:</strong> retomas, actos patrios y campañas de segunda mitad del año.</p>
-<div class="calendar-entry-form">
-<div class="calendar-entry-grid">
-<div>
-<label class="calendar-label" for="cal-agosto-school">Colegio</label>
-<input class="calendar-entry-input" id="cal-agosto-school" placeholder="Nombre del colegio" type="text"/>
-</div>
-<div>
-<label class="calendar-label" for="cal-agosto-date">Fecha</label>
-<input class="calendar-entry-input" id="cal-agosto-date" type="date"/>
-</div>
-<div>
-<label class="calendar-label" for="cal-agosto-time">Hora</label>
-<input class="calendar-entry-input" id="cal-agosto-time" type="time"/>
-</div>
-<div>
-<label class="calendar-label" for="cal-agosto-status">Estado</label>
-<select class="calendar-entry-input" id="cal-agosto-status"><option value="tentativo">Tentativo</option>
-<option value="confirmado">Confirmado</option>
-<option value="jornada">Jornada</option>
-<option value="reunion">Reunión</option>
-<option value="edicion">Edición</option>
-<option value="entrega">Entrega</option>
-<option value="retoma">Retoma</option>
-<option value="cobranza">Cobranza</option>
-<option value="administrativo">Administrativo</option></select>
-</div>
-<div class="calendar-entry-span-2">
-<label class="calendar-label" for="cal-agosto-detail">Detalle operativo</label>
-<input class="calendar-entry-input" id="cal-agosto-detail" placeholder="Jornada, reunión, entrega, retoma, observación..." type="text"/>
-</div>
-</div>
-<div class="calendar-entry-actions">
-<button class="btn btn-outline" onclick="addCalendarPlannerItem('agosto')" type="button">＋ Agregar al mes</button>
-</div>
-</div>
-<div class="calendar-month-agenda">
-<div class="calendar-agenda-head">Agenda del mes</div>
-<div class="calendar-month-list" data-calendar-list="agosto"></div>
-</div>
-<label class="calendar-label" for="cal-agosto-notes">Notas libres del mes</label>
-<textarea class="calendar-input" data-calendar-notes="agosto" id="cal-agosto-notes" placeholder="Notas generales, recordatorios o tareas del mes que no quieras cargar como fila operativa."></textarea>
-<div class="calendar-print-copy" data-calendar-print="agosto"></div>
-</article>
-<article class="calendar-month-card month-alta">
-<div class="calendar-month-head">
-<div>
-<div class="calendar-month-kicker">Septiembre</div>
-<h3>Media temporada</h3>
-</div>
-<div class="calendar-month-meta">
-<span class="calendar-stage-badge badge-orange">Alta demanda</span>
-<span class="calendar-count-pill" id="calendar-count-septiembre">0 items</span>
-</div>
-</div>
-<p class="calendar-month-base"><strong>Base operativa:</strong> retomas, actos, campañas para familias y planificación del cierre.</p>
-<div class="calendar-entry-form">
-<div class="calendar-entry-grid">
-<div>
-<label class="calendar-label" for="cal-septiembre-school">Colegio</label>
-<input class="calendar-entry-input" id="cal-septiembre-school" placeholder="Nombre del colegio" type="text"/>
-</div>
-<div>
-<label class="calendar-label" for="cal-septiembre-date">Fecha</label>
-<input class="calendar-entry-input" id="cal-septiembre-date" type="date"/>
-</div>
-<div>
-<label class="calendar-label" for="cal-septiembre-time">Hora</label>
-<input class="calendar-entry-input" id="cal-septiembre-time" type="time"/>
-</div>
-<div>
-<label class="calendar-label" for="cal-septiembre-status">Estado</label>
-<select class="calendar-entry-input" id="cal-septiembre-status"><option value="tentativo">Tentativo</option>
-<option value="confirmado">Confirmado</option>
-<option value="jornada">Jornada</option>
-<option value="reunion">Reunión</option>
-<option value="edicion">Edición</option>
-<option value="entrega">Entrega</option>
-<option value="retoma">Retoma</option>
-<option value="cobranza">Cobranza</option>
-<option value="administrativo">Administrativo</option></select>
-</div>
-<div class="calendar-entry-span-2">
-<label class="calendar-label" for="cal-septiembre-detail">Detalle operativo</label>
-<input class="calendar-entry-input" id="cal-septiembre-detail" placeholder="Jornada, reunión, entrega, retoma, observación..." type="text"/>
-</div>
-</div>
-<div class="calendar-entry-actions">
-<button class="btn btn-outline" onclick="addCalendarPlannerItem('septiembre')" type="button">＋ Agregar al mes</button>
-</div>
-</div>
-<div class="calendar-month-agenda">
-<div class="calendar-agenda-head">Agenda del mes</div>
-<div class="calendar-month-list" data-calendar-list="septiembre"></div>
-</div>
-<label class="calendar-label" for="cal-septiembre-notes">Notas libres del mes</label>
-<textarea class="calendar-input" data-calendar-notes="septiembre" id="cal-septiembre-notes" placeholder="Notas generales, recordatorios o tareas del mes que no quieras cargar como fila operativa."></textarea>
-<div class="calendar-print-copy" data-calendar-print="septiembre"></div>
-</article>
-<article class="calendar-month-card month-alta">
-<div class="calendar-month-head">
-<div>
-<div class="calendar-month-kicker">Octubre</div>
-<h3>Cierre de tomas</h3>
-</div>
-<div class="calendar-month-meta">
-<span class="calendar-stage-badge badge-orange">Alta demanda</span>
-<span class="calendar-count-pill" id="calendar-count-octubre">0 items</span>
-</div>
-</div>
-<p class="calendar-month-base"><strong>Base operativa:</strong> últimas tomas del ciclo, egresados y definición de plazos finales.</p>
-<div class="calendar-entry-form">
-<div class="calendar-entry-grid">
-<div>
-<label class="calendar-label" for="cal-octubre-school">Colegio</label>
-<input class="calendar-entry-input" id="cal-octubre-school" placeholder="Nombre del colegio" type="text"/>
-</div>
-<div>
-<label class="calendar-label" for="cal-octubre-date">Fecha</label>
-<input class="calendar-entry-input" id="cal-octubre-date" type="date"/>
-</div>
-<div>
-<label class="calendar-label" for="cal-octubre-time">Hora</label>
-<input class="calendar-entry-input" id="cal-octubre-time" type="time"/>
-</div>
-<div>
-<label class="calendar-label" for="cal-octubre-status">Estado</label>
-<select class="calendar-entry-input" id="cal-octubre-status"><option value="tentativo">Tentativo</option>
-<option value="confirmado">Confirmado</option>
-<option value="jornada">Jornada</option>
-<option value="reunion">Reunión</option>
-<option value="edicion">Edición</option>
-<option value="entrega">Entrega</option>
-<option value="retoma">Retoma</option>
-<option value="cobranza">Cobranza</option>
-<option value="administrativo">Administrativo</option></select>
-</div>
-<div class="calendar-entry-span-2">
-<label class="calendar-label" for="cal-octubre-detail">Detalle operativo</label>
-<input class="calendar-entry-input" id="cal-octubre-detail" placeholder="Jornada, reunión, entrega, retoma, observación..." type="text"/>
-</div>
-</div>
-<div class="calendar-entry-actions">
-<button class="btn btn-outline" onclick="addCalendarPlannerItem('octubre')" type="button">＋ Agregar al mes</button>
-</div>
-</div>
-<div class="calendar-month-agenda">
-<div class="calendar-agenda-head">Agenda del mes</div>
-<div class="calendar-month-list" data-calendar-list="octubre"></div>
-</div>
-<label class="calendar-label" for="cal-octubre-notes">Notas libres del mes</label>
-<textarea class="calendar-input" data-calendar-notes="octubre" id="cal-octubre-notes" placeholder="Notas generales, recordatorios o tareas del mes que no quieras cargar como fila operativa."></textarea>
-<div class="calendar-print-copy" data-calendar-print="octubre"></div>
-</article>
-<article class="calendar-month-card month-peak">
-<div class="calendar-month-head">
-<div>
-<div class="calendar-month-kicker">Noviembre</div>
-<h3>Post + entregas</h3>
-</div>
-<div class="calendar-month-meta">
-<span class="calendar-stage-badge badge-peak">Temporada pico</span>
-<span class="calendar-count-pill" id="calendar-count-noviembre">0 items</span>
-</div>
-</div>
-<p class="calendar-month-base"><strong>Base operativa:</strong> edición masiva, producción, entregas y liquidaciones de cooperadora.</p>
-<div class="calendar-entry-form">
-<div class="calendar-entry-grid">
-<div>
-<label class="calendar-label" for="cal-noviembre-school">Colegio</label>
-<input class="calendar-entry-input" id="cal-noviembre-school" placeholder="Nombre del colegio" type="text"/>
-</div>
-<div>
-<label class="calendar-label" for="cal-noviembre-date">Fecha</label>
-<input class="calendar-entry-input" id="cal-noviembre-date" type="date"/>
-</div>
-<div>
-<label class="calendar-label" for="cal-noviembre-time">Hora</label>
-<input class="calendar-entry-input" id="cal-noviembre-time" type="time"/>
-</div>
-<div>
-<label class="calendar-label" for="cal-noviembre-status">Estado</label>
-<select class="calendar-entry-input" id="cal-noviembre-status"><option value="tentativo">Tentativo</option>
-<option value="confirmado">Confirmado</option>
-<option value="jornada">Jornada</option>
-<option value="reunion">Reunión</option>
-<option value="edicion">Edición</option>
-<option value="entrega">Entrega</option>
-<option value="retoma">Retoma</option>
-<option value="cobranza">Cobranza</option>
-<option value="administrativo">Administrativo</option></select>
-</div>
-<div class="calendar-entry-span-2">
-<label class="calendar-label" for="cal-noviembre-detail">Detalle operativo</label>
-<input class="calendar-entry-input" id="cal-noviembre-detail" placeholder="Jornada, reunión, entrega, retoma, observación..." type="text"/>
-</div>
-</div>
-<div class="calendar-entry-actions">
-<button class="btn btn-outline" onclick="addCalendarPlannerItem('noviembre')" type="button">＋ Agregar al mes</button>
-</div>
-</div>
-<div class="calendar-month-agenda">
-<div class="calendar-agenda-head">Agenda del mes</div>
-<div class="calendar-month-list" data-calendar-list="noviembre"></div>
-</div>
-<label class="calendar-label" for="cal-noviembre-notes">Notas libres del mes</label>
-<textarea class="calendar-input" data-calendar-notes="noviembre" id="cal-noviembre-notes" placeholder="Notas generales, recordatorios o tareas del mes que no quieras cargar como fila operativa."></textarea>
-<div class="calendar-print-copy" data-calendar-print="noviembre"></div>
-</article>
-<article class="calendar-month-card month-admin">
-<div class="calendar-month-head">
-<div>
-<div class="calendar-month-kicker">Diciembre</div>
-<h3>Cierre y balance</h3>
-</div>
-<div class="calendar-month-meta">
-<span class="calendar-stage-badge badge-gray">Administrativo</span>
-<span class="calendar-count-pill" id="calendar-count-diciembre">0 items</span>
-</div>
-</div>
-<p class="calendar-month-base"><strong>Base operativa:</strong> entregas finales, cobranzas, rendiciones, KPIs y renovación de contratos.</p>
-<div class="calendar-entry-form">
-<div class="calendar-entry-grid">
-<div>
-<label class="calendar-label" for="cal-diciembre-school">Colegio</label>
-<input class="calendar-entry-input" id="cal-diciembre-school" placeholder="Nombre del colegio" type="text"/>
-</div>
-<div>
-<label class="calendar-label" for="cal-diciembre-date">Fecha</label>
-<input class="calendar-entry-input" id="cal-diciembre-date" type="date"/>
-</div>
-<div>
-<label class="calendar-label" for="cal-diciembre-time">Hora</label>
-<input class="calendar-entry-input" id="cal-diciembre-time" type="time"/>
-</div>
-<div>
-<label class="calendar-label" for="cal-diciembre-status">Estado</label>
-<select class="calendar-entry-input" id="cal-diciembre-status"><option value="tentativo">Tentativo</option>
-<option value="confirmado">Confirmado</option>
-<option value="jornada">Jornada</option>
-<option value="reunion">Reunión</option>
-<option value="edicion">Edición</option>
-<option value="entrega">Entrega</option>
-<option value="retoma">Retoma</option>
-<option value="cobranza">Cobranza</option>
-<option value="administrativo">Administrativo</option></select>
-</div>
-<div class="calendar-entry-span-2">
-<label class="calendar-label" for="cal-diciembre-detail">Detalle operativo</label>
-<input class="calendar-entry-input" id="cal-diciembre-detail" placeholder="Jornada, reunión, entrega, retoma, observación..." type="text"/>
-</div>
-</div>
-<div class="calendar-entry-actions">
-<button class="btn btn-outline" onclick="addCalendarPlannerItem('diciembre')" type="button">＋ Agregar al mes</button>
-</div>
-</div>
-<div class="calendar-month-agenda">
-<div class="calendar-agenda-head">Agenda del mes</div>
-<div class="calendar-month-list" data-calendar-list="diciembre"></div>
-</div>
-<label class="calendar-label" for="cal-diciembre-notes">Notas libres del mes</label>
-<textarea class="calendar-input" data-calendar-notes="diciembre" id="cal-diciembre-notes" placeholder="Notas generales, recordatorios o tareas del mes que no quieras cargar como fila operativa."></textarea>
-<div class="calendar-print-copy" data-calendar-print="diciembre"></div>
-</article>
-</div>
-</div>
-</div>
-</div>
-
-<div class="section" id="sec-captacion">
-<div class="section-header">
-<div class="breadcrumb">Comercial</div>
-<h1>Captación y fidelización de colegios</h1>
-<p>Sistema comercial completo: primer contacto, secuencia, cierre y renovación anual.</p>
-</div>
-<div class="section-body stack-6">
-<div>
-<div class="sub-title">Secuencia de contacto</div>
-<div class="timeline">
-<div class="tl-item">
-<div class="tl-dot" style="font-size:12px">✉</div>
-<div class="tl-content">
-<div class="tl-label">Paso 1</div>
-<div class="tl-title">Mail de presentación</div>
-<div class="tl-body">
-<ul>
-<li>Presentación personal + propuesta completa</li>
-<li>Solicitud de 10 minutos de reunión</li>
-<li>Adjuntar portfolio representativo</li>
-</ul>
-</div>
-</div>
-</div>
-<div class="tl-item">
-<div class="tl-dot" style="font-size:12px">💬</div>
-<div class="tl-content">
-<div class="tl-label">Paso 2 · 7 días después</div>
-<div class="tl-title">WhatsApp de seguimiento</div>
-<div class="tl-body">
-<ul>
-<li>Recordatorio breve y sin presión</li>
-<li>Link a la propuesta o documento</li>
-<li>Propuesta de fecha concreta para reunión</li>
-</ul>
-</div>
-</div>
-</div>
-<div class="tl-item">
-<div class="tl-dot" style="font-size:12px">🤝</div>
-<div class="tl-content">
-<div class="tl-label">Paso 3</div>
-<div class="tl-title">Reunión (presencial o virtual)</div>
-<div class="tl-body">
-<ul>
-<li>Calendario en mano para elegir semana disponible</li>
-<li>Acordar reglas del servicio por escrito</li>
-<li>Mostrar el sistema: Forms, planilla espejo, plazos</li>
-</ul>
-</div>
-</div>
-</div>
-<div class="tl-item">
-<div class="tl-dot" style="font-size:12px">✅</div>
-<div class="tl-content">
-<div class="tl-label">Paso 4</div>
-<div class="tl-title">Cierre y confirmación</div>
-<div class="tl-body">
-<ul>
-<li>Confirmación por mail con alcance y precio</li>
-<li>Documento de compromisos firmado/aceptado</li>
-<li>Fecha bloqueada en el calendario</li>
-</ul>
-</div>
-</div>
-</div>
-</div>
-</div>
-<div>
-<div class="sub-title">Manejo de objeciones</div>
-<div class="stack-4">
-<div class="obj-item">
-<div class="obj-q">"Es caro comparado con otros fotógrafos"</div>
-<div class="obj-a">Reencuadrar: no es "una foto", es un proceso completo que evita caos administrativo, filas sin control y reclamos de familias. El costo del desorden (reputación de la cooperadora, tiempo de directivos) supera cualquier diferencia de precio.</div>
-</div>
-<div class="obj-item">
-<div class="obj-q">"El año pasado tuvimos problemas con el fotógrafo anterior"</div>
-<div class="obj-a">No atacar al proveedor anterior. Hablar del sistema: "Entiendo. Por eso ofrezco un proceso blindado: Google Forms con comprobante, planilla espejo en tiempo real y compromisos de edición por escrito. El control queda del lado de la institución."</div>
-</div>
-<div class="obj-item">
-<div class="obj-q">"Necesitamos consultarlo con la comisión directiva"</div>
-<div class="obj-a">Facilitar: ofrecer un documento resumen de una página (la carta de presentación), disponible para compartir. Proponer un plazo concreto: "¿Podría tener una respuesta para el viernes? Las fechas se llenan rápido en marzo."</div>
-</div>
-<div class="obj-item">
-<div class="obj-q">"¿Podemos pagar en cuotas o con Mercado Pago?"</div>
-<div class="obj-a">Las familias pagan directamente a Polar[3]. Se pueden habilitar medios como MP sin bajar el precio del pack. No hacer descuentos directos; en todo caso, considerar bonificaciones en valor agregado (copias extra para abuelos, etc.).</div>
-</div>
-</div>
-</div>
-<div>
-<div class="sub-title">Renovación anual</div>
-<div class="grid-4">
-<div class="card" style="text-align:center;padding:18px 12px">
-<div style="font-size:24px;margin-bottom:8px">📋</div>
-<div style="font-size:12px;font-weight:700;margin-bottom:4px">Encuesta post-servicio</div>
-<div style="font-size:11px;color:var(--text-muted)">1 semana después de la entrega</div>
-</div>
-<div class="card" style="text-align:center;padding:18px 12px">
-<div style="font-size:24px;margin-bottom:8px">🎁</div>
-<div style="font-size:12px;font-weight:700;margin-bottom:4px">Detalle de fin de año</div>
-<div style="font-size:11px;color:var(--text-muted)">Para dirección y cooperadora</div>
-</div>
-<div class="card" style="text-align:center;padding:18px 12px">
-<div style="font-size:24px;margin-bottom:8px">📅</div>
-<div style="font-size:12px;font-weight:700;margin-bottom:4px">Bloquear fecha</div>
-<div style="font-size:11px;color:var(--text-muted)">Enero/feb, misma semana del año anterior</div>
-</div>
-<div class="card" style="text-align:center;padding:18px 12px">
-<div style="font-size:24px;margin-bottom:8px">🤝</div>
-<div style="font-size:12px;font-weight:700;margin-bottom:4px">Programa de referidos</div>
-<div style="font-size:11px;color:var(--text-muted)">Beneficio institucional (no dinero)</div>
-</div>
-</div>
-</div>
-</div>
-</div>
-<div class="section" id="sec-scripts">
-<div class="section-header">
-<div class="breadcrumb">Comercial</div>
-<h1>Scripts y pitch</h1>
-<p>Mensajes listos para copiar y guion de reunión con cooperadora.</p>
-</div>
-<div class="section-body stack-6">
-<div>
-<div class="sub-title">WhatsApp a cooperadora</div>
-<div class="script-block">
-<div class="script-label">Activación sin presión — primer contacto</div>
-<div class="script-text" id="script-coop">Hola [Nombre], ¿cómo estás? Sé que el tema fotos el año pasado generó reclamos y entiendo la exposición que eso implica para cooperadora. Preparé una propuesta ordenada y transparente (Google Forms con comprobante, planilla espejo solo lectura, compromiso de integridad sin IA invasiva). Si te parece, se las acerco para evaluarla y coordinamos una charla corta. Abrazo, Adrián.</div>
-<button class="copy-btn" onclick="copyScript('script-coop', this)">Copiar</button>
-</div>
-</div>
-<div>
-<div class="sub-title">Pitch de 5 minutos — reunión presencial o virtual</div>
-<div class="card">
-<div class="card-body">
-<div class="checklist" style="gap:0">
-<div class="check-section-title" style="padding-top:0">Apertura</div>
-<div class="check-item" style="cursor:default;background:var(--bg-soft)">
-<div class="check-box" style="border-color:var(--accent);background:var(--accent-soft);color:var(--accent)">→</div>
-<div class="check-text">"No vengo a prometer fotos lindas: vengo a proponer un <strong>sistema controlable y documentado</strong>."</div>
-</div>
-<div class="check-section-title">Los 4 pilares</div>
-<div class="check-item" style="cursor:default">
-<div class="check-box" style="border-color:var(--accent);color:var(--accent);font-size:10px;font-weight:700">1</div>
-<div class="check-text"><strong>Formulario + comprobante + términos claros</strong> → menos reclamos de familias</div>
-</div>
-<div class="check-item" style="cursor:default">
-<div class="check-box" style="border-color:var(--accent);color:var(--accent);font-size:10px;font-weight:700">2</div>
-<div class="check-text"><strong>Planilla espejo</strong> → cooperadora audita sin ver datos sensibles</div>
-</div>
-<div class="check-item" style="cursor:default">
-<div class="check-box" style="border-color:var(--accent);color:var(--accent);font-size:10px;font-weight:700">3</div>
-<div class="check-text"><strong>Integridad de imagen</strong> → no se altera fisonomía; límites estrictos de montajes con IA</div>
-</div>
-<div class="check-item" style="cursor:default">
-<div class="check-box" style="border-color:var(--accent);color:var(--accent);font-size:10px;font-weight:700">4</div>
-<div class="check-text"><strong>Entregas parciales por tandas</strong> → previsibles, nunca todo al final</div>
-</div>
-</div>
-</div>
-</div>
-</div>
-<div>
-<div class="sub-title">Carta de presentación (para directivos / cooperadora)</div>
-<div class="script-block">
-<div class="script-label">Correo formal — carta de presentación</div>
-<div class="script-text" id="script-carta">Estimado/a [Nombre]: Soy Adrián Fernández (Polar[3] Fotografía, CABA). Presento una propuesta de fotografía escolar para el ciclo 2026 basada en orden, transparencia y cumplimiento de plazos. La institución no administra dinero en ningún momento; la cooperadora recibe una planilla espejo (solo lectura) y el canon calculado automáticamente. Quedo a disposición para coordinar una reunión breve — presencial o virtual. Atte., Adrián Fernández · 11 5523-8266 · polar3fotografia@gmail.com</div>
-<button class="copy-btn" onclick="copyScript('script-carta', this)">Copiar</button>
-</div>
-</div>
-<div>
-<div class="sub-title">Transparencia con cooperadora — lenguaje político recomendado</div>
-<div class="grid-2">
-<div class="note-box danger"><span class="note-label">❌ Evitar:</span> "Yo soy mejor que el anterior", atacar al proveedor anterior, prometer sin sustento.</div>
-<div class="note-box success"><span class="note-label">✅ Usar:</span> "El proceso debe estar blindado", "el control queda del lado de la institución", "sistema auditado y documentado".</div>
-</div>
-</div>
-</div>
-</div>
-<div class="section" id="sec-familias">
-<div class="section-header">
-<div class="breadcrumb">Comercial</div>
-<h1>Comunicación con familias</h1>
-<p>Mensajes tipo, protocolo de reclamos y estrategia de recompra.</p>
-</div>
-<div class="section-body stack-6">
-<div>
-<div class="sub-title">Mensajes base (copiar/pegar)</div>
-<div class="stack-4">
-<div class="script-block">
-<div class="script-label">Aviso previo a la toma</div>
-<div class="script-text" id="msg-previo">Queridas familias: el día [DD/MM] realizaremos la fotografía escolar. Por favor enviar a los chicos con uniforme prolijo. Luego recibirán instrucciones para realizar el pedido (no se compra el día de la toma).</div>
-<button class="copy-btn" onclick="copyScript('msg-previo', this)">Copiar</button>
-</div>
-<div class="script-block">
-<div class="script-label">Post sesión — apertura de pedido</div>
-<div class="script-text" id="msg-post">¡Gracias! La sesión ya fue realizada. En los próximos 2–3 días se habilitará el formulario de pedido con los detalles del pack y la forma de pago. Los avisamos por este canal cuando esté disponible.</div>
-<button class="copy-btn" onclick="copyScript('msg-post', this)">Copiar</button>
-</div>
-<div class="script-block">
-<div class="script-label">Entrega de pedidos</div>
-<div class="script-text" id="msg-entrega">Los pedidos ya están en el colegio. Los sobres se entregarán en el aula esta semana. Ante cualquier inconveniente, escribir por WhatsApp solo texto (sin llamadas ni audios).</div>
-<button class="copy-btn" onclick="copyScript('msg-entrega', this)">Copiar</button>
-</div>
-<div class="script-block">
-<div class="script-label">Confirmación de pedido (Google Forms)</div>
-<div class="script-text" id="msg-form">¡Muchas gracias! Tu pedido ha sido registrado con éxito. Ya tenemos guardados los datos del alumno y tu comprobante. Si tuviste un error técnico al subir el archivo o una duda urgente, escribinos por WhatsApp: [link]. Importante: para mantener un registro claro, solo atendemos mensajes de texto (sin llamadas ni audios).</div>
-<button class="copy-btn" onclick="copyScript('msg-form', this)">Copiar</button>
-</div>
-</div>
-</div>
-<div>
-<div class="sub-title">Protocolo de reclamos (4 pasos)</div>
-<div class="grid-2">
-<div class="card">
-<div class="card-header"><div class="card-icon" style="background:#fff5f0">1️⃣</div><h3>Empatía inmediata</h3></div>
-<div class="card-body" style="font-size:13px;color:var(--text-secondary)">Validar el reclamo sin defensas. "Entiendo tu preocupación, gracias por escribir." El primer mensaje no resuelve: contiene.</div>
-</div>
-<div class="card">
-<div class="card-header"><div class="card-icon" style="background:#fffbeb">2️⃣</div><h3>Revisión rápida</h3></div>
-<div class="card-body" style="font-size:13px;color:var(--text-secondary)">Prometer respuesta concreta con plazo: "Te respondo con información completa antes de las 18 hs." No improvisar sin revisar el caso.</div>
-</div>
-<div class="card">
-<div class="card-header"><div class="card-icon" style="background:#f0fff4">3️⃣</div><h3>Resolución generosa</h3></div>
-<div class="card-body" style="font-size:13px;color:var(--text-secondary)">Ofrecer solución simple y sin fricción: reimpresión, retoma. La generosidad en el reclamo genera fidelidad y referidos.</div>
-</div>
-<div class="card">
-<div class="card-header"><div class="card-icon" style="background:#e8f5fc">4️⃣</div><h3>Cierre y seguimiento</h3></div>
-<div class="card-body" style="font-size:13px;color:var(--text-secondary)">Confirmar conformidad: "¿Quedó todo en orden?" Registrar el reclamo para mejorar procesos futuros.</div>
-</div>
-</div>
-</div>
-<div>
-<div class="sub-title">Recompras y fidelización</div>
-<div class="card">
-<div class="card-body">
-<ul class="inline-list arrow">
-<li>Al entregar: "Si querés copias extra para abuelos, pedilas antes de [fecha]."</li>
-<li>Recordatorio 30 días después: enmarcado o collage de la foto individual</li>
-<li>Evento gatillo: Día de la Familia / fin de año → copias adicionales</li>
-</ul>
-</div>
-</div>
-</div>
-</div>
-</div>
-<div class="section" id="sec-marketing">
-<div class="section-header">
-<div class="breadcrumb">Comercial</div>
-<h1>Marketing anual por trimestres</h1>
-<p>Filosofía: vendemos recuerdos + orden. Sin descuentos agresivos — bonuses, valor y logística.</p>
-</div>
-<div class="section-body">
-<div class="ops-booster">
-<div class="ops-booster-head">
-<div>
-<div class="ops-kicker">V2</div>
-<h3>Enfoque recomendado para tu tipo de negocio</h3>
-</div>
-<span class="ops-badge">Marketing relacional</span>
-</div>
-<div class="ops-grid ops-grid-3">
-<div class="ops-card"><strong>Canales fuertes</strong><p>WhatsApp, email, renovación con cooperadora y material de presentación.</p></div>
-<div class="ops-card"><strong>Activos útiles</strong><p>PDF institucional, muestra impresa, ejemplos de jornada y flujo documentado.</p></div>
-<div class="ops-card"><strong>Evitar</strong><p>Descuento agresivo, promesas ambiguas y mensajes demasiado publicitarios.</p></div>
-</div>
-</div>
-<div class="grid-2" style="margin-bottom:24px">
-<div class="trim-card trim-t1">
-<div class="trim-header">🌱 T1 · Enero–Marzo · Preventa y siembra</div>
-<div class="trim-body">
-<ul>
-<li>Campaña "Reservá tu fecha" (B2B) a colegios previos + nuevos</li>
-<li>Redes: detrás de escena (preparación, set, logística) sin mostrar alumnos sin permiso</li>
-<li>Flyer de presentación a familias en colegios confirmados</li>
-<li>Cierre de agenda de tomas y contratos simples</li>
-</ul>
-</div>
-</div>
-<div class="trim-card trim-t2">
-<div class="trim-header">🔥 T2 · Abril–Junio · Temporada alta y conversión</div>
-<div class="trim-body">
-<ul>
-<li>Contenido en tiempo real: set armado, packaging, logística</li>
-<li>Comunicación automática: post-toma → apertura de pedido → cierre</li>
-<li>Promos sin devaluar: bonus (wallet extra / copia para abuelos) por compra anticipada</li>
-<li>Seguimiento de conversión y tasa de respuesta del Forms</li>
-</ul>
-</div>
-</div>
-<div class="trim-card trim-t3">
-<div class="trim-header">🍂 T3 · Julio–Septiembre · Retomas y actos</div>
-<div class="trim-body">
-<ul>
-<li>Jornada de retomas de invierno para ausentes y reprogramados</li>
-<li>Servicio express para actos patrios</li>
-<li>Detalle a secretaría/cooperadora a mitad de año para fidelizar</li>
-<li>Campañas para Día de la Primavera y Día de la Familia</li>
-</ul>
-</div>
-</div>
-<div class="trim-card trim-t4">
-<div class="trim-header">🎉 T4 · Octubre–Diciembre · Cierre y renovación</div>
-<div class="trim-body">
-<ul>
-<li>Campaña emocional de egresados (si aplica al colegio)</li>
-<li>Entrega final y recompra: copias extra para abuelos y fiestas</li>
-<li>Tarjeta/QR de pre-reserva para ciclo siguiente</li>
-<li>Balance de KPIs del año y renovación de contratos</li>
-</ul>
-</div>
-</div>
-</div>
-<div class="note-box info">
-<span class="note-label">📌 Filosofía:</span>
-      No hacer descuentos de precio. Agregar valor con bonificaciones como copias extras, marcos digitales o wallets de almacenamiento. Mantener el precio del pack estable y consistente en toda la temporada.
+    <!-- Logo -->
+    <div class="sidebar-logo">
+      <div class="logo-brand">Polar<span>[3]</span></div>
+      <div class="logo-sub">Sistema Operativo</div>
+      <div class="logo-badge">v2.8.0</div>
     </div>
-</div>
-</div>
 
-
-
-
-
-
-
-<div class="section" id="sec-checklist">
-<div class="section-header">
-<div class="breadcrumb">Jornada de toma</div>
-<h1>Checklist de jornada</h1>
-<p>Interactivo — tildá cada ítem al completarlo. El progreso se guarda automáticamente.</p>
-</div>
-<div class="section-body stack-6">
-<div style="display:flex;align-items:center;gap:16px;flex-wrap:wrap">
-<div>
-<div style="font-size:11px;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:4px">Progreso</div>
-<div id="check-progress" style="font-size:20px;font-weight:800;font-family:var(--font-head);color:var(--accent)">0 / 0</div>
-</div>
-<div style="flex:1;min-width:200px">
-<div class="progress-wrap"><div class="progress-bar" id="check-bar" style="width:0%"></div></div>
-</div>
-<button class="btn btn-danger" onclick="resetChecklist()">↺ Reiniciar</button>
-</div>
-<div class="checklist" id="checklist-main">
-<div class="check-section-title">🌙 Noche anterior — Documentación</div>
-<div class="check-item" data-id="c1" onclick="toggleCheck(this)"><div class="check-box">✓</div><div class="check-text">Cronograma por curso y división confirmado</div></div>
-<div class="check-item" data-id="c2" onclick="toggleCheck(this)"><div class="check-box">✓</div><div class="check-text">Listas de alumnos impresas o descargadas en el celular</div></div>
-<div class="check-item" data-id="c3" onclick="toggleCheck(this)"><div class="check-box">✓</div><div class="check-text">Contacto del colegio confirmado (directivo/secretaria)</div></div>
-<div class="check-item" data-id="c4" onclick="toggleCheck(this)"><div class="check-box">✓</div><div class="check-text">Planilla de ausentes preparada</div></div>
-<div class="check-section-title">📷 Cámara e iluminación</div>
-<div class="check-item" data-id="c5" onclick="toggleCheck(this)"><div class="check-box">✓</div><div class="check-text">Cámara en modo M: ISO 200 · 1/160 · f/8 · WB Flash fijo</div></div>
-<div class="check-item" data-id="c6" onclick="toggleCheck(this)"><div class="check-box">✓</div><div class="check-text">Baterías cargadas (mínimo 2 para cámara + flash)</div></div>
-<div class="check-item" data-id="c7" onclick="toggleCheck(this)"><div class="check-box">✓</div><div class="check-text">Tarjetas de memoria formateadas (mínimo 3)</div></div>
-<div class="check-item" data-id="c8" onclick="toggleCheck(this)"><div class="check-box">✓</div><div class="check-text">Flash Visico + Octobox 90cm funcionando</div></div>
-<div class="check-item" data-id="c9" onclick="toggleCheck(this)"><div class="check-box">✓</div><div class="check-text">Disparadores inalámbricos verificados</div></div>
-<div class="check-item" data-id="c10" onclick="toggleCheck(this)"><div class="check-box">✓</div><div class="check-text">Lente principal + backup preparados</div></div>
-<div class="check-section-title">🏫 Fondo y set</div>
-<div class="check-item" data-id="c11" onclick="toggleCheck(this)"><div class="check-box">✓</div><div class="check-text">Fondo (tela/papel) + soporte incluidos</div></div>
-<div class="check-item" data-id="c12" onclick="toggleCheck(this)"><div class="check-box">✓</div><div class="check-text">Cinta para marcar posiciones en piso</div></div>
-<div class="check-item" data-id="c13" onclick="toggleCheck(this)"><div class="check-box">✓</div><div class="check-text">Utilería: banquito, espejo, peine/toallitas</div></div>
-<div class="check-item" data-id="c14" onclick="toggleCheck(this)"><div class="check-box">✓</div><div class="check-text">Alargues, zapatilla y cargadores</div></div>
-<div class="check-section-title">🎯 Al llegar (30-45 min antes)</div>
-<div class="check-item" data-id="c15" onclick="toggleCheck(this)"><div class="check-box">✓</div><div class="check-text">Espacio identificado y set montado</div></div>
-<div class="check-item" data-id="c16" onclick="toggleCheck(this)"><div class="check-box">✓</div><div class="check-text">Marcas en piso instaladas (sujeto + trípode + flash)</div></div>
-<div class="check-item" data-id="c17" onclick="toggleCheck(this)"><div class="check-box">✓</div><div class="check-text">Disparo de prueba realizado</div></div>
-<div class="check-item" data-id="c18" onclick="toggleCheck(this)"><div class="check-box">✓</div><div class="check-text">Histograma RGB validado (piel en zona media-alta)</div></div>
-<div class="check-item" data-id="c19" onclick="toggleCheck(this)"><div class="check-box">✓</div><div class="check-text">EV de fondo verificado contra referencia</div></div>
-<div class="check-item" data-id="c20" onclick="toggleCheck(this)"><div class="check-box">✓</div><div class="check-text">Docente/auxiliar coordinado para organizar la fila</div></div>
-<div class="check-section-title">📸 Durante la toma</div>
-<div class="check-item" data-id="c21" onclick="toggleCheck(this)"><div class="check-box">✓</div><div class="check-text">No modificar parámetros de cámara durante el grado</div></div>
-<div class="check-item" data-id="c22" onclick="toggleCheck(this)"><div class="check-box">✓</div><div class="check-text">Revisión rápida cada 15–20 alumnos</div></div>
-<div class="check-item" data-id="c23" onclick="toggleCheck(this)"><div class="check-box">✓</div><div class="check-text">Si cambia de aula: repetir disparo de prueba</div></div>
-<div class="check-item" data-id="c24" onclick="toggleCheck(this)"><div class="check-box">✓</div><div class="check-text">Registrar ausentes en planilla</div></div>
-<div class="check-section-title">✅ Cierre de jornada</div>
-<div class="check-item" data-id="c25" onclick="toggleCheck(this)"><div class="check-box">✓</div><div class="check-text">Revisión rápida de 10 fotos al azar antes de desmontar</div></div>
-<div class="check-item" data-id="c26" onclick="toggleCheck(this)"><div class="check-box">✓</div><div class="check-text">Registrar cambios de potencia e incidencias</div></div>
-<div class="check-item" data-id="c27" onclick="toggleCheck(this)"><div class="check-box">✓</div><div class="check-text">Asegurar copia primaria del RAW en tarjeta antes de formatear</div></div>
-<div class="check-item" data-id="c28" onclick="toggleCheck(this)"><div class="check-box">✓</div><div class="check-text">Backup en disco externo realizado (mismo día)</div></div>
-</div>
-</div>
-</div>
-
-<div class="section" id="sec-emergencias">
-<div class="section-header">
-<div class="breadcrumb">Jornada de toma</div>
-<h1>Protocolo de emergencias</h1>
-<p>Plan B para cada situación crítica en jornada. Sin improvisar — sin romper el estándar.</p>
-</div>
-<div class="section-body">
-<div class="grid-2" style="gap:16px">
-<div class="emerg-card">
-<div class="emerg-top">
-<div class="emerg-label">Problema técnico</div>
-<div class="emerg-title">Entra luz ambiente fuerte</div>
-</div>
-<div class="emerg-body">No cambiar los parámetros de cámara. Ajustar la <strong>potencia del flash</strong> hacia arriba y/o correr cortinas/persianas. Mantener ISO, velocidad y apertura fijas.</div>
-</div>
-<div class="emerg-card">
-<div class="emerg-top">
-<div class="emerg-label">Problema técnico</div>
-<div class="emerg-title">El fondo cambia de tono entre grupos</div>
-</div>
-<div class="emerg-body">Antes de tocar la edición, revisar la <strong>distancia sujeto–fondo</strong>. La distancia es la variable más probable. Reinstalar marcas en piso si se movieron.</div>
-</div>
-<div class="emerg-card">
-<div class="emerg-top">
-<div class="emerg-label">Falla de equipo</div>
-<div class="emerg-title">Falla el flash principal</div>
-</div>
-<div class="emerg-body"><strong>Plan de contingencia:</strong> subir a ISO 400, abrir apertura a f/5.6, mantener velocidad en 1/160. Notificar al colegio y continuar con la calidad disponible. Registrar el incidente.</div>
-</div>
-<div class="emerg-card">
-<div class="emerg-top">
-<div class="emerg-label">Encuadre inconsistente</div>
-<div class="emerg-title">Variación en posición de la cabeza entre fotos</div>
-</div>
-<div class="emerg-body">Revisar marcas en piso (pueden haberse corrido). Reinstalar marcas y fijar el trípode. Auditar últimas 5 fotos verificando posición de ojos y margen superior.</div>
-</div>
-<div class="emerg-card">
-<div class="emerg-top">
-<div class="emerg-label">Problema de post</div>
-<div class="emerg-title">La imprenta cambia de papel o RIP</div>
-</div>
-<div class="emerg-body">Repetir la <strong>prueba de color</strong> completa antes de producción masiva. Fijar el nuevo estándar en los presets. No asumir que los ajustes anteriores siguen siendo válidos.</div>
-</div>
-<div class="emerg-card">
-<div class="emerg-top">
-<div class="emerg-label">Clima / logística</div>
-<div class="emerg-title">Lluvia o suspensión de toma grupal</div>
-</div>
-<div class="emerg-body">Se reprograma <strong>una única vez</strong>. Comunicar al colegio de inmediato y fijar nueva fecha. Si tampoco se puede en la segunda fecha, fotografiar con los alumnos presentes.</div>
-</div>
-</div>
-</div>
-</div>
-<div class="section" id="sec-diagnostico">
-<div class="section-header">
-<div class="breadcrumb">Jornada de toma</div>
-<h1>Diagnóstico en campo</h1>
-<p>Síntoma visual → causa probable → acción inmediata. Para resolver sin romper el estándar.</p>
-</div>
-<div class="section-body">
-<div class="table-wrap">
-<table>
-<thead><tr><th>Síntoma</th><th>Causa probable</th><th>Acción inmediata</th></tr></thead>
-<tbody>
-<tr>
-<td class="td-strong" style="color:#742a2a">Piel muy brillante / sobreexpuesta</td>
-<td>Potencia de flash alta o sujeto demasiado cerca del octobox</td>
-<td>Bajar potencia del flash 1/3–1/2 paso. <strong>No tocar</strong> ISO, apertura ni velocidad.</td>
-</tr>
-<tr>
-<td class="td-strong" style="color:#742a2a">El fondo azul contamina la piel</td>
-<td>Sujeto demasiado cerca del fondo</td>
-<td>Aumentar la distancia sujeto–fondo. Controlar derrame de luz lateral.</td>
-</tr>
-<tr>
-<td class="td-strong" style="color:#742a2a">Halo o quemado en fondo blanco</td>
-<td>Fondo sobreexpuesto / poca distancia sujeto–fondo</td>
-<td>Aumentar distancia; bajar EV del fondo si hay luz independiente; verificar clipping.</td>
-</tr>
-<tr>
-<td class="td-strong" style="color:#742a2a">Encuadre inconsistente entre fotos</td>
-<td>Trípode o marcas en piso se movieron</td>
-<td>Reinstalar marcas, fijar trípode. Auditar posición de ojos y margen superior en últimas fotos.</td>
-</tr>
-<tr>
-<td class="td-strong" style="color:#744210">Piel sale con dominante rojiza en impresión</td>
-<td>Ajuste de color del RIP / papel de imprenta</td>
-<td>HSL canal Rojo: Sat -5, Lum +3. Repetir prueba de color.</td>
-</tr>
-<tr>
-<td class="td-strong" style="color:#744210">Fondo inconsistente entre grados del mismo día</td>
-<td>Cambio de aula (diferente luz ambiente)</td>
-<td>Repetir disparo de prueba e histograma al cambiar de espacio. Ajustar potencia si necesario.</td>
-</tr>
-</tbody>
-</table>
-</div>
-</div>
-</div>
-<div class="section" id="sec-sla">
-<div class="section-header">
-<div class="breadcrumb">Post y entrega</div>
-<h1>SLA de producción</h1>
-<p>Plazos recomendados desde la toma hasta la entrega. Promesas realistas y documentadas.</p>
-</div>
-<div class="section-body stack-6">
-<div class="ops-booster">
-<div class="ops-booster-head">
-<div>
-<div class="ops-kicker">Capacidad</div>
-<h3>Semáforo simple para prometer plazos</h3>
-</div>
-<span class="ops-badge">Riesgo</span>
-</div>
-<div class="ops-grid ops-grid-3">
-<div class="ops-card ops-card-success"><strong>Verde</strong><p>Un solo colegio en curso, sin retomas pendientes.</p></div>
-<div class="ops-card ops-card-warning"><strong>Amarillo</strong><p>Dos producciones abiertas o imprenta cargada.</p></div>
-<div class="ops-card ops-card-danger"><strong>Rojo</strong><p>Pico estacional, reimpresiones o faltantes de pago/documentación.</p></div>
-</div>
-</div>
-<div class="table-wrap">
-<table>
-<thead><tr><th>Hito</th><th>Plazo recomendado</th><th>Notas</th></tr></thead>
-<tbody>
-<tr class="sla-row-key">
-<td class="td-strong">Backup y orden del material</td>
-<td><span class="td-badge badge-green">Mismo día</span></td>
-<td>Al volver de la jornada, antes de dormir</td>
-</tr>
-<tr>
-<td class="td-strong">Edición base + selección</td>
-<td><span class="td-badge badge-blue">24–72 hs</span></td>
-<td>Según volumen; priorizar cursos urgentes</td>
-</tr>
-<tr>
-<td class="td-strong">Apertura del formulario de pedido</td>
-<td><span class="td-badge badge-blue">Al publicar aviso</span></td>
-<td>Notificar a familias cuando el form está disponible</td>
-</tr>
-<tr>
-<td class="td-strong">Cierre de pedidos</td>
-<td><span class="td-badge badge-orange">7–15 días</span></td>
-<td>Según el colegio y el volumen esperado</td>
-</tr>
-<tr>
-<td class="td-strong">Producción + armado</td>
-<td><span class="td-badge badge-orange">3–7 días hábiles</span></td>
-<td>Desde el cierre de pedidos</td>
-</tr>
-<tr class="sla-row-key">
-<td class="td-strong">Entrega al colegio</td>
-<td><span class="td-badge badge-orange">10–15 días hábiles</span></td>
-<td>Desde el cierre de pedidos. Ajustable según volumen.</td>
-</tr>
-</tbody>
-</table>
-</div>
-<div class="note-box info">
-<span class="note-label">📌 Recomendación:</span>
-      Informar el plazo de entrega por escrito al inicio del ciclo y confirmarlo en el mensaje post-sesión. Los plazos comprometidos en público son compromisos de marca.
+    <!-- Workspace switcher -->
+    <div class="workspace-switcher">
+      <button data-workspace-btn="operativo" class="active">Operativo</button>
+      <button data-workspace-btn="comercial">Comercial</button>
     </div>
-</div>
-</div>
-<div class="section" id="sec-qa">
-<div class="section-header">
-<div class="breadcrumb">Post y entrega</div>
-<h1>Control de calidad (QA)</h1>
-<p>Criterios de auditoría por lote y verificación de armado final.</p>
-</div>
-<div class="section-body stack-6">
-<div class="note-box info" style="margin-bottom:0">
-<span class="note-label">Auditoría estándar:</span>
-      Muestreo mínimo del <strong>5% por lote</strong> en postproducción. En campo: revisión visual de <strong>10 fotos al azar</strong> antes de desmontar.
+
+    <!-- Nav -->
+    <div class="sidebar-nav">
+
+      <!-- Inicio -->
+      <a href="#inicio" class="nav-item-direct active" data-section="inicio">
+        <span class="nav-icon">🏠</span> Inicio
+      </a>
+
+      <!-- App Center -->
+      <a href="#appcenter" class="nav-item-direct" data-section="appcenter">
+        <span class="nav-icon">🧩</span> App Center
+      </a>
+
+      <!-- ─── OPERATIVO ─── -->
+      <div class="nav-section-label">Operativo</div>
+
+      <!-- Calendario -->
+      <a href="#calendario" class="nav-item-direct" data-section="calendario">
+        <span class="nav-icon">📅</span> Calendario
+      </a>
+
+      <!-- Checklist -->
+      <a href="#checklist" class="nav-item-direct" data-section="checklist">
+        <span class="nav-icon">✅</span> Checklist
+      </a>
+
+      <!-- Fotografía (grupo) -->
+      <div class="nav-group" data-section="captura">
+        <div class="nav-group-header">
+          <span class="nav-icon">📷</span>
+          <span>Fotografía</span>
+          <span class="nav-arrow">›</span>
+        </div>
+        <ul class="nav-sub">
+          <li><a href="#captura" data-section="captura">Captura</a></li>
+          <li><a href="#iluminacion" data-section="iluminacion">Iluminación</a></li>
+          <li><a href="#lightroom" data-section="lightroom">Lightroom</a></li>
+          <li><a href="#photoshop" data-section="photoshop">Photoshop</a></li>
+          <li><a href="#montaje" data-section="montaje">Montaje</a></li>
+          <li><a href="#imprenta" data-section="imprenta">Imprenta</a></li>
+        </ul>
+      </div>
+
+      <!-- Gestión (grupo) -->
+      <div class="nav-group">
+        <div class="nav-group-header">
+          <span class="nav-icon">💼</span>
+          <span>Gestión</span>
+          <span class="nav-arrow">›</span>
+        </div>
+        <ul class="nav-sub">
+          <li><a href="#cobranzas" data-section="cobranzas">Cobranzas</a></li>
+          <li><a href="#seguimiento" data-section="seguimiento">Seguimiento</a></li>
+          <li><a href="#pagos" data-section="pagos">Pagos</a></li>
+          <li><a href="#kpis" data-section="kpis">KPIs</a></li>
+          <li><a href="#simulador" data-section="simulador">Simulador</a></li>
+        </ul>
+      </div>
+
+      <!-- Calidad (grupo) -->
+      <div class="nav-group">
+        <div class="nav-group-header">
+          <span class="nav-icon">🔍</span>
+          <span>Calidad</span>
+          <span class="nav-arrow">›</span>
+        </div>
+        <ul class="nav-sub">
+          <li><a href="#sla" data-section="sla">SLA</a></li>
+          <li><a href="#qa" data-section="qa">QA</a></li>
+          <li><a href="#diagnostico" data-section="diagnostico">Diagnóstico</a></li>
+          <li><a href="#emergencias" data-section="emergencias">Emergencias</a></li>
+        </ul>
+      </div>
+
+      <!-- ─── COMERCIAL ─── -->
+      <div class="nav-section-label">Comercial</div>
+
+      <a href="#institucional" class="nav-item-direct" data-section="institucional">
+        <span class="nav-icon">🏛️</span> Institucional
+      </a>
+
+      <a href="#modalidades" class="nav-item-direct" data-section="modalidades">
+        <span class="nav-icon">📦</span> Modalidades
+      </a>
+
+      <a href="#propuesta" class="nav-item-direct" data-section="propuesta">
+        <span class="nav-icon">📄</span> Propuesta
+      </a>
+
+      <!-- Comunicación (grupo) -->
+      <div class="nav-group">
+        <div class="nav-group-header">
+          <span class="nav-icon">📣</span>
+          <span>Comunicación</span>
+          <span class="nav-arrow">›</span>
+        </div>
+        <ul class="nav-sub">
+          <li><a href="#captacion" data-section="captacion">Captación</a></li>
+          <li><a href="#scripts" data-section="scripts">Scripts</a></li>
+          <li><a href="#familias" data-section="familias">Familias</a></li>
+          <li><a href="#marketing" data-section="marketing">Marketing</a></li>
+          <li><a href="#marca" data-section="marca">Marca</a></li>
+        </ul>
+      </div>
+
+      <!-- ─── SISTEMA ─── -->
+      <div class="nav-section-label">Sistema</div>
+
+      <a href="#respaldos" class="nav-item-direct" data-section="respaldos">
+        <span class="nav-icon">💾</span> Respaldos
+      </a>
+
+      <a href="#workspace" class="nav-item-direct" data-section="workspace">
+        <span class="nav-icon">⚙️</span> Configuración
+      </a>
+
     </div>
-<div class="grid-2">
-<div class="card">
-<div class="card-header"><div class="card-icon">📸</div><h3>Criterios de imagen</h3></div>
-<div class="card-body">
-<div class="checklist" style="gap:0">
-<div class="check-item" style="cursor:default"><div class="check-box" style="border-color:var(--accent);background:var(--accent-soft);color:var(--accent)">✓</div><div class="check-text">Exposición de rostro: ±0.3 EV del estándar</div></div>
-<div class="check-item" style="cursor:default"><div class="check-box" style="border-color:var(--accent);background:var(--accent-soft);color:var(--accent)">✓</div><div class="check-text">Margen superior: 6–10%</div></div>
-<div class="check-item" style="cursor:default"><div class="check-box" style="border-color:var(--accent);background:var(--accent-soft);color:var(--accent)">✓</div><div class="check-text">Posición de ojos: 45% ±3%</div></div>
-<div class="check-item" style="cursor:default"><div class="check-box" style="border-color:var(--accent);background:var(--accent-soft);color:var(--accent)">✓</div><div class="check-text">Cabeza en frame: 62–68%</div></div>
-<div class="check-item" style="cursor:default"><div class="check-box" style="border-color:var(--accent);background:var(--accent-soft);color:var(--accent)">✓</div><div class="check-text">Fondo: EV relativo dentro de rango</div></div>
-<div class="check-item" style="cursor:default"><div class="check-box" style="border-color:var(--accent);background:var(--accent-soft);color:var(--accent)">✓</div><div class="check-text">Perfil de color consistente en lote</div></div>
-</div>
-</div>
-</div>
-<div class="card">
-<div class="card-header"><div class="card-icon">📦</div><h3>Criterios de armado y entrega</h3></div>
-<div class="card-body">
-<div class="checklist" style="gap:0">
-<div class="check-item" style="cursor:default"><div class="check-box" style="border-color:var(--success);background:#f0fff4;color:var(--success)">✓</div><div class="check-text">No se alteró la fisonomía del alumno</div></div>
-<div class="check-item" style="cursor:default"><div class="check-box" style="border-color:var(--success);background:#f0fff4;color:var(--success)">✓</div><div class="check-text">Grupal: verificación de nombres y curso</div></div>
-<div class="check-item" style="cursor:default"><div class="check-box" style="border-color:var(--success);background:#f0fff4;color:var(--success)">✓</div><div class="check-text">Impresión: sin manchas, sin doblados</div></div>
-<div class="check-item" style="cursor:default"><div class="check-box" style="border-color:var(--success);background:#f0fff4;color:var(--success)">✓</div><div class="check-text">Prueba de color validada antes de producción masiva</div></div>
-<div class="check-item" style="cursor:default"><div class="check-box" style="border-color:var(--success);background:#f0fff4;color:var(--success)">✓</div><div class="check-text">Sobre correcto, nombre correcto, curso correcto</div></div>
-<div class="check-item" style="cursor:default"><div class="check-box" style="border-color:var(--success);background:#f0fff4;color:var(--success)">✓</div><div class="check-text">Registro de entrega firmado o registrado por escrito</div></div>
-</div>
-</div>
-</div>
-</div>
-<div>
-<div class="sub-title">Clasificación de no conformidades</div>
-<div class="table-wrap">
-<table>
-<thead><tr><th>Nivel</th><th>Descripción</th><th>Acción</th></tr></thead>
-<tbody>
-<tr><td><span class="td-badge badge-blue">Leve</span></td><td>Desvío menor sin impacto en la calidad percibida (ej.: margen superior 5% en lugar de 6%)</td><td>Registrar, no re-editar</td></tr>
-<tr><td><span class="td-badge badge-orange">Moderada</span></td><td>Desvío visible que podría generar reclamo (ej.: exposición ±0.5 EV, ojos fuera de rango)</td><td>Re-editar antes de entregar</td></tr>
-<tr><td><span class="td-badge" style="background:#fff5f5;color:#742a2a">Crítica</span></td><td>Error que invalida el producto (ej.: alumno equivocado, sobre incorrecta, fisonomía alterada)</td><td>Detener entrega, resolver de inmediato</td></tr>
-</tbody>
-</table>
-</div>
-</div>
-</div>
-</div>
-<div class="section" id="sec-pagos">
-<div class="section-header">
-<div class="breadcrumb">Post y entrega</div>
-<h1>Seguimiento de pagos</h1>
-<p>Sistema de planilla maestra, reglas operativas y proceso de liquidación a cooperadora.</p>
-</div>
-<div class="section-body stack-6">
-<div class="ops-booster">
-<div class="ops-booster-head">
-<div>
-<div class="ops-kicker">Estados</div>
-<h3>Tablero mínimo para seguimiento de pagos</h3>
-</div>
-<span class="ops-badge">Trazabilidad</span>
-</div>
-<div class="ops-steps compact">
-<div class="ops-step"><span>1</span><div><strong>Pendiente</strong><p>Sin comprobante o pedido incompleto.</p></div></div>
-<div class="ops-step"><span>2</span><div><strong>Observado</strong><p>Dato inconsistente, monto faltante o error de alumno.</p></div></div>
-<div class="ops-step"><span>3</span><div><strong>Validado</strong><p>Comprobante correcto y pedido listo para producción.</p></div></div>
-<div class="ops-step"><span>4</span><div><strong>Liquidado</strong><p>Canon conciliado y cierre documentado para cooperadora.</p></div></div>
-</div>
-</div>
-<div>
-<div class="sub-title">Estructura de la planilla maestra</div>
-<div class="pills" style="margin-bottom:14px">
-<span class="pill">Fecha</span>
-<span class="pill">Alumno</span>
-<span class="pill">Curso/Div.</span>
-<span class="pill">Tutor</span>
-<span class="pill">Tel</span>
-<span class="pill">Email</span>
-<span class="pill">Pack</span>
-<span class="pill">Monto</span>
-<span class="pill">Comprobante</span>
-<span class="pill">Estado</span>
-<span class="pill">Canon 20%</span>
-<span class="pill">Liquidado</span>
-</div>
-<div class="grid-3">
-<div class="card" style="border-top:3px solid var(--success)">
-<div class="card-body" style="text-align:center">
-<div style="font-size:22px">🟢</div>
-<div style="font-weight:700;margin:4px 0">Verde</div>
-<div style="font-size:12px;color:var(--text-muted)">Pagado y verificado</div>
-</div>
-</div>
-<div class="card" style="border-top:3px solid var(--danger)">
-<div class="card-body" style="text-align:center">
-<div style="font-size:22px">🔴</div>
-<div style="font-weight:700;margin:4px 0">Rojo</div>
-<div style="font-size:12px;color:var(--text-muted)">Pendiente de pago</div>
-</div>
-</div>
-<div class="card" style="border-top:3px solid var(--warning)">
-<div class="card-body" style="text-align:center">
-<div style="font-size:22px">🟡</div>
-<div style="font-weight:700;margin:4px 0">Amarillo</div>
-<div style="font-size:12px;color:var(--text-muted)">Observación (comp. ilegible / dato faltante)</div>
-</div>
-</div>
-</div>
-</div>
-<div>
-<div class="sub-title">Reglas de oro</div>
-<div class="grid-2">
-<div class="card">
-<div class="card-body">
-<ul class="inline-list">
-<li>Siempre pedir comprobante en el Form (campo obligatorio)</li>
-<li>WhatsApp solo texto para mantener registro escrito</li>
-<li>Planilla espejo a cooperadora: solo lectura, sin datos sensibles</li>
-</ul>
-</div>
-</div>
-<div class="card">
-<div class="card-body">
-<ul class="inline-list">
-<li>Liquidación con resumen: packs vendidos, total recaudado, canon, fecha de transferencia</li>
-<li>Nunca compartir comprobantes, teléfonos o emails con la cooperadora</li>
-<li>Cerrar cobranza antes de producir la carpeta</li>
-</ul>
-</div>
-</div>
-</div>
-</div>
-</div>
-</div>
-<div class="section" id="sec-forms">
-<div class="section-header">
-<div class="breadcrumb">Post y entrega</div>
-<h1>Google Forms y Términos y Condiciones</h1>
-<p>Estructura del formulario de pedido, flujo de comprobante y texto base de T&amp;C.</p>
-</div>
-<div class="section-body stack-6">
-<div class="ops-booster">
-<div class="ops-booster-head">
-<div>
-<div class="ops-kicker">Separación útil</div>
-<h3>Dos capas para no mezclar operación con contrato</h3>
-</div>
-<span class="ops-badge">Claridad</span>
-</div>
-<div class="ops-grid ops-grid-2">
-<div class="ops-card"><strong>Formulario</strong><p>Datos del alumno, curso, pack, adicionales, comprobante y aceptación.</p></div>
-<div class="ops-card"><strong>Términos y condiciones</strong><p>Política de plazos, retoque, entregas, reclamos y uso de datos.</p></div>
-</div>
-</div>
-<div>
-<div class="sub-title">Estructura del formulario</div>
-<div class="stack-4">
-<div class="accordion">
-<div class="acc-header open" onclick="toggleAcc(this)">
-<div class="acc-left"><div class="acc-num">A</div> Datos del alumno</div>
-<div class="acc-arrow">▶</div>
-</div>
-<div class="acc-body open">
-<ul class="inline-list bullet">
-<li>Apellido y Nombre del alumno (apellido primero, obligatorio)</li>
-<li>Nivel educativo (si aplica al colegio)</li>
-<li>Curso/Grado/Sala — dropdown con opciones del colegio</li>
-<li>División — dropdown (A, B, C, etc.)</li>
-<li>Turno — radio button (Mañana / Tarde / Único)</li>
-</ul>
-</div>
-</div>
-<div class="accordion">
-<div class="acc-header" onclick="toggleAcc(this)">
-<div class="acc-left"><div class="acc-num">B</div> Datos del responsable</div>
-<div class="acc-arrow">▶</div>
-</div>
-<div class="acc-body">
-<ul class="inline-list bullet">
-<li>Apellido y Nombre del responsable (obligatorio)</li>
-<li>Teléfono — validación numérica</li>
-<li>Email — validación de formato</li>
-</ul>
-</div>
-</div>
-<div class="accordion">
-<div class="acc-header" onclick="toggleAcc(this)">
-<div class="acc-left"><div class="acc-num">C</div> Producto</div>
-<div class="acc-arrow">▶</div>
-</div>
-<div class="acc-body">
-            Pack único $<span class="precio-val">15.000</span> — descripción clara: carpeta contenedora + 2 fotos 20×30 (individual y grupal) + tira de 4 fotos carnet. Campo de selección único (sin opciones confusas).
+
+    <!-- Footer -->
+    <div class="sidebar-footer">
+      <div class="sidebar-contact">
+        <strong>Adrián Fernández</strong>
+        📱 11 5523-8266<br>
+        ✉️ <a href="mailto:adrian@polar3.com.ar">adrian@polar3.com.ar</a>
+      </div>
+    </div>
+
+  </nav>
+
+  <!-- Overlay sidebar (mobile) -->
+  <div class="sidebar-overlay"></div>
+
+  <!-- ═══════════════════════════════════════════════════════════
+       MAIN CONTENT
+  ═══════════════════════════════════════════════════════════════ -->
+
+  <main>
+
+    <!-- Topbar -->
+    <header class="app-topbar">
+      <button id="sidebarToggle" class="topbar-toggle" aria-label="Abrir menú" aria-expanded="false" aria-controls="sidebar">☰</button>
+      <div id="topbarBreadcrumb" class="topbar-breadcrumb">Operativo</div>
+      <div class="topbar-actions">
+        <button id="themeToggle" class="theme-toggle" onclick="app.toggleTheme()" title="Cambiar tema">🌗</button>
+      </div>
+    </header>
+
+    <!-- ═══════════════════════════════════════════════════════
+         SECCIONES
+    ═══════════════════════════════════════════════════════════ -->
+
+    <!-- INICIO -->
+    <section id="sec-inicio" class="section active">
+      <div class="section-header">
+        <h1>Bienvenido a Polar<span style="color:var(--accent)">[3]</span></h1>
+        <p>Sistema operativo para gestión de fotografía escolar.</p>
+      </div>
+
+      <div id="cobrosStats" class="stat-grid">
+        <!-- Render dinámico desde app.js -->
+      </div>
+
+      <div class="card-grid">
+        <div class="card" style="cursor:pointer" onclick="app.showSection('cobranzas')">
+          <div class="card-header"><span class="card-icon">💰</span><h3>Cobranzas</h3></div>
+          <div class="card-body"><p class="text-muted">Gestionar pagos y facturación</p></div>
+        </div>
+        <div class="card" style="cursor:pointer" onclick="app.showSection('checklist')">
+          <div class="card-header"><span class="card-icon">✅</span><h3>Checklist</h3></div>
+          <div class="card-body"><p class="text-muted">Jornada de toma fotográfica</p></div>
+        </div>
+        <div class="card" style="cursor:pointer" onclick="app.showSection('seguimiento')">
+          <div class="card-header"><span class="card-icon">📋</span><h3>Seguimiento</h3></div>
+          <div class="card-body"><p class="text-muted">Pendientes, ausentes y retomas</p></div>
+        </div>
+        <div class="card" style="cursor:pointer" onclick="app.showSection('kpis')">
+          <div class="card-header"><span class="card-icon">📊</span><h3>KPIs</h3></div>
+          <div class="card-body"><p class="text-muted">Métricas y rentabilidad</p></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- APP CENTER -->
+    <section id="sec-appcenter" class="section">
+      <div class="section-header">
+        <h1>🧩 App Center</h1>
+        <p>Accesos rápidos a herramientas externas.</p>
+      </div>
+      <div class="card-grid">
+        <div class="card">
+          <div class="card-header"><h3>🤖 Asistentes IA</h3></div>
+          <div class="card-body">
+            <div style="display:flex;gap:8px;flex-wrap:wrap">
+              <a href="https://claude.ai/" target="_blank" class="btn btn-outline btn-sm">Claude</a>
+              <a href="https://chatgpt.com/" target="_blank" class="btn btn-outline btn-sm">ChatGPT</a>
+              <a href="https://gemini.google.com/app" target="_blank" class="btn btn-outline btn-sm">Gemini</a>
+            </div>
           </div>
-</div>
-<div class="accordion">
-<div class="acc-header" onclick="toggleAcc(this)">
-<div class="acc-left"><div class="acc-num">D</div> Pago y comprobante</div>
-<div class="acc-arrow">▶</div>
-</div>
-<div class="acc-body">
-<ul class="inline-list bullet">
-<li>Datos de transferencia bancaria o Mercado Pago (instrucciones claras)</li>
-<li>Carga de comprobante de pago: imagen o PDF, máximo 1 archivo, campo obligatorio</li>
-<li>Nota: si usás carga de archivos, Google exige cuenta Google del respondente</li>
-<li>Alternativa: WhatsApp como canal de soporte para envío de comprobante</li>
-</ul>
-</div>
-</div>
-<div class="accordion">
-<div class="acc-header" onclick="toggleAcc(this)">
-<div class="acc-left"><div class="acc-num">E</div> Términos y condiciones</div>
-<div class="acc-arrow">▶</div>
-</div>
-<div class="acc-body">
-            Checkbox obligatorio de aceptación. Sin tildar este campo, no se puede enviar el formulario. Incluir el texto completo de T&amp;C visible antes del checkbox.
+        </div>
+      </div>
+    </section>
+
+    <!-- COBRANZAS -->
+    <section id="sec-cobranzas" class="section">
+      <div class="section-header">
+        <h1>💰 Cobranzas</h1>
+        <p>Registro y seguimiento de pagos por packs fotográficos.</p>
+      </div>
+
+      <!-- Formulario -->
+      <div class="card">
+        <div class="card-header"><h3>Nuevo registro</h3></div>
+        <div class="card-body">
+          <form id="formCobro">
+            <div class="form-grid">
+              <div class="form-group">
+                <label for="cobro-escuela">Escuela *</label>
+                <input id="cobro-escuela" name="escuela" class="input" data-validate="required" placeholder="Ej: Jardín del Sol" required>
+              </div>
+              <div class="form-group">
+                <label for="cobro-curso">Curso *</label>
+                <input id="cobro-curso" name="curso" class="input" data-validate="required" placeholder="Ej: Sala 5 T.M." required>
+              </div>
+              <div class="form-group">
+                <label for="cobro-familia">Familia</label>
+                <input id="cobro-familia" name="familia" class="input" placeholder="Nombre del responsable">
+              </div>
+              <div class="form-group">
+                <label for="cobro-cantidad">Cantidad packs</label>
+                <input id="cobro-cantidad" name="cantidad" type="number" class="input" min="0" value="1">
+              </div>
+              <div class="form-group">
+                <label for="cobro-precio">Precio unitario ($)</label>
+                <input id="cobro-precio" name="precio" type="number" class="input" data-validate="currency" min="0" value="15000">
+              </div>
+              <div class="form-group">
+                <label for="cobro-metodo">Método de pago</label>
+                <select id="cobro-metodo" name="metodoPago" class="input">
+                  <option value="transferencia">Transferencia</option>
+                  <option value="efectivo">Efectivo</option>
+                  <option value="mercadopago">Mercado Pago</option>
+                  <option value="otro">Otro</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label for="cobro-telefono">Teléfono</label>
+                <input id="cobro-telefono" name="telefono" class="input" data-validate="phone" placeholder="11 xxxx-xxxx">
+              </div>
+              <div class="form-group">
+                <label for="cobro-email">Email</label>
+                <input id="cobro-email" name="email" type="email" class="input" data-validate="email" placeholder="email@ejemplo.com">
+              </div>
+            </div>
+            <div class="form-group">
+              <label for="cobro-notas">Notas</label>
+              <textarea id="cobro-notas" name="notas" class="input" rows="2" placeholder="Observaciones..."></textarea>
+            </div>
+            <div class="form-actions">
+              <button type="submit" class="btn btn-primary">Registrar cobranza</button>
+              <button type="reset" class="btn btn-outline">Limpiar</button>
+              <button type="button" class="btn btn-ghost" onclick="app.exportCobros()">📥 Exportar</button>
+            </div>
+          </form>
+        </div>
+      </div>
+
+      <!-- Tabla -->
+      <div class="card">
+        <div class="card-header"><h3>Registros</h3></div>
+        <div class="card-body" style="padding:0">
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>Escuela</th>
+                  <th>Curso</th>
+                  <th>Familia</th>
+                  <th>Cant.</th>
+                  <th>Total</th>
+                  <th>Estado</th>
+                  <th>Pago</th>
+                  <th>Acciones</th>
+                </tr>
+              </thead>
+              <tbody id="cobrosTableBody">
+                <tr><td colspan="8" class="text-center text-muted" style="padding:32px">Sin cobranzas registradas</td></tr>
+              </tbody>
+            </table>
           </div>
-</div>
-</div>
-</div>
-<div>
-<div class="sub-title">Términos y Condiciones — texto base 2026</div>
-<div class="card">
-<div class="card-body" style="font-size:13px;color:var(--text-secondary);line-height:1.8">
-<p><strong>1. Agregado digital en foto grupal:</strong> disponible únicamente con instancia de retoma fotográfica. Costo adicional equivalente a 1/3 del valor del pack. Máximo 2 alumnos por curso.</p>
-<br/>
-<p><strong>2. Reprogramación de foto grupal:</strong> la fotografía grupal puede suspenderse y reprogramarse una única vez por causas de fuerza mayor o condiciones climáticas. Si la segunda fecha tampoco puede concretarse, la fotografía se realiza con los alumnos presentes.</p>
-<br/>
-<p><strong>3. Edición responsable:</strong> no se alterarán rasgos físicos ni la fisonomía del alumno. No se utilizará inteligencia artificial para modificar identidades o expresiones. Las correcciones se limitan a luz, color, recorte y retoque menor (imperfecciones temporales).</p>
-<br/>
-<p><strong>4. Soporte y comunicación:</strong> las consultas se atienden exclusivamente por WhatsApp en formato texto (sin llamadas ni audios) para mantener registro claro de todos los intercambios.</p>
-</div>
-</div>
-</div>
-</div>
-</div>
-<div class="section" id="sec-kpis">
-<div class="section-header">
-<div class="breadcrumb">Herramientas y KPIs</div>
-<h1>Indicadores clave automáticos</h1>
-<p>Tus métricas en tiempo real, calculadas directamente desde tu Tablero de Cobranzas y Cartera de Colegios.</p>
-</div>
-<div class="section-body stack-6">
-<div class="note-box info"><span class="note-label">Fuente:</span> esta pantalla toma los datos cargados en <strong>Tablero de cobranzas</strong> y <strong>Cartera de colegios</strong>. No hay que recalcular nada a mano.</div>
-<div class="kpi-mobile-focus" id="kpiMobileFocus">
-<div class="kpi-mobile-focus-head">
-<div>
-<div class="kpi-mobile-kicker">Lectura móvil rápida</div>
-<h2>Resumen ejecutivo</h2>
-</div>
-<div class="kpi-mobile-focus-pill" id="kpiMobileFocusPill">Sin datos</div>
-</div>
-<div class="kpi-mobile-focus-grid">
-<article class="kpi-mobile-focus-card">
-<span class="kpi-mobile-focus-label">Estado general</span>
-<strong id="kpiMobileExecutiveTitle">Todavía sin lectura</strong>
-<p id="kpiMobileExecutiveMeta">Carga cobranzas y cartera para activar esta vista compacta.</p>
-</article>
-<article class="kpi-mobile-focus-card">
-<span class="kpi-mobile-focus-label">Próximo movimiento</span>
-<strong id="kpiMobileActionTitle">Sin prioridad definida</strong>
-<p id="kpiMobileActionMeta">La app te va a sugerir el siguiente paso operativo según la salud de la cobranza.</p>
-</article>
-<article class="kpi-mobile-focus-card">
-<span class="kpi-mobile-focus-label">Filtro activo</span>
-<strong id="kpiMobileFilterTitle">Global · todo el historial</strong>
-<p id="kpiMobileFilterMeta">Todavía sin filtro específico cargado.</p>
-</article>
-</div>
-<div class="kpi-mobile-focus-actions">
-<button class="btn btn-outline" data-section="cobranzas" type="button">Cobranzas</button>
-<button class="btn btn-outline" data-section="cartera" type="button">Cartera</button>
-<button class="btn btn-outline" data-section="inicio" type="button">Inicio</button>
-</div>
-</div>
-<div class="kpi-toolbar">
-<div>
-<div class="kpi-toolbar-title">KPIs automáticos con filtro por colegio</div>
-<p id="kpiScopeText">Vista consolidada de toda la operación.</p>
-<div class="kpi-scope-pill" id="kpiScopeStatus">Global · todos los colegios</div>
-<div class="kpi-period-pill" id="kpiPeriodStatus">Período: todo el historial</div>
-<div class="kpi-scope-copy" id="kpiPeriodText">Sin filtro temporal. Incluye todas las cobranzas cargadas.</div>
-</div>
-<div class="kpi-toolbar-stack">
-<div class="kpi-scope-box">
-<div class="kpi-mode-label">Vista de KPIs</div>
-<select class="kpi-scope-select" data-kpi-scope-selector="" onchange="setKpiScope(this.value)"><option value="">Global · todos los colegios</option></select>
-<div class="kpi-scope-help" id="kpiScopeFootnote">Suma todas las cobranzas y toda la cartera cargada.</div>
-</div>
-<div class="kpi-scope-box">
-<div class="kpi-mode-label">Período de análisis</div>
-<select class="kpi-scope-select" data-kpi-period-mode="" onchange="setKpiPeriodMode(this.value)">
-<option value="all">Todo el historial</option>
-<option value="month_current">Mes actual</option>
-<option value="year_current">Año actual</option>
-<option value="month_custom">Mes específico</option>
-</select>
-<input class="kpi-period-input" data-kpi-period-month="" onchange="setKpiPeriodValue(this.value)" type="month"/>
-<div class="kpi-scope-help" id="kpiPeriodFootnote">Filtra cobranzas por fecha de cobro. KPI 05 sigue leyendo la cartera actual.</div>
-</div>
-<div class="kpi-mode-box">
-<div class="kpi-mode-label">Modo de cálculo</div>
-<div class="kpi-mode-toggle">
-<button class="kpi-mode-btn active" data-kpi-ticket-mode="payment" onclick="setKpiTicketMode('payment')" type="button">Por pago</button>
-<button class="kpi-mode-btn" data-kpi-ticket-mode="family" onclick="setKpiTicketMode('family')" type="button">Por familia única</button>
-</div>
-</div>
-</div>
-</div>
-<div class="dashboard-stats dashboard-stats-5 kpi-summary-strip">
-<div class="metric-tile"><span>Pagos cargados</span><strong id="kpiRecordsCount">0</strong></div>
-<div class="metric-tile"><span>Validado + liquidado</span><strong id="kpiEffectiveCount">0</strong></div>
-<div class="metric-tile"><span>Pendiente + observado</span><strong id="kpiPendingCount">0</strong></div>
-<div class="metric-tile"><span>Colegios en cartera</span><strong id="kpiSchoolCount">0</strong></div>
-<div class="metric-tile"><span>Última lectura</span><strong id="kpiLastRefresh">Ahora</strong></div>
-</div>
-<div class="grid-2 kpi-grid-auto">
-<div class="kpi-card">
-<div class="kpi-num">KPI 01</div>
-<div class="kpi-name">Ticket promedio de venta</div>
-<div class="kpi-target" id="kpiTicketModeBadge">Modo actual: por pago</div>
-<div class="kpi-value" id="kpiTicketPromedio">$0</div>
-<div class="kpi-formula" id="kpiTicketFormula">Facturación Bruta ÷ Total de Pagos</div>
-<div class="kpi-meta" id="kpiTicketMeta">Monto promedio que ingresa por cada familia compradora medida por registro de cobro.</div>
-<div class="kpi-target" id="kpiTicketDetalle">0 pagos tomados como base</div>
-</div>
-<div class="kpi-card">
-<div class="kpi-num">KPI 02</div>
-<div class="kpi-name">Facturación Bruta Total</div>
-<div class="kpi-value" id="kpiFacturacionBruta">$0</div>
-<div class="kpi-formula">Suma de todos los registros de cobro</div>
-<div class="kpi-meta">Ingreso total antes de descontar canon y costos operativos.</div>
-</div>
-<div class="kpi-card">
-<div class="kpi-num">KPI 03</div>
-<div class="kpi-name">Canon Cooperadoras (20%)</div>
-<div class="kpi-value" id="kpiCanonCooperadoras">$0</div>
-<div class="kpi-formula">Facturación Bruta × 20%</div>
-<div class="kpi-meta">Proyección de dinero a reservar para liquidar a los colegios.</div>
-</div>
-<div class="kpi-card">
-<div class="kpi-num">KPI 04</div>
-<div class="kpi-name">Tasa de cobro efectivo</div>
-<div class="kpi-value" id="kpiTasaCobro">0%</div>
-<div class="kpi-formula">(Validados + Liquidados) ÷ Totales</div>
-<div class="kpi-meta">Mide la salud de tu cobranza. Permite detectar mora temprana.</div>
-<div class="kpi-target" id="kpiTasaDetalle">0 de 0 registros en estado efectivo</div>
-</div>
-<div class="kpi-card kpi-card-wide">
-<div class="kpi-num">KPI 05</div>
-<div class="kpi-name" id="kpiInstitucionName">Instituciones activas</div>
-<div class="kpi-value" id="kpiInstitucionesActivas">0</div>
-<div class="kpi-formula" id="kpiInstitucionesFormula">Colegios en etapa "Activo"</div>
-<div class="kpi-meta" id="kpiInstitucionesMeta">Volumen de operaciones actualmente en producción.</div>
-<div class="kpi-target" id="kpiInstitucionesDetalle">0 activas sobre 0 instituciones en cartera</div>
-</div>
-</div>
-<div class="ops-grid ops-grid-2">
-<div class="ops-card" id="kpiHealthCard"><strong>Lectura rápida</strong><p id="kpiHealthText">Carga datos en cobranzas y cartera para habilitar la lectura automática.</p></div>
-<div class="ops-card"><strong>Cómo usarlo</strong><p>Úsalo para ver si la cobranza ya está suficientemente sana para producir, cuánto debes reservar para cooperadora y cuántas instituciones están realmente activas en este momento.</p></div>
-</div>
-<div class="btn-row">
-<button class="btn btn-outline" data-section="cobranzas" type="button">Abrir cobranzas</button>
-<button class="btn btn-outline" data-section="cartera" type="button">Abrir cartera</button>
-</div>
-</div>
-</div>
+        </div>
+      </div>
+    </section>
 
+    <!-- CHECKLIST -->
+    <section id="sec-checklist" class="section">
+      <div class="section-header">
+        <div style="display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:12px">
+          <div>
+            <h1>✅ Checklist de Jornada</h1>
+            <p>Control paso a paso de la toma fotográfica.</p>
+          </div>
+          <div style="display:flex;gap:8px">
+            <button class="btn btn-primary btn-sm" onclick="app.nuevaJornada()">+ Nueva jornada</button>
+            <button class="btn btn-outline btn-sm" onclick="app.completarJornada()">Archivar</button>
+          </div>
+        </div>
+      </div>
+      <div id="checklistContainer">
+        <!-- Render dinámico -->
+      </div>
+    </section>
 
-<div class="section" id="sec-workspace">
-<div class="section-header">
-<div class="breadcrumb">Herramientas · Ecosistema</div>
-<h1>Hub de Google Workspace</h1>
-<p>Centro seguro de enlaces rápidos a tus documentos, planillas y formularios operativos. Todos a un clic de distancia.</p>
-</div>
-<div class="section-body stack-6">
-<div class="ops-booster">
-<div class="ops-booster-head">
-<div>
-<div class="ops-kicker">Integración Segura</div>
-<h3>Tus datos sensibles nunca salen de Google.</h3>
-</div>
-<div class="ops-badge">Configuración Local</div>
-</div>
-<p class="lead-tight">Pega aquí los enlaces a tus herramientas de Google. Estos links se guardan únicamente en el navegador de tu computadora, actuando como un puente directo y privado hacia tu nube.</p>
-</div>
-<div class="ops-grid ops-grid-2">
-<div class="card">
-<div class="card-header"><div class="card-icon">📊</div><h3>Google Sheets</h3></div>
-<div class="card-body stack-4">
-<div class="field">
-<label>Planilla Maestra (Privada - Operativa)</label>
-<input id="ws_planilla" placeholder="https://docs.google.com/spreadsheets/d/..." type="url"/>
-<div style="display:flex;gap:8px;margin-top:4px">
-<button class="mini-btn" onclick="saveWorkspaceLink('ws_planilla')" type="button">Guardar</button>
-<button class="mini-btn" onclick="openWorkspaceLink('ws_planilla')" style="background:var(--accent);color:#fff" type="button">Abrir Sheet</button>
-</div>
-</div>
-<div class="divider" style="margin:10px 0"></div>
-<div class="field">
-<label>Planilla Espejo (Compartida Cooperadora)</label>
-<input id="ws_espejo" placeholder="https://docs.google.com/spreadsheets/d/..." type="url"/>
-<div style="display:flex;gap:8px;margin-top:4px">
-<button class="mini-btn" onclick="saveWorkspaceLink('ws_espejo')" type="button">Guardar</button>
-<button class="mini-btn" onclick="openWorkspaceLink('ws_espejo')" style="background:var(--accent);color:#fff" type="button">Abrir Sheet</button>
-</div>
-</div>
-</div>
-</div>
-<div class="card">
-<div class="card-header"><div class="card-icon">📝</div><h3>Google Forms</h3></div>
-<div class="card-body stack-4">
-<div class="field">
-<label>Formulario de Pedidos (Ventas)</label>
-<input id="ws_forms" placeholder="https://docs.google.com/forms/d/..." type="url"/>
-<div style="display:flex;gap:8px;margin-top:4px">
-<button class="mini-btn" onclick="saveWorkspaceLink('ws_forms')" type="button">Guardar</button>
-<button class="mini-btn" onclick="openWorkspaceLink('ws_forms')" style="background:var(--accent);color:#fff" type="button">Abrir Formulario</button>
-</div>
-</div>
-<div class="divider" style="margin:10px 0"></div>
-<div class="field">
-<label>Encuesta Post-Servicio</label>
-<input id="ws_encuesta" placeholder="https://docs.google.com/forms/d/..." type="url"/>
-<div style="display:flex;gap:8px;margin-top:4px">
-<button class="mini-btn" onclick="saveWorkspaceLink('ws_encuesta')" type="button">Guardar</button>
-<button class="mini-btn" onclick="openWorkspaceLink('ws_encuesta')" style="background:var(--accent);color:#fff" type="button">Abrir Formulario</button>
-</div>
-</div>
-</div>
-</div>
-<div class="card">
-<div class="card-header"><div class="card-icon">📄</div><h3>Google Docs</h3></div>
-<div class="card-body stack-4">
-<p class="muted-text">Plantilla base para generar presupuestos formales o contratos de servicio a firmar.</p>
-<div class="field">
-<label>Plantilla de Propuesta / Contrato</label>
-<input id="ws_docs" placeholder="https://docs.google.com/document/d/..." type="url"/>
-</div>
-<div class="btn-row">
-<button class="btn" onclick="saveWorkspaceLink('ws_docs')" style="background:var(--bg-soft);border:1px solid var(--border);font-size:12px;font-weight:700" type="button">Guardar enlace</button>
-<button class="btn" onclick="openWorkspaceLink('ws_docs')" style="background:var(--accent);color:#fff;font-size:12px;font-weight:700" type="button">Abrir Documento</button>
-</div>
-</div>
-</div>
-<div class="card">
-<div class="card-header"><div class="card-icon">📁</div><h3>Google Drive</h3></div>
-<div class="card-body stack-4">
-<p class="muted-text">Directorio raíz donde se almacenan las carpetas de las jornadas escolares y backups RAW/JPEG.</p>
-<div class="field">
-<label>Carpeta Raíz Temporada (Ej. 2026)</label>
-<input id="ws_drive" placeholder="https://drive.google.com/drive/folders/..." type="url"/>
-</div>
-<div class="btn-row">
-<button class="btn" onclick="saveWorkspaceLink('ws_drive')" style="background:var(--bg-soft);border:1px solid var(--border);font-size:12px;font-weight:700" type="button">Guardar enlace</button>
-<button class="btn" onclick="openWorkspaceLink('ws_drive')" style="background:var(--accent);color:#fff;font-size:12px;font-weight:700" type="button">Abrir Carpeta</button>
-</div>
-</div>
-</div>
-</div>
-</div>
-</div>
-<div class="section" id="sec-respaldos">
-<div class="section-header">
-<div class="breadcrumb">Herramientas · Seguridad de datos</div>
-<h1>Administración de respaldos</h1>
-<p>Centro de control del respaldo manual JSON: estado, historial, recordatorios y rutina recomendada para no perder información cargada en la app.</p>
-</div>
-<div class="section-body stack-6">
-<div class="ops-booster">
-<div class="ops-booster-head">
-<div>
-<div class="ops-kicker">Seguridad operativa</div>
-<h3>El respaldo no reemplaza al trabajo: lo protege.</h3>
-</div>
-<div class="ops-badge" id="backupAdminBadge">JSON manual · local</div>
-</div>
-<p class="lead-tight" id="backupAdminSummary">Esta pantalla reúne el estado actual del respaldo, el historial local de exportaciones/importaciones y el recordatorio para no depender solo del localStorage del navegador.</p>
-<div class="btn-row">
-<button class="btn btn-primary" onclick="exportBackupJson()" type="button">Respaldar JSON ahora</button>
-<button class="btn btn-outline" onclick="triggerBackupImport()" type="button">Importar respaldo</button>
-<button class="btn btn-outline" data-section="workspace" type="button">Ver estructura Workspace</button>
-</div>
-</div>
-<div class="dashboard-stats dashboard-stats-5">
-<div class="metric-tile"><span>Estado</span><strong id="backupAdminStatus">Pendiente</strong></div>
-<div class="metric-tile"><span>Último respaldo</span><strong id="backupAdminLast">Sin exportar</strong></div>
-<div class="metric-tile"><span>Historial</span><strong id="backupAdminHistoryCount">0</strong></div>
-<div class="metric-tile"><span>Claves cubiertas</span><strong id="backupAdminTrackedKeys">0</strong></div>
-<div class="metric-tile"><span>Cambios pendientes</span><strong id="backupAdminDirty">No</strong></div>
-</div>
-<div class="ops-grid ops-grid-2">
-<div class="card">
-<div class="card-header"><div class="card-icon">⚙️</div><h3>Acciones rápidas</h3></div>
-<div class="card-body stack-4">
-<p>Exporta un JSON único con todos los datos <code>polar3_*</code>, guárdalo dentro de tu carpeta de trabajo y úsalo también para restaurar si cambias de navegador, PC o perfil.</p>
-<div class="btn-row">
-<button class="btn btn-primary" onclick="exportBackupJson()" type="button">Exportar respaldo</button>
-<button class="btn btn-outline" onclick="triggerBackupImport()" type="button">Importar respaldo</button>
-<button class="btn btn-outline" onclick="clearBackupHistory()" type="button">Limpiar historial</button>
-</div>
-<div class="note-box info"><span class="note-label">Consejo:</span><span id="backupWorkflowHint">Haz un respaldo después de una carga intensa, antes de limpiar datos o al cerrar una semana de trabajo.</span></div>
-</div>
-</div>
-<div class="card">
-<div class="card-header"><div class="card-icon">⏰</div><h3>Recordatorio de exportación</h3></div>
-<div class="card-body tool-grid">
-<div class="field">
-<label for="backupReminderInterval">Frecuencia sugerida</label>
-<select id="backupReminderInterval" onchange="syncBackupPrefs()">
-<option value="0">Desactivado</option>
-<option value="24">Cada 24 horas</option>
-<option value="72">Cada 3 días</option>
-<option value="168">Cada 7 días</option>
-</select>
-</div>
-<div class="field">
-<label for="backupReminderToast">Aviso al abrir la app</label>
-<select id="backupReminderToast" onchange="syncBackupPrefs()">
-<option value="1">Sí, mostrar recordatorio</option>
-<option value="0">No mostrar toast</option>
-</select>
-</div>
-<div class="field field-span-2">
-<label class="field-check"><input id="backupReminderDirtyOnly" onchange="syncBackupPrefs()" type="checkbox"/> Recordar solo cuando haya cambios sin respaldar.</label>
-</div>
-<div class="field field-span-2">
-<label>Próximo criterio de aviso</label>
-<div class="note-box" id="backupReminderStatusBox">Todavía no calculado.</div>
-</div>
-</div>
-</div>
-</div>
-<div class="card">
-<div class="card-header"><div class="card-icon">🧾</div><h3>Historial local de respaldos</h3></div>
-<div class="card-body stack-4">
-<p class="muted-text">Este historial se guarda dentro de la app y te ayuda a saber cuándo exportaste, qué acción hiciste y con qué volumen aproximado de datos.</p>
-<div class="table-wrap">
-<table>
-<thead><tr><th>Fecha</th><th>Acción</th><th>Archivo</th><th>Resumen</th><th>Nota</th></tr></thead>
-<tbody id="backupHistoryRows"><tr><td colspan="5" style="text-align:center;color:var(--text-muted)">Sin historial todavía.</td></tr></tbody>
-</table>
-</div>
-<div class="note-box success" id="backupHistoryInsight">Todavía no hay eventos registrados. El primer respaldo exportado creará una entrada aquí.</div>
-</div>
-</div>
-<div class="ops-grid ops-grid-2">
-<div class="card">
-<div class="card-header"><div class="card-icon">📦</div><h3>Qué entra en el JSON</h3></div>
-<div class="card-body">
-<ul class="inline-list arrow" id="backupScopeList">
-<li>Cartera comercial, pipeline y riesgos por institución.</li>
-<li>Pendientes, ausentes, retomas y tablero de cobranzas.</li>
-<li>Checklist, simulador, propuesta y estado general de la app.</li>
-<li>Metadatos del respaldo, preferencias y este historial local.</li>
-</ul>
-</div>
-</div>
-<div class="card">
-<div class="card-header"><div class="card-icon">🛡️</div><h3>Rutina recomendada</h3></div>
-<div class="card-body stack-4">
-<div class="note-box success"><span class="note-label">Mínimo:</span> 1 respaldo al cerrar una tanda fuerte de carga o antes de limpiar/reestructurar datos.</div>
-<div class="note-box info"><span class="note-label">Ideal:</span> guardar el JSON dentro de la carpeta del proyecto y además repetirlo en disco externo o nube.</div>
-<div class="note-box danger"><span class="note-label">Evitar:</span> confiar solo en el navegador o dejar muchos días con cambios pendientes sin exportar.</div>
-</div>
-</div>
-</div>
-</div>
-</div>
-<div class="section" id="sec-institucional">
-<div class="section-header">
-<div class="breadcrumb">Comercial · Instituciones</div>
-<h1>Presentación para instituciones</h1>
-<p>Versión lista para reunión con directivos y cooperadora, basada en la web pública de Polar3 y adaptada al uso interno.</p>
-</div>
-<div class="section-body stack-6">
-<div class="ops-booster">
-<div class="ops-booster-head">
-<div>
-<div class="ops-kicker">Modo comercial</div>
-<h3>Jornadas fotográficas bien organizadas, cuidadas y sin complicaciones.</h3>
-</div>
-<div class="ops-badge">Reuniones · propuestas · seguimiento</div>
-</div>
-<p class="lead-tight">La propuesta debe mostrar que la jornada no altera la dinámica escolar, no agrega carga innecesaria a la cooperadora y sostiene una experiencia prolija para directivos, docentes, familias y alumnos.</p>
-<div class="btn-row">
-<button class="btn btn-primary" data-section="modalidades" type="button">Ver modalidades</button>
-<button class="btn btn-outline" data-section="modalidades" type="button">Abrir modalidades</button>
-</div>
-</div>
-<div class="grid-4">
-<div class="info-card">
-<div class="ic-label">Orden</div>
-<div class="ic-value">01</div>
-<div class="ic-desc">Planificación, tiempos claros y dinámica integrada al ritmo del colegio.</div>
-</div>
-<div class="info-card">
-<div class="ic-label">Buen trato</div>
-<div class="ic-value">02</div>
-<div class="ic-desc">Manejo respetuoso con chicos, docentes, directivos y familias en todo momento.</div>
-</div>
-<div class="info-card">
-<div class="ic-label">Confianza</div>
-<div class="ic-value">03</div>
-<div class="ic-desc">Comunicación seria, privacidad de menores y cumplimiento consistente de punta a punta.</div>
-</div>
-<div class="info-card">
-<div class="ic-label">Resultados</div>
-<div class="ic-value">04</div>
-<div class="ic-desc">Fotografías prolijas, naturales y bien presentadas, sin artificios innecesarios.</div>
-</div>
-</div>
-<div class="ops-grid ops-grid-2">
-<div class="card">
-<div class="card-header"><div class="card-icon">🏫</div><h3>Qué debe percibir la institución</h3></div>
-<div class="card-body">
-<ul class="inline-list">
-<li>Una modalidad clara, adaptable y sin fricción operativa.</li>
-<li>Una jornada que no se convierte en problema para cooperadora ni docentes.</li>
-<li>Criterio profesional en organización, trato y entrega final.</li>
-<li>Un proveedor confiable que explica bien cómo trabaja.</li>
-</ul>
-</div>
-</div>
-<div class="card">
-<div class="card-header"><div class="card-icon">🧭</div><h3>Relato recomendado en reunión</h3></div>
-<div class="card-body">
-<div class="ops-step"><span>1</span><div><strong>Arranque</strong><p>“La idea es que la jornada sea simple para ustedes, bien ordenada y con buena experiencia para las familias.”</p></div></div>
-<div class="ops-step"><span>2</span><div><strong>Desarrollo</strong><p>Explicar coordinación previa, dinámica de toma, canal de comunicación y entrega.</p></div></div>
-<div class="ops-step"><span>3</span><div><strong>Cierre</strong><p>Mostrar privacidad, trazabilidad de pagos, cumplimiento y modalidad más conveniente según la institución.</p></div></div>
-</div>
-</div>
-</div>
-<div class="highlight-card">
-<h3>Frase eje para cooperadoras y directivos</h3>
-<p>“No se trata solo de hacer fotos: se trata de que la institución tenga una jornada bien resuelta, con tiempos claros, buena comunicación y un producto final cuidado.”</p>
-</div>
-</div>
-</div><div class="section" id="sec-modalidades">
-<div class="section-header">
-<div class="breadcrumb">Comercial · Propuesta</div>
-<h1>Modalidades y propuesta escolar</h1>
-<p>Comparador interno para ajustar la propuesta antes de enviar presupuesto o presentar en reunión.</p>
-</div>
-<div class="section-body stack-6">
-<div class="ops-grid ops-grid-3">
-<div class="pack-card">
-<div class="pack-top">
-<div>
-<div class="pack-label">Modalidad Básica</div>
-<div class="pack-price">Simple y clásica</div>
-</div>
-</div>
-<ul class="inline-list">
-<li>Retrato individual y foto grupal por curso.</li>
-<li>Ideal para instituciones que buscan una propuesta directa y sin agregados.</li>
-<li>Menor complejidad de organización y comunicación.</li>
-</ul>
-</div>
-<div class="pack-card pack-highlight">
-<div class="pack-top">
-<div>
-<div class="pack-label">Modalidad Completa</div>
-<div class="pack-price">La más equilibrada</div>
-</div>
-</div>
-<ul class="inline-list">
-<li>Retrato individual, foto grupal y complementos acordados.</li>
-<li>Buena para colegios que quieren ampliar registro sin perder orden.</li>
-<li>Requiere mejor coordinación, pero ofrece más valor percibido.</li>
-</ul>
-</div>
-<div class="pack-card">
-<div class="pack-top">
-<div>
-<div class="pack-label">Modalidad Institucional</div>
-<div class="pack-price">Adaptada al colegio</div>
-</div>
-</div>
-<ul class="inline-list">
-<li>Equipo docente, directivos o material institucional pactado.</li>
-<li>Se define según nivel, objetivos y dinámica del establecimiento.</li>
-<li>No vender como “más fotos”, sino como solución específica.</li>
-</ul>
-</div>
-</div>
-<div class="table-wrap">
-<table>
-<thead>
-<tr>
-<th>Modalidad</th>
-<th>Incluye</th>
-<th>Ideal para</th>
-<th>Observación comercial</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td><strong>Básica</strong></td>
-<td>Individual + grupal</td>
-<td>Instituciones que priorizan simplicidad operativa</td>
-<td>Entrada ideal para colegios que vienen de experiencias flojas o caóticas</td>
-</tr>
-<tr>
-<td><strong>Completa</strong></td>
-<td>Base + extras acordados</td>
-<td>Jardines y primarias con más apertura a propuesta de valor</td>
-<td>Presentarla como equilibrio entre cobertura y orden</td>
-</tr>
-<tr>
-<td><strong>Institucional</strong></td>
-<td>Material docente/directivo o piezas internas</td>
-<td>Colegios que quieren resolver varias necesidades en una sola jornada</td>
-<td>Siempre presupuestar con alcance definido y límites claros</td>
-</tr>
-</tbody>
-</table>
-</div>
-<div class="ops-grid ops-grid-2">
-<div class="card">
-<div class="card-header"><div class="card-icon">🎯</div><h3>Cómo elegir rápido la modalidad</h3></div>
-<div class="card-body">
-<ul class="inline-list arrow">
-<li><strong>Básica:</strong> cuando el colegio quiere algo probado, simple y fácil de implementar.</li>
-<li><strong>Completa:</strong> cuando valoran más cobertura sin complicar la jornada.</li>
-<li><strong>Institucional:</strong> cuando hay pedido concreto de material adicional o imagen institucional.</li>
-</ul>
-</div>
-</div>
-<div class="card">
-<div class="card-header"><div class="card-icon">🧮</div><h3>Puente con la operación</h3></div>
-<div class="card-body">
-<p>Antes de prometer una modalidad, validar siempre tres puntos internos: capacidad real de producción, tiempos de entrega comprometidos y nivel de complejidad de comunicación con familias.</p>
-<div class="btn-row">
-<button class="btn btn-outline" data-section="calendario" type="button">Ver calendario</button>
-<button class="btn btn-outline" data-section="sla" type="button">Ver SLA</button>
-</div>
-</div>
-</div>
-</div>
-</div>
-</div><div class="section" id="sec-marca">
-<div class="section-header">
-<div class="breadcrumb">Comercial · Marca</div>
-<h1>Marca y autoridad profesional</h1>
-<p>Material interno para sostener un relato de marca consistente entre web, propuestas, reuniones y documentos.</p>
-</div>
-<div class="section-body stack-6">
-<div class="ops-booster">
-<div class="ops-booster-head">
-<div>
-<div class="ops-kicker">Autoridad de marca</div>
-<h3>Casi 20 años de retrato escolar con una propuesta seria, humana y técnicamente controlada.</h3>
-</div>
-<div class="ops-badge">Web pública + app operativa</div>
-</div>
-<p class="lead-tight">La web pública aporta algo muy valioso para las propuestas: una voz más institucional, más limpia y más confiable. Esta sección la concentra para reutilizarla sin dispersión.</p>
-</div>
-<div class="ops-grid ops-grid-4">
-<div class="ops-card"><strong>Trayectoria</strong><p>Experiencia prolongada en jardines y escuelas, con criterio específico para fotografía escolar.</p></div>
-<div class="ops-card"><strong>Mirada pedagógica</strong><p>La toma se plantea como momento cuidado, no como interrupción brusca del ritmo escolar.</p></div>
-<div class="ops-card"><strong>Integridad de imagen</strong><p>No se alteran rasgos físicos ni se usa IA para modificar identidad o expresiones.</p></div>
-<div class="ops-card"><strong>Transparencia</strong><p>Planilla espejo, trazabilidad y comunicación clara con la institución.</p></div>
-</div>
-<div class="ops-grid ops-grid-2">
-<div class="card">
-<div class="card-header"><div class="card-icon">🗣️</div><h3>Mensajes que conviene repetir</h3></div>
-<div class="card-body">
-<ul class="inline-list">
-<li>“La jornada tiene que ser simple de coordinar para la institución.”</li>
-<li>“El foco está en el recuerdo cuidado y en la experiencia bien resuelta.”</li>
-<li>“No se publica imagen de menores sin autorización expresa.”</li>
-<li>“La edición mejora la foto, pero no altera la identidad del alumno.”</li>
-</ul>
-</div>
-</div>
-<div class="card">
-<div class="card-header"><div class="card-icon">🧩</div><h3>Activos que ahora pueden unificarse</h3></div>
-<div class="card-body">
-<ul class="inline-list bullet">
-<li>Home pública de marca.</li>
-<li>Landing escolar para instituciones.</li>
-<li>Términos públicos.</li>
-<li>Propuestas PDF.</li>
-<li>App operativa local para consulta y reunión.</li>
-</ul>
-<div class="btn-row">
-<button class="btn btn-outline" data-section="institucional" type="button">Volver a instituciones</button>
-<button class="btn btn-outline" data-section="institucional" type="button">Ver propuesta base</button>
-</div>
-</div>
-</div>
-</div>
-</div>
-</div>
-<div class="section" id="sec-cobranzas">
-<div class="section-header">
-<div class="breadcrumb">Post y entrega · V2.7.13</div>
-<h1>Tablero de cobranzas</h1>
-<p>Versión móvil reforzada para cargar cobros con menos pasos, leer rápido el tablero y actuar con botones táctiles sin pelearte con una tabla chica.</p>
-</div>
-<div class="section-body stack-6">
-<div class="note-box info"><span class="note-label">Uso:</span> carga rápida para reuniones internas, control por jornada o conciliación previa a liquidar a cooperadora. Guarda todo en este navegador. Para que el KPI por <strong>familia única</strong> deduplique bien, mantén siempre el mismo nombre de familia o comprador cuando registres cobros repetidos. Para habilitar KPIs por colegio, completa también la <strong>institución</strong> en cada cobro. Para habilitar KPIs por período, completa la <strong>fecha de cobro</strong> en cada registro.</div>
-<div class="payment-mobile-shell">
-<div class="payment-mobile-kicker">Android first · Carga rápida</div>
-<h3>Alta compacta de cobro</h3>
-<p>Primero carga lo esencial y deja el resto como ajuste fino.</p>
-<div class="payment-mobile-summary-strip" id="paymentMobileSummaryStrip">
-<span class="payment-mini-pill">Registro inmediato</span>
-<span class="payment-mini-pill">Filtros por estado</span>
-<span class="payment-mini-pill">Tarjetas táctiles</span>
-</div>
-</div>
-<div class="ops-grid ops-grid-2 payment-ops-grid">
-<div class="card">
-<div class="card-header"><div class="card-icon">➕</div><h3>Alta rápida de registro</h3></div>
-<div class="card-body stack-4">
-<div class="payment-form-grid">
-<div class="field field-wide"><label>Alumno / familia</label><input id="paymentName" placeholder="Ej. Sofía Pérez / Familia Pérez" type="text"/></div>
-<div class="field"><label>Monto</label><input id="paymentAmount" min="0" placeholder="15000" step="100" type="number"/></div>
-<div class="field"><label>Estado</label><select id="paymentStatus"><option value="pendiente">Pendiente</option><option value="observado">Observado</option><option value="validado">Validado</option><option value="liquidado">Liquidado</option></select></div>
-<div class="field field-wide"><label>Institución</label><input id="paymentSchool" list="paymentSchoolOptions" placeholder="Ej. Jardín Arco Iris" type="text"/><datalist id="paymentSchoolOptions"></datalist></div>
-<div class="field"><label>Curso / división</label><input id="paymentCourse" placeholder="Sala 5 A / 2° B" type="text"/></div>
-<div class="field"><label>Fecha de cobro</label><input id="paymentDate" type="date"/></div>
-<div class="field"><label>Comprobante</label><input id="paymentReceipt" placeholder="MP-98321 / Transferencia" type="text"/></div>
-<div class="field"><label>Observación</label><input id="paymentNote" placeholder="Dato faltante / extra / grupal" type="text"/></div>
-</div>
-<div class="btn-row payment-btn-row">
-<button class="btn btn-primary" onclick="addPaymentRecord()" type="button">Guardar registro</button>
-<button class="btn btn-outline" onclick="seedPaymentBoard()" type="button">Cargar ejemplo</button>
-<button class="btn btn-outline" onclick="fillMissingPaymentDates()" type="button">Completar fechas faltantes</button>
-<button class="btn btn-outline danger-soft" onclick="clearPaymentBoard()" type="button">Vaciar tablero</button>
-</div>
-</div>
-</div>
-<div class="card">
-<div class="card-header"><div class="card-icon">📈</div><h3>Resumen automático</h3></div>
-<div class="card-body stack-4">
-<div class="dashboard-stats payment-dashboard-stats">
-<div class="metric-tile"><span>Registros</span><strong id="payCount">0</strong></div>
-<div class="metric-tile"><span>Monto total</span><strong id="payTotal">$0</strong></div>
-<div class="metric-tile"><span>Pendiente</span><strong id="payPending">$0</strong></div>
-<div class="metric-tile"><span>Liquidado</span><strong id="paySettled">$0</strong></div>
-<div class="metric-tile"><span>Vinculación</span><strong id="paySchoolsLinked">0 vinculados · 0 sin colegio</strong></div>
-</div>
-<div class="ops-grid ops-grid-2 payment-summary-grid">
-<div class="ops-card"><strong>Lectura rápida</strong><p id="paymentInsight">Aún no hay datos cargados.</p></div>
-<div class="ops-card"><strong>Regla operativa</strong><p>No pasar a producción todo lo que no esté validado. Usa “observado” para todo lo que requiera aclaración.</p></div>
-</div>
-</div>
-</div>
-</div>
-<div class="card">
-<div class="card-header"><div class="card-icon">🧭</div><h3>Vista operativa del tablero</h3></div>
-<div class="card-body stack-4">
-<div class="payment-toolbar">
-<div class="field payment-filter-field">
-<label>Buscar</label>
-<input id="paymentSearch" oninput="setPaymentSearch(this.value)" placeholder="Familia, colegio, curso o comprobante" type="search"/>
-</div>
-<div class="field payment-filter-field">
-<label>Estado</label>
-<select id="paymentFilterStatus" onchange="setPaymentStatusFilter(this.value)">
-<option value="">Todos</option>
-<option value="pendiente">Pendiente</option>
-<option value="observado">Observado</option>
-<option value="validado">Validado</option>
-<option value="liquidado">Liquidado</option>
-</select>
-</div>
-<div class="payment-toolbar-actions">
-<button class="btn btn-outline" onclick="clearPaymentFilters()" type="button">Limpiar filtros</button>
-<button class="btn btn-outline" data-section="kpis" type="button">Ver KPIs</button>
-</div>
-</div>
-<div class="payment-filter-feedback" id="paymentFilterFeedback">Mostrando todos los registros.</div>
-<div class="payment-mobile-list" id="paymentMobileList"></div>
-<div class="table-wrap payment-table-wrap">
-<table>
-<thead><tr><th>Institución</th><th>Fecha</th><th>Alumno / familia</th><th>Curso</th><th>Monto</th><th>Estado</th><th>Comprobante</th><th>Observación</th><th>Acción</th></tr></thead>
-<tbody id="paymentsBoardRows">
-<tr><td colspan="9" style="text-align:center;color:var(--text-muted)">Sin registros todavía.</td></tr>
-</tbody>
-</table>
-</div>
-</div>
-</div>
-</div>
-</div>
-<div class="section" id="sec-simulador">
-<div class="section-header">
-<div class="breadcrumb">Herramientas y KPIs · V2.3</div>
-<h1>Simulador económico por colegio</h1>
-<p>Modelo rápido para decidir si un colegio conviene, con variables reales de conversión, canon, costos directos y tiempo de edición.</p>
-</div>
-<div class="section-body stack-6">
-<div class="note-box info"><span class="note-label">Criterio:</span> úsalo antes de cerrar una propuesta, al revisar renovaciones o para filtrar trabajos que ocupan agenda pero dejan poco margen.</div>
-<div class="ops-grid ops-grid-2">
-<div class="card">
-<div class="card-header"><div class="card-icon">🧮</div><h3>Variables del escenario</h3></div>
-<div class="card-body stack-4">
-<div class="tool-grid">
-<div class="field"><label>Alumnos fotografiados</label><input id="simStudents" min="1" type="number" value="320"/></div>
-<div class="field"><label>Conversión (%)</label><input id="simConversion" max="100" min="0" step="1" type="number" value="65"/></div>
-<div class="field"><label>Precio pack</label><input id="simPackPrice" min="0" step="100" type="number" value="15000"/></div>
-<div class="field"><label>Extra promedio por compra</label><input id="simExtraAvg" min="0" step="100" type="number" value="2500"/></div>
-<div class="field"><label>Canon cooperadora (%)</label><input id="simCanonPct" max="100" min="0" step="1" type="number" value="20"/></div>
-<div class="field"><label>Costo impresión por pack</label><input id="simPrintCost" min="0" step="100" type="number" value="2800"/></div>
-<div class="field"><label>Asistente / apoyo</label><input id="simAssistant" min="0" step="100" type="number" value="35000"/></div>
-<div class="field"><label>Viáticos / logística</label><input id="simTravel" min="0" step="100" type="number" value="18000"/></div>
-<div class="field"><label>Horas de edición</label><input id="simEditHours" min="0" step="0.5" type="number" value="12"/></div>
-<div class="field"><label>Valor hora estimado</label><input id="simHourRate" min="0" step="100" type="number" value="12000"/></div>
-</div>
-<div class="btn-row">
-<button class="btn btn-outline" onclick="syncSimulatorWithPack()" type="button">Usar precio global del pack</button>
-<button class="btn btn-primary" onclick="updateSimulador()" type="button">Recalcular</button>
-</div>
-</div>
-</div>
-<div class="card">
-<div class="card-header"><div class="card-icon">📊</div><h3>Resultado del escenario</h3></div>
-<div class="card-body stack-4">
-<div class="dashboard-stats">
-<div class="metric-tile"><span>Compras estimadas</span><strong id="simSales">0</strong></div>
-<div class="metric-tile"><span>Ingresos brutos</span><strong id="simGross">$0</strong></div>
-<div class="metric-tile"><span>Margen neto</span><strong id="simNet">$0</strong></div>
-<div class="metric-tile"><span>Ticket por alumno</span><strong id="simTicket">$0</strong></div>
-</div>
-<div class="table-wrap">
-<table>
-<tbody>
-<tr><td class="td-strong">Facturación base</td><td id="simBase">$0</td></tr>
-<tr><td class="td-strong">Extras estimados</td><td id="simExtras">$0</td></tr>
-<tr><td class="td-strong">Canon</td><td id="simCanon">$0</td></tr>
-<tr><td class="td-strong">Impresión total</td><td id="simPrint">$0</td></tr>
-<tr><td class="td-strong">Edición imputada</td><td id="simEdit">$0</td></tr>
-<tr><td class="td-strong">Costos directos</td><td id="simDirect">$0</td></tr>
-</tbody>
-</table>
-</div>
-<div class="highlight-card">
-<h3>Lectura de decisión</h3>
-<p id="simDecision">Carga variables para obtener una lectura rápida.</p>
-</div>
-</div>
-</div>
-</div>
-</div>
-</div>
-<div class="section" id="sec-propuesta">
-<div class="section-header">
-<div class="breadcrumb">Comercial · V2.5.0</div>
-<h1>Generador de propuesta y versión imprimible</h1>
-<p>Arma una propuesta más fina para cooperadora o directivos, con circuito, privacidad, condiciones base y salida limpia para imprimir o guardar como PDF.</p>
-</div>
-<div class="section-body stack-6">
-<div class="note-box info"><span class="note-label">Uso:</span> completa el bloque de la izquierda, revisa la vista previa y luego usa <strong>Imprimir sección</strong> para sacar PDF desde el navegador con una presentación más seria.</div>
-<div class="ops-grid ops-grid-2">
-<div class="card">
-<div class="card-header"><div class="card-icon">📝</div><h3>Datos de la propuesta</h3></div>
-<div class="card-body stack-4">
-<div class="tool-grid">
-<div class="field"><label>Institución</label><input id="propSchool" placeholder="Ej. Escuela Superior Normal N° 2" type="text"/></div>
-<div class="field"><label>Público principal</label><select id="propAudience"><option value="cooperadora">Cooperadora</option><option value="directivos">Directivos</option><option value="mixto">Mixto</option></select></div>
-<div class="field"><label>Nivel</label><select id="propLevel"><option>Jardín</option><option>Primaria</option><option>Mixto</option></select></div>
-<div class="field"><label>Modalidad</label><select id="propModality"><option value="Básica">Básica</option><option selected="" value="Completa">Completa</option><option value="Institucional">Institucional</option></select></div>
-<div class="field"><label>Estimación de alumnos</label><input id="propStudents" min="0" step="1" type="number" value="280"/></div>
-<div class="field"><label>Precio pack</label><input id="propPackPrice" min="0" step="100" type="number" value="15000"/></div>
-<div class="field"><label>Validez de propuesta (días)</label><input id="propValidity" max="60" min="1" step="1" type="number" value="7"/></div>
-<div class="field"><label>Circuito de cobro</label><select id="propPaymentModel"><option value="formulario">Formulario digital + comprobante</option><option value="sobres">Sobres cerrados por institución</option><option value="mixto">Esquema mixto</option></select></div>
-<div class="field field-span-2"><label>Objetivo / enfoque</label><input id="propFocus" placeholder="Orden, confianza, trazabilidad y comunicación simple" type="text"/></div>
-<div class="field field-span-2"><label>Alcance adicional / notas</label><textarea id="propNotes" placeholder="Ej. foto grupal incluida, agregado digital con costo adicional, canal único por WhatsApp, jornada dividida en dos turnos"></textarea></div>
-</div>
-<div class="btn-row">
-<button class="btn btn-outline" onclick="syncProposalWithPack()" type="button">Usar precio global del pack</button>
-<button class="btn btn-primary" onclick="updateProposalGenerator()" type="button">Actualizar propuesta</button>
-<button class="btn btn-outline" onclick="copyProposalText()" type="button">Copiar texto</button>
-<button class="btn btn-outline" onclick="printCurrentSection()" type="button">Imprimir / PDF</button>
-</div>
-</div>
-</div>
-<div class="card">
-<div class="card-header"><div class="card-icon">💬</div><h3>Vista previa lista para reunión</h3></div>
-<div class="card-body">
-<div class="proposal-preview proposal-preview-v24" id="proposalPreview">
-<div class="proposal-empty">Completa los datos de la izquierda para generar una propuesta institucional más presentable.</div>
-</div>
-</div>
-</div>
-</div>
-<div class="ops-grid ops-grid-3 internal-only">
-<div class="ops-card"><strong>Recordatorio comercial</strong><p>No prometas plazos, excepciones o cobros fuera del marco que luego no puedas sostener en operación.</p></div>
-<div class="ops-card"><strong>Versión cooperadora</strong><p>Prioriza carga operativa baja, claridad de circuito, transparencia de cobro y calidad de presentación.</p></div>
-<div class="ops-card"><strong>Versión directivos</strong><p>Refuerza orden, privacidad, buena experiencia de jornada, criterio institucional y trazabilidad.</p></div>
-</div>
-</div>
-</div>
-<div class="section" id="sec-cartera">
-<div class="section-header">
-<div class="breadcrumb">Comercial · Gestión V2.5.0</div>
-<h1>Cartera, pipeline y renovaciones</h1>
-<p>Tablero local para seguir prospectos, colegios activos, renovaciones, próximos pasos y semáforo de riesgo sin depender de una planilla aparte.</p>
-</div>
-<div class="section-body stack-6">
-<div class="note-box info"><span class="note-label">Uso:</span> cada registro representa una institución. Actualiza etapa, renovación, riesgo y próxima acción después de cada contacto o reunión.</div>
-<div class="ops-grid ops-grid-2">
-<div class="card">
-<div class="card-header"><div class="card-icon">🏫</div><h3>Alta / actualización rápida</h3></div>
-<div class="card-body stack-4">
-<div class="tool-grid">
-<div class="field"><label>Institución</label><input id="schoolName" placeholder="Ej. Jardín Arco Iris" type="text"/></div>
-<div class="field"><label>Nivel</label><select id="schoolLevel"><option>Jardín</option><option>Primaria</option><option>Mixto</option></select></div>
-<div class="field"><label>Etapa</label><select id="schoolStage"><option value="prospecto">Prospecto</option><option value="contacto">Contacto</option><option value="reunion">Reunión</option><option value="propuesta">Propuesta</option><option value="activo">Activo</option><option value="renovacion">Renovación</option><option value="pausa">En pausa</option></select></div>
-<div class="field"><label>Riesgo</label><select id="schoolRisk"><option value="verde">Verde</option><option value="amarillo">Amarillo</option><option value="rojo">Rojo</option></select></div>
-<div class="field"><label>Contacto</label><input id="schoolContact" placeholder="Nombre / canal" type="text"/></div>
-<div class="field"><label>Renovación</label><input id="schoolRenewal" placeholder="Ej. Agosto 2026" type="text"/></div>
-<div class="field"><label>Próximo paso</label><input id="schoolNextAction" placeholder="Enviar propuesta / llamar" type="text"/></div>
-<div class="field field-span-2"><label>Notas / objeciones</label><textarea id="schoolNotes" placeholder="Contexto de la negociación..."></textarea></div>
-</div>
-<div class="btn-row">
-<button class="btn btn-primary" onclick="addSchoolRecord()" type="button">Guardar registro</button>
-<button class="btn btn-outline" onclick="seedSchoolBoard()" type="button">Cargar ejemplos</button>
-<button class="btn btn-outline" onclick="clearSchoolBoard()" type="button">Vaciar tablero</button>
-</div>
-</div>
-</div>
-<div class="card">
-<div class="card-header"><div class="card-icon">📈</div><h3>Resumen de cartera</h3></div>
-<div class="card-body stack-4">
-<div class="dashboard-stats dashboard-stats-5">
-<div class="metric-tile"><span>Total</span><strong id="schoolCount">0</strong></div>
-<div class="metric-tile"><span>Activos</span><strong id="schoolActive">0</strong></div>
-<div class="metric-tile"><span>En gestión</span><strong id="schoolPipeline">0</strong></div>
-<div class="metric-tile"><span>Renovaciones</span><strong id="schoolRenew">0</strong></div>
-<div class="metric-tile"><span>Riesgo Rojo</span><strong id="schoolRiskRed">0</strong></div>
-</div>
-<div class="ops-grid ops-grid-1">
-<div class="ops-card"><strong>Lectura rápida</strong><p id="schoolInsight">Sin cartera cargada todavía.</p></div>
-</div>
-</div>
-</div>
-</div>
-<div class="card">
-<div class="card-header"><div class="card-icon">📋</div><h3>Tablero operativo (Pipeline)</h3></div>
-<div class="card-body">
-<div class="table-wrap">
-<table>
-<thead><tr><th>Institución</th><th>Nivel</th><th>Etapa</th><th>Contacto</th><th>Renovación</th><th>Próxima acción</th><th>Riesgo</th><th>Pack base</th><th>Notas</th><th>Acción</th></tr></thead>
-<tbody id="schoolBoardRows">
-<tr><td colspan="10" style="text-align:center;color:var(--text-muted)">Sin instituciones cargadas.</td></tr>
-</tbody>
-</table>
-</div>
-</div>
-</div>
-</div>
-</div>
-<div class="section" id="sec-seguimiento">
-<div class="section-header">
-<div class="breadcrumb">Jornada de toma · V2.5.0</div>
-<h1>Pendientes, ausentes y retomas</h1>
-<p>Tablero para registrar qué quedó abierto después de una jornada fotográfica para no olvidarlo antes de imprimir.</p>
-</div>
-<div class="section-body stack-6">
-<div class="ops-grid ops-grid-2">
-<div class="card">
-<div class="card-header"><div class="card-icon">📝</div><h3>Nuevo registro</h3></div>
-<div class="card-body stack-4">
-<div class="tool-grid">
-<div class="field"><label>Institución</label><input id="followSchool" placeholder="Ej. San Martín" type="text"/></div>
-<div class="field"><label>Fecha toma</label><input id="followDate" type="date"/></div>
-<div class="field"><label>Curso / División</label><input id="followCourse" placeholder="2° B" type="text"/></div>
-<div class="field"><label>Tipo</label><select id="followType"><option value="ausente">Ausente</option><option value="retoma">Retoma técnica</option><option value="pendiente">Pendiente operativo</option></select></div>
-<div class="field"><label>Cantidad de alumnos</label><input id="followCount" min="1" type="number" value="1"/></div>
-<div class="field"><label>Estado</label><select id="followStatus"><option value="abierto">Abierto</option><option value="agendado">Agendado</option><option value="resuelto">Resuelto</option></select></div>
-<div class="field"><label>Próxima acción / Fecha</label><input id="followNext" placeholder="Retoma viernes 8:00" type="text"/></div>
-<div class="field"><label>Responsable</label><input id="followOwner" placeholder="Adrián / Asistente" type="text"/></div>
-<div class="field field-span-2"><label>Notas</label><input id="followNotes" placeholder="Ojos cerrados / falta individual" type="text"/></div>
-</div>
-<div class="btn-row">
-<button class="btn btn-primary" onclick="addFollowupRecord()" type="button">Guardar registro</button>
-<button class="btn btn-outline" onclick="seedFollowupBoard()" type="button">Cargar ejemplos</button>
-<button class="btn btn-outline" onclick="clearFollowupBoard()" type="button">Vaciar tablero</button>
-</div>
-</div>
-</div>
-<div class="card">
-<div class="card-header"><div class="card-icon">📊</div><h3>Estado de pendientes</h3></div>
-<div class="card-body stack-4">
-<div class="dashboard-stats">
-<div class="metric-tile"><span>Total registros</span><strong id="followCountAll">0</strong></div>
-<div class="metric-tile"><span>Alumnos ausentes</span><strong id="followAbsent">0</strong></div>
-<div class="metric-tile"><span>Retomas abiertas</span><strong id="followRetake">0</strong></div>
-<div class="metric-tile"><span>Pendientes activos</span><strong id="followOpen">0</strong></div>
-</div>
-<div class="ops-grid ops-grid-1">
-<div class="ops-card"><strong>Control de producción</strong><p id="followInsight">Sin pendientes cargados todavía.</p></div>
-</div>
-</div>
-</div>
-</div>
-<div class="card">
-<div class="card-header"><div class="card-icon">🧾</div><h3>Tablero de control</h3></div>
-<div class="card-body">
-<div class="table-wrap">
-<table>
-<thead><tr><th>Institución</th><th>Fecha</th><th>Curso</th><th>Tipo</th><th>Cant.</th><th>Estado</th><th>Próxima acción</th><th>Responsable</th><th>Notas</th><th>Acción</th></tr></thead>
-<tbody id="followupRows">
-<tr><td colspan="10" style="text-align:center;color:var(--text-muted)">Sin controles cargados.</td></tr>
-</tbody>
-</table>
-</div>
-</div>
-</div>
-</div>
-</div>
+    <!-- SEGUIMIENTO -->
+    <section id="sec-seguimiento" class="section">
+      <div class="section-header">
+        <h1>📋 Seguimiento</h1>
+        <p>Pendientes, ausentes y retomas de jornadas.</p>
+      </div>
 
-</main>
-<div class="mobile-tabbar" id="mobileTabbar">
-<button class="mobile-tabbar-btn active" data-mobile-tab="inicio" type="button"><span>🏠</span><em>Inicio</em></button>
-<button class="mobile-tabbar-btn" data-mobile-tab="calendario" type="button"><span>🗓️</span><em>Calendario</em></button>
-<button class="mobile-tabbar-btn" data-mobile-tab="cobranzas" type="button"><span>💳</span><em>Cobranzas</em></button>
-<button class="mobile-tabbar-btn" data-mobile-tab="kpis" type="button"><span>📊</span><em>KPIs</em></button>
-<button class="mobile-tabbar-btn" data-action="toggle-sidebar" data-mobile-tab="menu" type="button"><span>☰</span><em>Menú</em></button>
-</div>
-<div id="modal-precio" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:300;align-items:center;justify-content:center">
-<div style="background:#fff;border-radius:12px;padding:28px;width:320px;box-shadow:var(--shadow-md)">
-<h3 style="font-family:var(--font-head);font-size:16px;margin-bottom:6px">Editar precio del pack</h3>
-<p style="font-size:12.5px;color:var(--text-muted);margin-bottom:16px">Este valor se actualizará en toda la app.</p>
-<input id="precio-input" style="width:100%;padding:10px 14px;border:1px solid var(--border);border-radius:8px;font-size:16px;font-family:var(--font-head);font-weight:700;color:var(--accent);outline:none;margin-bottom:20px" type="number"/>
-<div style="display:flex;gap:12px;justify-content:flex-end">
-<button class="btn btn-outline" onclick="cerrarModal()" type="button">Cancelar</button>
-<button class="btn btn-primary" onclick="guardarPrecio()" type="button">Guardar</button>
-</div>
-</div>
-</div>
-<div class="toast" hidden="" id="appToast">Mensaje</div>
-<script src="app.js"></script>
+      <div class="card">
+        <div class="card-header"><h3>Nuevo registro</h3></div>
+        <div class="card-body">
+          <form id="formSeguimiento">
+            <div class="form-grid">
+              <div class="form-group">
+                <label for="seg-escuela">Escuela *</label>
+                <input id="seg-escuela" name="escuela" class="input" required placeholder="Nombre de la escuela">
+              </div>
+              <div class="form-group">
+                <label for="seg-curso">Curso</label>
+                <input id="seg-curso" name="curso" class="input" placeholder="Ej: Sala 4">
+              </div>
+              <div class="form-group">
+                <label for="seg-tipo">Tipo *</label>
+                <select id="seg-tipo" name="tipo" class="input" required>
+                  <option value="ausente">Ausente</option>
+                  <option value="retoma">Retoma</option>
+                  <option value="pendiente">Pendiente</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label for="seg-cantidad">Alumnos afectados</label>
+                <input id="seg-cantidad" name="cantidad" type="number" class="input" min="0" value="1">
+              </div>
+            </div>
+            <div class="form-group">
+              <label for="seg-notas">Notas</label>
+              <textarea id="seg-notas" name="notas" class="input" rows="2" placeholder="Detalles..."></textarea>
+            </div>
+            <div class="form-actions">
+              <button type="submit" class="btn btn-primary">Registrar</button>
+            </div>
+          </form>
+        </div>
+      </div>
+
+      <div id="seguimientoList" class="mt-24">
+        <!-- Render dinámico -->
+      </div>
+    </section>
+
+    <!-- KPIs -->
+    <section id="sec-kpis" class="section">
+      <div class="section-header">
+        <h1>📊 KPIs</h1>
+        <p>Métricas de negocio y rentabilidad.</p>
+      </div>
+      <div id="kpisContainer">
+        <!-- Render dinámico -->
+      </div>
+    </section>
+
+    <!-- SIMULADOR -->
+    <section id="sec-simulador" class="section">
+      <div class="section-header">
+        <h1>🧮 Simulador</h1>
+        <p>Simulá escenarios de rentabilidad con diferentes parámetros.</p>
+      </div>
+      <div class="card">
+        <div class="card-body">
+          <p class="text-muted">Próximamente: simulador interactivo de rentabilidad.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- CALENDARIO -->
+    <section id="sec-calendario" class="section">
+      <div class="section-header">
+        <h1>📅 Calendario</h1>
+        <p>Jornadas programadas y agenda de trabajo.</p>
+      </div>
+      <div class="card"><div class="card-body"><p class="text-muted">Vista de calendario de jornadas.</p></div></div>
+    </section>
+
+    <!-- SECCIONES DE FOTOGRAFÍA -->
+    <section id="sec-captura" class="section">
+      <div class="section-header"><h1>📷 Captura</h1><p>Guía de toma fotográfica.</p></div>
+      <div class="card"><div class="card-body"><p class="text-muted">Tips y equipamiento para la toma.</p></div></div>
+    </section>
+
+    <section id="sec-iluminacion" class="section">
+      <div class="section-header"><h1>💡 Iluminación</h1><p>Setup de luces para retrato escolar.</p></div>
+      <div class="card"><div class="card-body"><p class="text-muted">Guías de iluminación.</p></div></div>
+    </section>
+
+    <section id="sec-lightroom" class="section">
+      <div class="section-header"><h1>🎨 Lightroom</h1><p>Revelado digital y corrección de color.</p></div>
+      <div class="card"><div class="card-body"><p class="text-muted">Workflow de Lightroom.</p></div></div>
+    </section>
+
+    <section id="sec-photoshop" class="section">
+      <div class="section-header"><h1>🖌️ Photoshop</h1><p>Retoque fino y Panel Polar3.</p></div>
+      <div class="card"><div class="card-body"><p class="text-muted">Workflow de Photoshop.</p></div></div>
+    </section>
+
+    <section id="sec-montaje" class="section">
+      <div class="section-header"><h1>📐 Montaje</h1><p>Armado de carpetas e impresos.</p></div>
+      <div class="card"><div class="card-body"><p class="text-muted">Templates y proceso de montaje.</p></div></div>
+    </section>
+
+    <section id="sec-imprenta" class="section">
+      <div class="section-header"><h1>🖨️ Imprenta</h1><p>Envío a imprenta y control de calidad.</p></div>
+      <div class="card"><div class="card-body"><p class="text-muted">Guía de impresión.</p></div></div>
+    </section>
+
+    <!-- CALIDAD -->
+    <section id="sec-sla" class="section">
+      <div class="section-header"><h1>📏 SLA</h1><p>Acuerdos de nivel de servicio.</p></div>
+      <div class="card"><div class="card-body"><p class="text-muted">Tiempos de entrega: 15-30 días hábiles.</p></div></div>
+    </section>
+
+    <section id="sec-qa" class="section">
+      <div class="section-header"><h1>🔍 Control de Calidad</h1><p>Chequeos pre-entrega.</p></div>
+      <div class="card"><div class="card-body"><p class="text-muted">Protocolo de QA.</p></div></div>
+    </section>
+
+    <section id="sec-diagnostico" class="section">
+      <div class="section-header"><h1>🔧 Diagnóstico</h1><p>Estado del sistema.</p></div>
+      <div class="card"><div class="card-body"><p class="text-muted">Diagnóstico de storage y performance.</p></div></div>
+    </section>
+
+    <section id="sec-emergencias" class="section">
+      <div class="section-header"><h1>🚨 Emergencias</h1><p>Protocolos de contingencia.</p></div>
+      <div class="card"><div class="card-body"><p class="text-muted">Qué hacer si falla el equipo, el clima, etc.</p></div></div>
+    </section>
+
+    <section id="sec-pagos" class="section">
+      <div class="section-header"><h1>💳 Pagos</h1><p>Gestión de pagos recibidos.</p></div>
+      <div class="card"><div class="card-body"><p class="text-muted">Board de pagos.</p></div></div>
+    </section>
+
+    <!-- COMERCIAL -->
+    <section id="sec-institucional" class="section">
+      <div class="section-header"><h1>🏛️ Institucional</h1><p>Información para cooperadoras y directivos.</p></div>
+      <div class="card"><div class="card-body"><p class="text-muted">Contenido institucional.</p></div></div>
+    </section>
+
+    <section id="sec-modalidades" class="section">
+      <div class="section-header"><h1>📦 Modalidades</h1><p>Packs y opciones disponibles.</p></div>
+      <div class="card"><div class="card-body"><p class="text-muted">Detalle de packs fotográficos.</p></div></div>
+    </section>
+
+    <section id="sec-propuesta" class="section">
+      <div class="section-header"><h1>📄 Propuesta</h1><p>Generador de propuestas comerciales.</p></div>
+      <div class="card"><div class="card-body"><p class="text-muted">Templates de propuesta.</p></div></div>
+    </section>
+
+    <section id="sec-captacion" class="section">
+      <div class="section-header"><h1>🎯 Captación</h1><p>Estrategias de captación de nuevas escuelas.</p></div>
+      <div class="card"><div class="card-body"><p class="text-muted">Pipeline comercial.</p></div></div>
+    </section>
+
+    <section id="sec-scripts" class="section">
+      <div class="section-header"><h1>💬 Scripts</h1><p>Templates de comunicación.</p></div>
+      <div class="card"><div class="card-body"><p class="text-muted">Scripts de venta y comunicación.</p></div></div>
+    </section>
+
+    <section id="sec-familias" class="section">
+      <div class="section-header"><h1>👨‍👩‍👧 Familias</h1><p>Comunicación con familias.</p></div>
+      <div class="card"><div class="card-body"><p class="text-muted">Templates para WhatsApp y email.</p></div></div>
+    </section>
+
+    <section id="sec-marketing" class="section">
+      <div class="section-header"><h1>📣 Marketing</h1><p>Material de difusión.</p></div>
+      <div class="card"><div class="card-body"><p class="text-muted">Recursos de marketing.</p></div></div>
+    </section>
+
+    <section id="sec-marca" class="section">
+      <div class="section-header"><h1>🎨 Marca</h1><p>Identidad visual de Polar3.</p></div>
+      <div class="card"><div class="card-body"><p class="text-muted">Brand guidelines.</p></div></div>
+    </section>
+
+    <section id="sec-cartera" class="section">
+      <div class="section-header"><h1>📒 Cartera</h1><p>Escuelas activas y potenciales.</p></div>
+      <div class="card"><div class="card-body"><p class="text-muted">Cartera de clientes.</p></div></div>
+    </section>
+
+    <section id="sec-forms" class="section">
+      <div class="section-header"><h1>📝 Formularios</h1><p>Google Forms y formularios de inscripción.</p></div>
+      <div class="card"><div class="card-body"><p class="text-muted">Links a formularios activos.</p></div></div>
+    </section>
+
+    <section id="sec-roles" class="section">
+      <div class="section-header"><h1>👥 Roles</h1><p>Funciones del equipo.</p></div>
+      <div class="card"><div class="card-body"><p class="text-muted">Definición de roles.</p></div></div>
+    </section>
+
+    <section id="sec-archivos" class="section">
+      <div class="section-header"><h1>📂 Archivos</h1><p>Estructura de archivos y nomenclatura.</p></div>
+      <div class="card"><div class="card-body"><p class="text-muted">Convenciones de naming.</p></div></div>
+    </section>
+
+    <!-- SISTEMA -->
+    <section id="sec-respaldos" class="section">
+      <div class="section-header">
+        <h1>💾 Respaldos</h1>
+        <p>Gestión de backups y datos del sistema.</p>
+      </div>
+
+      <div class="card-grid">
+        <div class="card">
+          <div class="card-header"><h3>Acciones</h3></div>
+          <div class="card-body">
+            <div style="display:flex;flex-direction:column;gap:8px">
+              <button class="btn btn-primary" onclick="app.createBackup()">🔒 Crear respaldo</button>
+              <button class="btn btn-outline" onclick="app.exportAll()">📥 Exportar todo (JSON)</button>
+              <button class="btn btn-outline" onclick="app.importFromFile()">📤 Importar datos</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section id="sec-workspace" class="section">
+      <div class="section-header">
+        <h1>⚙️ Configuración</h1>
+        <p>Ajustes del sistema.</p>
+      </div>
+      <div class="card">
+        <div class="card-body">
+          <p class="text-muted">Configuraciones del workspace y preferencias.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- Secciones adicionales para completar SECTION_MAP -->
+    <section id="sec-quien" class="section">
+      <div class="section-header"><h1>Quién soy</h1></div>
+    </section>
+
+    <section id="sec-pack" class="section">
+      <div class="section-header"><h1>Pack</h1></div>
+    </section>
+
+    <section id="sec-compromisos" class="section">
+      <div class="section-header"><h1>Compromisos</h1></div>
+    </section>
+
+    <section id="sec-flujo" class="section">
+      <div class="section-header"><h1>Flujo</h1></div>
+    </section>
+
+    <section id="sec-economico" class="section">
+      <div class="section-header"><h1>Económico</h1></div>
+    </section>
+
+  </main>
+
+  <!-- ═══════════════════════════════════════════════════════════
+       MOBILE TABBAR
+  ═══════════════════════════════════════════════════════════════ -->
+
+  <nav class="mobile-tabbar" aria-label="Navegación rápida">
+    <button class="mobile-tabbar-btn active" data-section="inicio">
+      <span>🏠</span>
+      <em>Inicio</em>
+    </button>
+    <button class="mobile-tabbar-btn" data-section="cobranzas">
+      <span>💰</span>
+      <em>Cobros</em>
+    </button>
+    <button class="mobile-tabbar-btn" data-section="checklist">
+      <span>✅</span>
+      <em>Check</em>
+    </button>
+    <button class="mobile-tabbar-btn" data-section="kpis">
+      <span>📊</span>
+      <em>KPIs</em>
+    </button>
+    <button class="mobile-tabbar-btn" data-tab="menu">
+      <span>☰</span>
+      <em>Menú</em>
+    </button>
+  </nav>
+
+  <!-- ═══════════════════════════════════════════════════════════
+       MODALES
+  ═══════════════════════════════════════════════════════════════ -->
+
+  <!-- Confirm modal genérico -->
+  <div id="confirmModal" class="modal" role="dialog" aria-modal="true" aria-labelledby="confirmModalTitle">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3 id="confirmModalTitle">Confirmar</h3>
+      </div>
+      <div class="modal-body">¿Confirmás esta acción?</div>
+      <div class="modal-footer">
+        <button class="btn btn-outline" onclick="app.closeModal('confirmModal')">Cancelar</button>
+        <button class="btn btn-primary btn-confirm">Confirmar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════════════════════════════════
+       SCRIPTS
+  ═══════════════════════════════════════════════════════════════ -->
+
+  <script type="module" src="./src/app.js"></script>
+
+  <!-- Service Worker -->
+  <script>
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('./sw.js').catch(() => {});
+    }
+  </script>
+
 </body>
 </html>
