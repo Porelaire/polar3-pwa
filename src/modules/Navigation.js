@@ -1,524 +1,656 @@
 /**
- * Navigation.js — Polar[3] PWA v2.7.12
- * Gestión de secciones, workspaces, topbar, sidebar, búsqueda y tabbar móvil.
- * No tiene estado global propio: recibe el estado desde app.js via parámetros
- * o mediante el objeto `nav` exportado.
+ * POLAR[3] SISTEMA OPERATIVO v2.8.0
+ * Módulo de Navegación
+ *
+ * Controla: workspaces, secciones, sidebar, mobile tabbar,
+ * breadcrumb, hash routing y redirecciones de secciones deprecadas.
+ *
+ * Uso:
+ *   import { navigation } from './modules/Navigation.js';
+ *   navigation.init();
+ *   navigation.showSection('cobranzas');
+ *   navigation.switchWorkspace('comercial');
  */
 
 import {
-  sectionMap,
-  sectionSpaces,
-  workspaceDefaults,
-  VALID_WORKSPACES,
+  SECTION_MAP,
+  SECTION_SPACES,
+  WORKSPACE_DEFAULTS,
+  WORKSPACE_LABELS,
+  WORKSPACES,
   DEPRECATED_SECTION_REDIRECTS,
-  SEARCH_EXCLUDED_SECTIONS,
-  WORKSPACE_STORAGE_KEY
+  STORAGE_KEYS,
+  UI
 } from '../config.js';
 
-// ─────────────────────────────────────────────
-// ESTADO INTERNO DEL MÓDULO
-// ─────────────────────────────────────────────
+import { storage } from './Storage.js';
 
+// ═══════════════════════════════════════════════════════════════
+// ESTADO INTERNO
+// ═══════════════════════════════════════════════════════════════
+
+/** @type {string} Workspace activo: 'operativo' | 'comercial' */
 let currentWorkspace = 'operativo';
-let searchIndex = [];
-let searchActiveIndex = -1;
 
-// Estado topbar auto-collapse
-let lastScrollY = 0;
-let topbarCollapsedState = false;
-let topbarScrollTicking = false;
-let topbarScrollLockUntil = 0;
+/** @type {string} Sección activa (key de SECTION_MAP) */
+let currentSection = 'inicio';
 
-// Callback inyectado por app.js para persistir cambios de workspace
-let _onWorkspaceChange = null;
+/** @type {boolean} Sidebar abierto en mobile */
+let sidebarOpen = false;
 
-// ─────────────────────────────────────────────
-// INICIALIZACIÓN
-// ─────────────────────────────────────────────
+/** @type {Set<Function>} Listeners de cambio de sección */
+const sectionListeners = new Set();
 
-/**
- * Inicializa el módulo de navegación.
- * @param {object} opts
- * @param {string} opts.workspace - Workspace inicial ('operativo' | 'comercial')
- * @param {function} opts.onWorkspaceChange - Callback(workspace) cuando cambia el workspace
- */
-export function initNavigation({ workspace = 'operativo', onWorkspaceChange = null } = {}) {
-  currentWorkspace = VALID_WORKSPACES.includes(workspace) ? workspace : 'operativo';
-  _onWorkspaceChange = onWorkspaceChange;
-}
+/** @type {Set<Function>} Listeners de cambio de workspace */
+const workspaceListeners = new Set();
 
-// ─────────────────────────────────────────────
-// HELPERS DE SECCIÓN
-// ─────────────────────────────────────────────
+// ═══════════════════════════════════════════════════════════════
+// CLASE PRINCIPAL
+// ═══════════════════════════════════════════════════════════════
 
-export function sectionIdToKey(sectionId) {
-  return Object.keys(sectionMap).find(key => sectionMap[key] === sectionId) || 'inicio';
-}
+class NavigationManager {
 
-export function spacesForSection(key) {
-  return sectionSpaces[key] || ['operativo'];
-}
+  // ─────────────────────────────────────────────────────────────
+  // INICIALIZACIÓN
+  // ─────────────────────────────────────────────────────────────
 
-export function sectionBelongsToWorkspace(key, workspace) {
-  return spacesForSection(key).includes(workspace);
-}
+  /**
+   * Inicializa el sistema de navegación.
+   * Restaura workspace y sección desde localStorage, bindea eventos.
+   */
+  init() {
+    // Restaurar workspace guardado
+    const savedWorkspace = storage.getItem(STORAGE_KEYS.workspace, 'operativo');
+    currentWorkspace = WORKSPACES.includes(savedWorkspace) ? savedWorkspace : 'operativo';
 
-export function resolveSectionTarget(id) {
-  return DEPRECATED_SECTION_REDIRECTS[id] || id;
-}
+    // Restaurar última sección (con fallback y validación)
+    const savedSection = storage.getItem(STORAGE_KEYS.lastSection, null);
+    const resolvedSection = this._resolveSection(savedSection);
+    currentSection = resolvedSection;
 
-export function getActiveSectionKey() {
-  return sectionIdToKey(document.querySelector('.section.active')?.id || '');
-}
+    // Bindear eventos del DOM
+    this._bindSidebar();
+    this._bindNavLinks();
+    this._bindMobileTabbar();
+    this._bindHashChange();
+    this._bindKeyboard();
 
-export function getCurrentWorkspace() {
-  return currentWorkspace;
-}
+    // Aplicar estado inicial
+    this._applyWorkspace(currentWorkspace);
+    this.showSection(currentSection, { saveState: false, animate: false });
 
-// ─────────────────────────────────────────────
-// SCROLL CONTAINER
-// ─────────────────────────────────────────────
+    // Verificar si hay hash en la URL
+    this._handleHashOnLoad();
 
-export function getScrollContainer() {
-  return document.getElementById('main') || document.scrollingElement || document.documentElement;
-}
-
-// ─────────────────────────────────────────────
-// TOPBAR
-// ─────────────────────────────────────────────
-
-function normalizeWorkspaceLabel(workspace) {
-  return workspace.charAt(0).toUpperCase() + workspace.slice(1);
-}
-
-function getSectionMeta(key) {
-  const section = document.getElementById(sectionMap[key]);
-  if (!section) return { title: 'Inicio', kicker: 'Panel principal' };
-  const title = section.querySelector('.section-header h1')?.textContent?.trim()
-    || (key === 'inicio' ? 'Inicio' : key);
-  const kicker = section.querySelector('.breadcrumb')?.textContent?.trim()
-    || 'Panel principal';
-  return { title, kicker };
-}
-
-function updateTopbar(id) {
-  const meta = getSectionMeta(id);
-  const kicker = document.getElementById('currentSectionKicker');
-  const title = document.getElementById('currentSectionTitle');
-  const chip = document.getElementById('hashChip');
-  if (kicker) kicker.textContent = meta.kicker;
-  if (title) title.textContent = meta.title;
-  if (chip) chip.textContent = `Ruta: #${id}`;
-  document.title = `Polar[3] · ${normalizeWorkspaceLabel(currentWorkspace)} — ${meta.title}`;
-}
-
-export function setTopbarCollapsed(collapsed, { force = false } = {}) {
-  const next = !!collapsed;
-  if (!force && topbarCollapsedState === next) return;
-  topbarCollapsedState = next;
-  document.body.classList.toggle('topbar-collapsed', next);
-  topbarScrollLockUntil = Date.now() + 260;
-}
-
-function evaluateTopbarAutoCollapse(currentY) {
-  const isMobile = window.matchMedia('(max-width: 768px)').matches;
-  const sidebarOpen = document.getElementById('sidebar')?.classList.contains('open');
-  const hasFocusedField = ['INPUT', 'TEXTAREA', 'SELECT'].includes(document.activeElement?.tagName || '');
-
-  if (isMobile || sidebarOpen || hasFocusedField) {
-    setTopbarCollapsed(false, { force: false });
-    lastScrollY = currentY;
-    return;
+    console.log(`[Nav] Inicializado: workspace=${currentWorkspace}, section=${currentSection}`);
   }
 
-  if (Date.now() < topbarScrollLockUntil) {
-    lastScrollY = currentY;
-    return;
-  }
+  // ─────────────────────────────────────────────────────────────
+  // WORKSPACES
+  // ─────────────────────────────────────────────────────────────
 
-  const delta = currentY - lastScrollY;
+  /**
+   * Cambia el workspace activo.
+   * @param {string} workspace - 'operativo' | 'comercial'
+   */
+  switchWorkspace(workspace) {
+    if (!WORKSPACES.includes(workspace)) {
+      console.warn(`[Nav] Workspace inválido: ${workspace}`);
+      return;
+    }
 
-  if (currentY <= 72) {
-    setTopbarCollapsed(false, { force: true });
-  } else if (!topbarCollapsedState && currentY > 168 && delta > 16) {
-    setTopbarCollapsed(true);
-  } else if (topbarCollapsedState && delta < -18) {
-    setTopbarCollapsed(false, { force: true });
-  }
+    if (workspace === currentWorkspace) return;
 
-  lastScrollY = currentY;
-}
+    currentWorkspace = workspace;
+    storage.setItem(STORAGE_KEYS.workspace, workspace);
 
-export function handleTopbarAutoCollapse() {
-  const scrollHost = getScrollContainer();
-  const currentY = scrollHost?.scrollTop || window.scrollY || window.pageYOffset || 0;
-  if (topbarScrollTicking) return;
-  topbarScrollTicking = true;
-  requestAnimationFrame(() => {
-    topbarScrollTicking = false;
-    evaluateTopbarAutoCollapse(currentY);
-  });
-}
+    // Aplicar visibilidad de nav items
+    this._applyWorkspace(workspace);
 
-// ─────────────────────────────────────────────
-// SIDEBAR
-// ─────────────────────────────────────────────
+    // Si la sección actual no pertenece al nuevo workspace, redirigir
+    const allowed = SECTION_SPACES[currentSection];
+    if (!allowed || !allowed.includes(workspace)) {
+      const defaultSection = WORKSPACE_DEFAULTS[workspace] || 'inicio';
+      this.showSection(defaultSection);
+    }
 
-export function toggleSidebar() {
-  document.getElementById('sidebar')?.classList.toggle('open');
-  document.getElementById('sidebarOverlay')?.classList.toggle('open');
-  setTopbarCollapsed(false, { force: true });
-}
-
-export function closeSidebar() {
-  document.getElementById('sidebar')?.classList.remove('open');
-  document.getElementById('sidebarOverlay')?.classList.remove('open');
-}
-
-export function toggleGroup(id) {
-  const g = document.getElementById(id);
-  if (g) g.classList.toggle('open');
-}
-
-function openGroupForSection(id) {
-  const node = document.querySelector(`.nav-group [data-section="${id}"]`);
-  const group = node?.closest('.nav-group');
-  if (group) group.classList.add('open');
-}
-
-// ─────────────────────────────────────────────
-// TABBAR MÓVIL
-// ─────────────────────────────────────────────
-
-export function updateMobileTabbar(activeSection) {
-  document.querySelectorAll('[data-mobile-tab]').forEach(btn => {
-    const key = btn.dataset.mobileTab;
-    const isActive = key !== 'menu' && key === activeSection;
-    btn.classList.toggle('active', isActive);
-  });
-}
-
-// ─────────────────────────────────────────────
-// WORKSPACE
-// ─────────────────────────────────────────────
-
-function updateWorkspaceMeta() {
-  const workspaceChip = document.getElementById('workspaceChip');
-  const moduleChip = document.getElementById('moduleCountChip');
-  const count = Object.keys(sectionMap).filter(key => sectionBelongsToWorkspace(key, currentWorkspace)).length;
-  if (workspaceChip) workspaceChip.textContent = `Espacio: ${normalizeWorkspaceLabel(currentWorkspace)}`;
-  if (moduleChip) moduleChip.textContent = `${count} módulos en ${currentWorkspace}`;
-}
-
-export function applyWorkspaceState() {
-  document.body.dataset.workspace = currentWorkspace;
-  document.querySelectorAll('[data-space]').forEach(node => {
-    const spaces = (node.dataset.space || '').split(/\s+/).filter(Boolean);
-    const visible = !spaces.length || spaces.includes(currentWorkspace);
-    if (visible) node.removeAttribute('hidden');
-    else node.setAttribute('hidden', 'hidden');
-  });
-  document.querySelectorAll('.workspace-btn[data-workspace]').forEach(btn => {
-    btn.classList.toggle('active', btn.dataset.workspace === currentWorkspace);
-  });
-  updateWorkspaceMeta();
-}
-
-function ensureWorkspaceForSection(id) {
-  const spaces = spacesForSection(id);
-  if (!spaces.includes(currentWorkspace)) {
-    currentWorkspace = spaces[0] || 'operativo';
-    if (_onWorkspaceChange) _onWorkspaceChange(currentWorkspace);
-    applyWorkspaceState();
-  }
-}
-
-export function switchWorkspace(workspace, preferredSection = null) {
-  currentWorkspace = VALID_WORKSPACES.includes(workspace) ? workspace : 'operativo';
-  if (_onWorkspaceChange) _onWorkspaceChange(currentWorkspace);
-  applyWorkspaceState();
-  const currentKey = getActiveSectionKey();
-  const target = preferredSection && sectionBelongsToWorkspace(preferredSection, workspace)
-    ? preferredSection
-    : (sectionBelongsToWorkspace(currentKey, workspace) ? currentKey : workspaceDefaults[workspace]);
-  showSection(target);
-}
-
-// ─────────────────────────────────────────────
-// NAVEGACIÓN PRINCIPAL
-// ─────────────────────────────────────────────
-
-export function showSection(id, pushHash = true) {
-  id = resolveSectionTarget(id);
-  if (!sectionMap[id]) id = 'inicio';
-  ensureWorkspaceForSection(id);
-
-  document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
-  const target = document.getElementById(sectionMap[id]);
-  if (target) target.classList.add('active');
-
-  document.querySelectorAll('[data-section]').forEach(a => a.classList.remove('active'));
-  document.querySelectorAll(`[data-section="${id}"]`).forEach(a => a.classList.add('active'));
-
-  openGroupForSection(id);
-  updateTopbar(id);
-  document.body.dataset.section = id;
-  setTopbarCollapsed(false, { force: true });
-  updateMobileTabbar(id);
-
-  if (pushHash && location.hash !== `#${id}`) history.replaceState(null, '', `#${id}`);
-
-  const scrollHost = getScrollContainer();
-  if (scrollHost && typeof scrollHost.scrollTo === 'function') {
-    scrollHost.scrollTo({ top: 0, behavior: 'auto' });
-  }
-  window.scrollTo({ top: 0, behavior: 'auto' });
-  closeSidebar();
-  return false;
-}
-
-// ─────────────────────────────────────────────
-// DEPURACIÓN DE UI DEPRECADA
-// ─────────────────────────────────────────────
-
-export function pruneDeprecatedUi() {
-  const sectionIdsToRemove = [
-    'sec-quien', 'sec-pack', 'sec-compromisos', 'sec-flujo', 'sec-economico',
-    'sec-captura', 'sec-iluminacion', 'sec-lightroom', 'sec-photoshop',
-    'sec-montaje', 'sec-imprenta', 'sec-archivos', 'sec-roles'
-  ];
-  sectionIdsToRemove.forEach(id => document.getElementById(id)?.remove());
-
-  ['#grp-presentacion', '#grp-tecnico'].forEach(sel => {
-    document.querySelectorAll(sel).forEach(node => node.remove());
-  });
-
-  ['flujo', 'economico', 'roles'].forEach(key => {
-    document.querySelectorAll(`[data-section="${key}"]`).forEach(node => {
-      const wrapper = node.closest('li, .quick-card, .nav-group') || node;
-      wrapper.remove();
+    // Notificar listeners
+    workspaceListeners.forEach(fn => {
+      try { fn(workspace); } catch (e) { console.error('[Nav] Listener error:', e); }
     });
-  });
 
-  document.querySelectorAll('.quick-card').forEach(card => {
-    const action = card.getAttribute('onclick') || '';
-    if (/showSection\('(quien|flujo)'\)/.test(action)) card.remove();
-  });
+    console.log(`[Nav] Workspace → ${workspace}`);
+  }
 
-  document.querySelectorAll('button[onclick], a[onclick]').forEach(node => {
-    const action = node.getAttribute('onclick') || '';
-    if (action.includes("showSection('flujo')")) {
-      node.setAttribute('onclick', "showSection('calendario')");
-      if (node.textContent?.trim() === 'Ver flujo completo') node.textContent = 'Ver calendario';
-    }
-    if (action.includes("showSection('pack')")) {
-      node.setAttribute('onclick', "showSection('modalidades')");
-      if (node.textContent?.trim() === 'Abrir pack y servicios') node.textContent = 'Abrir modalidades';
-    }
-    if (action.includes("showSection('compromisos')")) {
-      node.setAttribute('onclick', "showSection('institucional')");
-      if (node.textContent?.trim() === 'Ver compromisos') node.textContent = 'Ver propuesta base';
-    }
-    if (action.includes("showSection('archivos')")) {
-      node.setAttribute('onclick', "showSection('workspace')");
-      if (node.textContent?.trim() === 'Ver estructura de archivos') node.textContent = 'Ver estructura Workspace';
-    }
-  });
-}
+  /**
+   * @returns {string} Workspace activo
+   */
+  getWorkspace() {
+    return currentWorkspace;
+  }
 
-// ─────────────────────────────────────────────
-// BÚSQUEDA
-// ─────────────────────────────────────────────
+  /**
+   * @returns {string} Label legible del workspace activo
+   */
+  getWorkspaceLabel() {
+    return WORKSPACE_LABELS[currentWorkspace] || currentWorkspace;
+  }
 
-export function buildSearchIndex() {
-  searchIndex = Object.entries(sectionMap)
-    .filter(([key]) => !SEARCH_EXCLUDED_SECTIONS.has(key))
-    .map(([key, id]) => {
-      const section = document.getElementById(id);
-      const title = section?.querySelector('.section-header h1')?.textContent?.trim() || key;
-      const kicker = section?.querySelector('.breadcrumb')?.textContent?.trim() || 'Panel principal';
-      const bodyText = (section?.textContent || '').replace(/\s+/g, ' ').trim();
-      return {
-        key,
-        id,
-        title,
-        kicker,
-        text: bodyText.toLowerCase(),
-        preview: bodyText.slice(0, 180)
-      };
+  // ─────────────────────────────────────────────────────────────
+  // SECCIONES
+  // ─────────────────────────────────────────────────────────────
+
+  /**
+   * Muestra una sección y oculta las demás.
+   * @param {string} sectionKey - Key de SECTION_MAP (ej: 'cobranzas')
+   * @param {Object} [opts]
+   * @param {boolean} [opts.saveState=true] - Persistir en localStorage
+   * @param {boolean} [opts.animate=true] - Aplicar animación de entrada
+   * @param {boolean} [opts.updateHash=true] - Actualizar hash de la URL
+   * @param {boolean} [opts.closeSidebar=true] - Cerrar sidebar en mobile
+   */
+  showSection(sectionKey, opts = {}) {
+    const {
+      saveState = true,
+      animate = true,
+      updateHash = true,
+      closeSidebar = true
+    } = opts;
+
+    // Resolver redirecciones
+    const resolved = this._resolveSection(sectionKey);
+    if (!resolved) {
+      console.warn(`[Nav] Sección desconocida: ${sectionKey}`);
+      return;
+    }
+
+    // Verificar permisos de workspace
+    const allowed = SECTION_SPACES[resolved];
+    if (allowed && !allowed.includes(currentWorkspace)) {
+      console.warn(`[Nav] Sección "${resolved}" no disponible en workspace "${currentWorkspace}"`);
+      return;
+    }
+
+    const domId = SECTION_MAP[resolved];
+    if (!domId) {
+      console.warn(`[Nav] Sin DOM id para sección: ${resolved}`);
+      return;
+    }
+
+    const targetEl = document.getElementById(domId);
+    if (!targetEl) {
+      console.warn(`[Nav] Elemento no encontrado: #${domId}`);
+      return;
+    }
+
+    const previousSection = currentSection;
+    currentSection = resolved;
+
+    // Ocultar todas las secciones
+    document.querySelectorAll('.section.active').forEach(el => {
+      el.classList.remove('active');
     });
-}
 
-export function renderSearchResults(query) {
-  const container = document.getElementById('searchResults');
-  if (!container) return;
-  const q = query.trim().toLowerCase();
-  if (!q) {
-    container.hidden = true;
-    container.innerHTML = '';
-    searchActiveIndex = -1;
-    return;
-  }
+    // Mostrar la nueva
+    targetEl.classList.add('active');
 
-  const results = searchIndex
-    .map(entry => {
-      const titleHit  = entry.title.toLowerCase().includes(q) ? 5 : 0;
-      const kickerHit = entry.kicker.toLowerCase().includes(q) ? 2 : 0;
-      const bodyHit   = entry.text.includes(q) ? 1 : 0;
-      return { ...entry, score: titleHit + kickerHit + bodyHit };
-    })
-    .filter(entry => entry.score > 0 && sectionBelongsToWorkspace(entry.key, currentWorkspace))
-    .sort((a, b) => b.score - a.score || a.title.localeCompare(b.title, 'es'))
-    .slice(0, 8);
+    // Animación
+    if (animate) {
+      targetEl.style.animation = 'none';
+      // Force reflow
+      void targetEl.offsetHeight;
+      targetEl.style.animation = '';
+    }
 
-  if (!results.length) {
-    container.hidden = false;
-    container.innerHTML = '<div class="search-empty">No encontré coincidencias. Prueba con "retomas", "canon", "Forms", "QA" o "cooperadora".</div>';
-    searchActiveIndex = -1;
-    return;
-  }
+    // Scroll al top
+    const mainEl = document.querySelector('main');
+    if (mainEl) mainEl.scrollTop = 0;
+    window.scrollTo(0, 0);
 
-  container.hidden = false;
-  container.innerHTML = results.map((entry, idx) => `
-    <button class="search-item ${idx === 0 ? 'active' : ''}" type="button" data-search-index="${idx}" data-target="${entry.key}">
-      <small>${entry.kicker}</small>
-      <strong>${entry.title}</strong>
-      <span>${entry.preview}…</span>
-    </button>
-  `).join('');
-  searchActiveIndex = 0;
+    // Actualizar nav activa
+    this._updateActiveNav(resolved);
 
-  container.querySelectorAll('.search-item').forEach(btn => {
-    btn.addEventListener('click', () => navigateFromSearch(btn.dataset.target));
-  });
-}
+    // Actualizar topbar
+    this._updateTopbar(resolved);
 
-export function syncSearchActiveItem() {
-  const items = [...document.querySelectorAll('.search-item')];
-  items.forEach((item, idx) => item.classList.toggle('active', idx === searchActiveIndex));
-}
+    // Persistir
+    if (saveState) {
+      storage.setItem(STORAGE_KEYS.lastSection, resolved);
+    }
 
-export function navigateFromSearch(target) {
-  showSection(target);
-  const input = document.getElementById('globalSearch');
-  const container = document.getElementById('searchResults');
-  if (input) input.value = '';
-  if (container) {
-    container.hidden = true;
-    container.innerHTML = '';
-  }
-}
+    // Hash
+    if (updateHash && resolved !== 'inicio') {
+      history.replaceState(null, '', `#${resolved}`);
+    } else if (updateHash && resolved === 'inicio') {
+      history.replaceState(null, '', window.location.pathname);
+    }
 
-// ─────────────────────────────────────────────
-// UTILIDADES MENORES
-// ─────────────────────────────────────────────
+    // Cerrar sidebar mobile
+    if (closeSidebar && sidebarOpen) {
+      this.closeSidebar();
+    }
 
-export function toggleAcc(header) {
-  if (!header) return;
-  const item = header.closest('.faq-item, .accordion-item, .accordion');
-  const body = (
-    header.nextElementSibling?.classList?.contains('acc-body')
-      ? header.nextElementSibling
-      : item?.querySelector('.acc-body, .faq-body')
-  ) || null;
-  const willOpen = !header.classList.contains('open');
-  header.classList.toggle('open', willOpen);
-  body?.classList.toggle('open', willOpen);
-  item?.classList.toggle('open', willOpen);
-}
-
-export function printCurrentSection() {
-  window.print();
-}
-
-// ─────────────────────────────────────────────
-// INICIALIZACIÓN DE EVENTOS
-// ─────────────────────────────────────────────
-
-/**
- * Conecta todos los listeners de navegación del DOM.
- * Llamar después de que el DOM esté listo.
- */
-export function initNavigationEvents() {
-  // Links de sección
-  document.querySelectorAll('[data-section]').forEach(link => {
-    link.addEventListener('click', evt => {
-      evt.preventDefault();
-      showSection(link.dataset.section);
+    // Notificar
+    sectionListeners.forEach(fn => {
+      try { fn(resolved, previousSection); } catch (e) { console.error('[Nav] Listener error:', e); }
     });
-  });
 
-  // Búsqueda global
-  const input = document.getElementById('globalSearch');
-  const results = document.getElementById('searchResults');
+    console.log(`[Nav] Sección → ${resolved}`);
+  }
 
-  if (input) {
-    input.addEventListener('input', () => renderSearchResults(input.value));
-    input.addEventListener('keydown', evt => {
-      const items = [...document.querySelectorAll('.search-item')];
-      if (!items.length) return;
-      if (evt.key === 'ArrowDown') {
-        evt.preventDefault();
-        searchActiveIndex = Math.min(searchActiveIndex + 1, items.length - 1);
-        syncSearchActiveItem();
-      }
-      if (evt.key === 'ArrowUp') {
-        evt.preventDefault();
-        searchActiveIndex = Math.max(searchActiveIndex - 1, 0);
-        syncSearchActiveItem();
-      }
-      if (evt.key === 'Enter' && searchActiveIndex >= 0) {
-        evt.preventDefault();
-        navigateFromSearch(items[searchActiveIndex].dataset.target);
-      }
-      if (evt.key === 'Escape') {
-        input.value = '';
-        renderSearchResults('');
-        input.blur();
-      }
+  /**
+   * @returns {string} Sección activa
+   */
+  getSection() {
+    return currentSection;
+  }
+
+  /**
+   * Verifica si una sección está activa.
+   * @param {string} sectionKey
+   * @returns {boolean}
+   */
+  isActive(sectionKey) {
+    return currentSection === sectionKey;
+  }
+
+  /**
+   * Devuelve las secciones visibles en el workspace actual.
+   * @returns {string[]}
+   */
+  getAvailableSections() {
+    return Object.keys(SECTION_SPACES).filter(key => {
+      const spaces = SECTION_SPACES[key];
+      return spaces && spaces.includes(currentWorkspace);
     });
   }
 
-  // Cierre del panel de búsqueda al hacer clic fuera
-  document.addEventListener('click', evt => {
-    if (results && !evt.target.closest('.search-wrap')) {
-      results.hidden = true;
+  // ─────────────────────────────────────────────────────────────
+  // SIDEBAR
+  // ─────────────────────────────────────────────────────────────
+
+  /** Abre el sidebar (mobile drawer) */
+  openSidebar() {
+    const sidebar = document.getElementById('sidebar');
+    const overlay = document.querySelector('.sidebar-overlay');
+    if (!sidebar) return;
+
+    sidebar.classList.add('open');
+    if (overlay) overlay.classList.add('visible');
+    sidebarOpen = true;
+
+    // ARIA
+    const toggle = document.getElementById('sidebarToggle');
+    if (toggle) toggle.setAttribute('aria-expanded', 'true');
+
+    // Bloquear scroll del body
+    document.body.style.overflow = 'hidden';
+  }
+
+  /** Cierra el sidebar (mobile drawer) */
+  closeSidebar() {
+    const sidebar = document.getElementById('sidebar');
+    const overlay = document.querySelector('.sidebar-overlay');
+    if (!sidebar) return;
+
+    sidebar.classList.remove('open');
+    if (overlay) overlay.classList.remove('visible');
+    sidebarOpen = false;
+
+    // ARIA
+    const toggle = document.getElementById('sidebarToggle');
+    if (toggle) toggle.setAttribute('aria-expanded', 'false');
+
+    // Restaurar scroll
+    document.body.style.overflow = '';
+  }
+
+  /** Toggle del sidebar */
+  toggleSidebar() {
+    sidebarOpen ? this.closeSidebar() : this.openSidebar();
+  }
+
+  /**
+   * @returns {boolean}
+   */
+  isSidebarOpen() {
+    return sidebarOpen;
+  }
+
+  // ─────────────────────────────────────────────────────────────
+  // NAV GROUPS (acordeón en sidebar)
+  // ─────────────────────────────────────────────────────────────
+
+  /**
+   * Toggle de un grupo de navegación (acordeón).
+   * @param {HTMLElement} headerEl - El .nav-group-header clickeado
+   */
+  toggleGroup(headerEl) {
+    const group = headerEl.closest('.nav-group');
+    if (!group) return;
+
+    const wasOpen = group.classList.contains('open');
+
+    // Cerrar todos los grupos del mismo nivel
+    const parent = group.parentElement;
+    if (parent) {
+      parent.querySelectorAll(':scope > .nav-group.open').forEach(g => {
+        g.classList.remove('open');
+      });
     }
-  });
 
-  // Atajos de teclado: Ctrl+K y /
-  document.addEventListener('keydown', evt => {
-    if ((evt.ctrlKey || evt.metaKey) && evt.key.toLowerCase() === 'k') {
-      evt.preventDefault();
-      input?.focus();
-      input?.select();
+    // Si estaba cerrado, abrir
+    if (!wasOpen) {
+      group.classList.add('open');
     }
-    if (evt.key === '/' && !['INPUT', 'TEXTAREA'].includes(document.activeElement.tagName)) {
-      evt.preventDefault();
-      input?.focus();
+  }
+
+  // ─────────────────────────────────────────────────────────────
+  // EVENTOS (suscripción)
+  // ─────────────────────────────────────────────────────────────
+
+  /**
+   * Registra un listener de cambio de sección.
+   * @param {Function} fn - (newSection, previousSection) => void
+   * @returns {Function} Función para desuscribirse
+   */
+  onSectionChange(fn) {
+    sectionListeners.add(fn);
+    return () => sectionListeners.delete(fn);
+  }
+
+  /**
+   * Registra un listener de cambio de workspace.
+   * @param {Function} fn - (newWorkspace) => void
+   * @returns {Function} Función para desuscribirse
+   */
+  onWorkspaceChange(fn) {
+    workspaceListeners.add(fn);
+    return () => workspaceListeners.delete(fn);
+  }
+
+  // ─────────────────────────────────────────────────────────────
+  // MÉTODOS PRIVADOS
+  // ─────────────────────────────────────────────────────────────
+
+  /**
+   * Resuelve una sección: si es deprecada la redirige,
+   * si no existe devuelve el default del workspace.
+   * @param {string|null} sectionKey
+   * @returns {string}
+   * @private
+   */
+  _resolveSection(sectionKey) {
+    if (!sectionKey) {
+      return WORKSPACE_DEFAULTS[currentWorkspace] || 'inicio';
     }
-  });
 
-  // Hash navigation
-  window.addEventListener('hashchange', () => {
-    const target = location.hash.replace('#', '') || 'inicio';
-    showSection(target, false);
-  });
-
-  // Scroll → auto-collapse topbar
-  getScrollContainer()?.addEventListener('scroll', handleTopbarAutoCollapse, { passive: true });
-
-  // Resize → reset estado de scroll
-  window.addEventListener('resize', () => {
-    const host = getScrollContainer();
-    lastScrollY = host?.scrollTop || window.scrollY || window.pageYOffset || 0;
-    handleTopbarAutoCollapse();
-  });
-
-  // Foco en campos: des-colapsar topbar
-  document.addEventListener('focusin', evt => {
-    if (evt.target && ['INPUT', 'TEXTAREA', 'SELECT'].includes(evt.target.tagName)) {
-      setTopbarCollapsed(false, { force: true });
+    // Redirección de secciones deprecadas
+    if (DEPRECATED_SECTION_REDIRECTS[sectionKey]) {
+      const redirected = DEPRECATED_SECTION_REDIRECTS[sectionKey];
+      console.log(`[Nav] Redirigiendo "${sectionKey}" → "${redirected}"`);
+      return redirected;
     }
-  });
+
+    // Verificar que exista en el mapa
+    if (SECTION_MAP[sectionKey]) {
+      return sectionKey;
+    }
+
+    // Fallback
+    console.warn(`[Nav] Sección "${sectionKey}" no existe, usando default`);
+    return WORKSPACE_DEFAULTS[currentWorkspace] || 'inicio';
+  }
+
+  /**
+   * Aplica visibilidad de items de nav según workspace.
+   * Muestra/oculta items con data-workspace.
+   * @param {string} workspace
+   * @private
+   */
+  _applyWorkspace(workspace) {
+    // Toggle botón activo del workspace switcher
+    document.querySelectorAll('[data-workspace-btn]').forEach(btn => {
+      const ws = btn.getAttribute('data-workspace-btn');
+      btn.classList.toggle('active', ws === workspace);
+    });
+
+    // Mostrar/ocultar items de nav según workspace
+    document.querySelectorAll('[data-section]').forEach(el => {
+      const sectionKey = el.getAttribute('data-section');
+      const spaces = SECTION_SPACES[sectionKey];
+      if (spaces) {
+        const visible = spaces.includes(workspace);
+        // Buscar el contenedor más cercano (li o nav-group)
+        const container = el.closest('.nav-group') || el.closest('li') || el;
+        container.style.display = visible ? '' : 'none';
+      }
+    });
+
+    // Actualizar label en topbar si existe
+    const wsLabel = document.getElementById('workspaceLabel');
+    if (wsLabel) {
+      wsLabel.textContent = WORKSPACE_LABELS[workspace] || workspace;
+    }
+  }
+
+  /**
+   * Marca el nav link activo en sidebar.
+   * @param {string} sectionKey
+   * @private
+   */
+  _updateActiveNav(sectionKey) {
+    // Quitar active de todos
+    document.querySelectorAll('.nav-item-direct.active, .nav-sub li a.active').forEach(el => {
+      el.classList.remove('active');
+    });
+
+    // Buscar el link correspondiente y activar
+    const link = document.querySelector(`[data-section="${sectionKey}"]`);
+    if (link) {
+      link.classList.add('active');
+
+      // Si está dentro de un nav-group, abrirlo
+      const group = link.closest('.nav-group');
+      if (group && !group.classList.contains('open')) {
+        group.classList.add('open');
+      }
+    }
+
+    // Actualizar mobile tabbar si existe
+    this._updateMobileTabbar(sectionKey);
+  }
+
+  /**
+   * Actualiza título y breadcrumb del topbar.
+   * @param {string} sectionKey
+   * @private
+   */
+  _updateTopbar(sectionKey) {
+    const titleEl = document.getElementById('topbarTitle');
+    const breadcrumbEl = document.getElementById('topbarBreadcrumb');
+
+    // Buscar el label desde el nav link
+    const link = document.querySelector(`[data-section="${sectionKey}"]`);
+    const label = link ? link.textContent.trim() : sectionKey;
+
+    if (titleEl) {
+      titleEl.textContent = label;
+    }
+
+    if (breadcrumbEl) {
+      const wsLabel = WORKSPACE_LABELS[currentWorkspace] || currentWorkspace;
+      breadcrumbEl.innerHTML = `${wsLabel} <span style="margin:0 6px;opacity:0.4">›</span> ${label}`;
+    }
+  }
+
+  /**
+   * Actualiza el estado activo del mobile tabbar.
+   * @param {string} sectionKey
+   * @private
+   */
+  _updateMobileTabbar(sectionKey) {
+    document.querySelectorAll('.mobile-tabbar-btn').forEach(btn => {
+      const target = btn.getAttribute('data-section') || btn.getAttribute('data-tab');
+      btn.classList.toggle('active', target === sectionKey);
+    });
+  }
+
+  // ─────────────────────────────────────────────────────────────
+  // BINDINGS DE EVENTOS
+  // ─────────────────────────────────────────────────────────────
+
+  /**
+   * Bindea toggle del sidebar (hamburger) y overlay.
+   * @private
+   */
+  _bindSidebar() {
+    // Botón hamburger
+    const toggle = document.getElementById('sidebarToggle');
+    if (toggle) {
+      toggle.addEventListener('click', (e) => {
+        e.stopPropagation();
+        this.toggleSidebar();
+      });
+    }
+
+    // Overlay para cerrar
+    const overlay = document.querySelector('.sidebar-overlay');
+    if (overlay) {
+      overlay.addEventListener('click', () => this.closeSidebar());
+    }
+  }
+
+  /**
+   * Bindea todos los links de navegación.
+   * Soporta: data-section, nav-group-header, data-workspace-btn.
+   * @private
+   */
+  _bindNavLinks() {
+    // Links directos a secciones
+    document.addEventListener('click', (e) => {
+      // Link a sección
+      const sectionLink = e.target.closest('[data-section]');
+      if (sectionLink) {
+        e.preventDefault();
+        const key = sectionLink.getAttribute('data-section');
+        this.showSection(key);
+        return;
+      }
+
+      // Header de nav group (acordeón)
+      const groupHeader = e.target.closest('.nav-group-header');
+      if (groupHeader) {
+        e.preventDefault();
+        this.toggleGroup(groupHeader);
+        return;
+      }
+
+      // Botón de workspace
+      const wsBtn = e.target.closest('[data-workspace-btn]');
+      if (wsBtn) {
+        e.preventDefault();
+        const ws = wsBtn.getAttribute('data-workspace-btn');
+        this.switchWorkspace(ws);
+        return;
+      }
+    });
+  }
+
+  /**
+   * Bindea botones del mobile tabbar.
+   * @private
+   */
+  _bindMobileTabbar() {
+    document.querySelectorAll('.mobile-tabbar-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const target = btn.getAttribute('data-section') || btn.getAttribute('data-tab');
+        if (target === 'menu') {
+          this.toggleSidebar();
+        } else if (target) {
+          this.showSection(target);
+        }
+      });
+    });
+  }
+
+  /**
+   * Maneja cambios de hash en la URL.
+   * @private
+   */
+  _bindHashChange() {
+    window.addEventListener('hashchange', () => {
+      const hash = window.location.hash.replace('#', '');
+      if (hash && hash !== currentSection) {
+        this.showSection(hash, { updateHash: false });
+      }
+    });
+  }
+
+  /**
+   * Si la página carga con un hash, navegar a esa sección.
+   * @private
+   */
+  _handleHashOnLoad() {
+    const hash = window.location.hash.replace('#', '');
+    if (hash && SECTION_MAP[hash]) {
+      this.showSection(hash, { saveState: true, updateHash: false });
+    }
+  }
+
+  /**
+   * Keyboard shortcuts globales.
+   * Escape cierra sidebar/modales.
+   * @private
+   */
+  _bindKeyboard() {
+    document.addEventListener('keydown', (e) => {
+      // Escape → cerrar sidebar
+      if (e.key === 'Escape' && sidebarOpen) {
+        this.closeSidebar();
+      }
+    });
+  }
+
+  // ─────────────────────────────────────────────────────────────
+  // UTILIDADES
+  // ─────────────────────────────────────────────────────────────
+
+  /**
+   * Navega a la sección default del workspace actual.
+   */
+  goHome() {
+    const home = WORKSPACE_DEFAULTS[currentWorkspace] || 'inicio';
+    this.showSection(home);
+  }
+
+  /**
+   * Devuelve info de estado para debugging / export.
+   * @returns {Object}
+   */
+  getState() {
+    return {
+      workspace: currentWorkspace,
+      section: currentSection,
+      sidebarOpen,
+      availableSections: this.getAvailableSections()
+    };
+  }
+
+  /**
+   * Fuerza re-render de la navegación (útil post-import de datos).
+   */
+  refresh() {
+    this._applyWorkspace(currentWorkspace);
+    this._updateActiveNav(currentSection);
+    this._updateTopbar(currentSection);
+  }
 }
+
+// ═══════════════════════════════════════════════════════════════
+// SINGLETON EXPORT
+// ═══════════════════════════════════════════════════════════════
+
+export const navigation = new NavigationManager();
+
+export default navigation;

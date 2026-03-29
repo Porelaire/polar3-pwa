@@ -1,419 +1,448 @@
 /**
- * config.js — Polar[3] PWA v2.7.12
- * Todas las constantes y valores de configuración centralizados.
- * No contiene lógica de negocio ni efectos secundarios.
+ * POLAR[3] SISTEMA OPERATIVO v2.8.0
+ * Archivo de Configuración Centralizado
+ * 
+ * Fuente de verdad para constantes, magic numbers y configuración global.
+ * Los colores de marca se definen aquí como referencia, pero la fuente
+ * de verdad visual son las CSS custom properties en styles.css (:root).
  */
 
-// ─────────────────────────────────────────────
-// APP METADATA
-// ─────────────────────────────────────────────
+// ═══════════════════════════════════════════════════════════════
+// VERSIONADO Y CARACTERÍSTICAS
+// ═══════════════════════════════════════════════════════════════
 
-export const POLAR3_APP_VERSION = '2.7.12';
-export const PWA_CACHE_LABEL = 'Polar3 PWA';
+export const APP_VERSION = '2.8.0';
+export const APP_NAME = 'Polar[3]';
+export const APP_SUBTITLE = 'Sistema Operativo · Fotografía escolar';
 
-// ─────────────────────────────────────────────
-// STORAGE KEYS
-// ─────────────────────────────────────────────
+export const FEATURE_FLAGS = {
+  darkMode: true,        // Soporte dark mode disponible
+  darkModeEnabled: false, // Toggle del usuario (se persiste en storage)
+  offlineMode: true,
+  autoBackup: true,
+  analyticsPrivate: false,
+  multiDeviceSync: false, // Futuro
+  exportExcel: true,
+  exportPDF: true
+};
 
-export const POLAR3_STORAGE_PREFIX = 'polar3_';
+// ═══════════════════════════════════════════════════════════════
+// STORAGE Y PERSISTENCIA
+// ═══════════════════════════════════════════════════════════════
 
-// Backup
-export const BACKUP_META_KEY      = 'polar3_backup_meta';
-export const BACKUP_HISTORY_KEY   = 'polar3_backup_history';
-export const BACKUP_PREFS_KEY     = 'polar3_backup_prefs';
+export const STORAGE_PREFIX = 'polar3_';
 export const BACKUP_HISTORY_LIMIT = 40;
+export const BACKUP_AUTO_INTERVAL_HOURS = 72;
 
-// Precio global
-export const PRECIO_STORAGE_KEY   = 'polar3_precio';
-export const PRECIO_DEFAULT       = 15000;
+/**
+ * Keys de localStorage que la app controla.
+ * Todas se guardan con el prefijo STORAGE_PREFIX.
+ * Ej: storage.getItem('cobros') → localStorage['polar3_cobros']
+ */
+export const STORAGE_KEYS = {
+  // Configuración de app
+  workspace: 'workspace',
+  lastSection: 'lastSection',
+  theme: 'theme',
+  language: 'language',
 
-// Workspace
-export const WORKSPACE_STORAGE_KEY = 'polar3_workspace';
+  // Datos de negocio
+  precio: 'precio',
+  cobros: 'cobros',
+  paymentBoard: 'payment_board',
+  schoolBoard: 'school_board',
+  followupBoard: 'followup_board',
+  checklist: 'checklist',
 
-// Boards / datos de negocio
-export const PAYMENT_BOARD_KEY     = 'polar3_payment_board';
-export const SCHOOL_BOARD_KEY      = 'polar3_school_board';
-export const FOLLOWUP_BOARD_KEY    = 'polar3_followup_board';
-export const CHECKLIST_KEY         = 'polar3_checklist';
+  // Backup
+  backupPrefs: 'backup_prefs',
+  backupMeta: 'backup_meta',
+  backupHistory: 'backup_history',
+  dirtyKeys: 'dirty_keys',
 
-// KPIs
-export const KPI_TICKET_MODE_KEY   = 'polar3_kpi_ticket_mode';
-export const KPI_SCOPE_KEY         = 'polar3_kpi_scope';
-export const KPI_PERIOD_MODE_KEY   = 'polar3_kpi_period_mode';
-export const KPI_PERIOD_VALUE_KEY  = 'polar3_kpi_period_value';
-
-// Calendario
-export const CALENDAR_STORAGE_KEY                = 'polar3_work_calendar_v2';
-export const CALENDAR_LEGACY_STORAGE_KEY         = 'polar3_work_calendar_v1';
-export const CALENDAR_PRINT_REFERENCE_KEY        = 'polar3_calendar_print_reference';
-export const CALENDAR_PRINT_SCHOOL_FILTER_KEY    = 'polar3_calendar_print_school_filter';
-export const CALENDAR_DAY_SHEET_STORAGE_KEY      = 'polar3_calendar_day_sheet_v1';
-export const CALENDAR_DAY_CHECKLIST_STORAGE_KEY  = 'polar3_calendar_day_checklist_v1';
-
-// ─────────────────────────────────────────────
-// NAVEGACIÓN — secciones y workspaces
-// ─────────────────────────────────────────────
-
-/** Mapea clave de sección → ID del elemento DOM */
-export const sectionMap = {
-  inicio:        'sec-inicio',
-  appcenter:     'sec-appcenter',
-  quien:         'sec-quien',
-  pack:          'sec-pack',
-  compromisos:   'sec-compromisos',
-  flujo:         'sec-flujo',
-  calendario:    'sec-calendario',
-  economico:     'sec-economico',
-  captacion:     'sec-captacion',
-  scripts:       'sec-scripts',
-  familias:      'sec-familias',
-  marketing:     'sec-marketing',
-  cartera:       'sec-cartera',
-  captura:       'sec-captura',
-  iluminacion:   'sec-iluminacion',
-  lightroom:     'sec-lightroom',
-  photoshop:     'sec-photoshop',
-  montaje:       'sec-montaje',
-  imprenta:      'sec-imprenta',
-  archivos:      'sec-archivos',
-  checklist:     'sec-checklist',
-  seguimiento:   'sec-seguimiento',
-  roles:         'sec-roles',
-  emergencias:   'sec-emergencias',
-  diagnostico:   'sec-diagnostico',
-  sla:           'sec-sla',
-  qa:            'sec-qa',
-  pagos:         'sec-pagos',
-  cobranzas:     'sec-cobranzas',
-  forms:         'sec-forms',
-  kpis:          'sec-kpis',
-  simulador:     'sec-simulador',
-  respaldos:     'sec-respaldos',
-  institucional: 'sec-institucional',
-  modalidades:   'sec-modalidades',
-  propuesta:     'sec-propuesta',
-  marca:         'sec-marca',
-  workspace:     'sec-workspace'
+  // Workspace
+  meetingMode: 'meeting_mode',
+  calendarMobileOpenMonth: 'calendar_mobile_open_month_key'
 };
 
-/** Mapea clave de sección → workspaces a los que pertenece */
-export const sectionSpaces = {
-  inicio:        ['operativo', 'comercial'],
-  appcenter:     ['operativo', 'comercial'],
-  quien:         ['operativo', 'comercial'],
-  pack:          ['operativo', 'comercial'],
-  compromisos:   ['operativo', 'comercial'],
-  flujo:         ['operativo'],
-  calendario:    ['operativo'],
-  economico:     ['operativo'],
-  captacion:     ['operativo', 'comercial'],
-  scripts:       ['operativo', 'comercial'],
-  familias:      ['operativo', 'comercial'],
-  marketing:     ['operativo', 'comercial'],
-  cartera:       ['operativo', 'comercial'],
-  captura:       ['operativo'],
-  iluminacion:   ['operativo'],
-  lightroom:     ['operativo'],
-  photoshop:     ['operativo'],
-  montaje:       ['operativo'],
-  imprenta:      ['operativo'],
-  archivos:      ['operativo'],
-  checklist:     ['operativo'],
-  seguimiento:   ['operativo'],
-  roles:         ['operativo'],
-  emergencias:   ['operativo'],
-  diagnostico:   ['operativo'],
-  sla:           ['operativo'],
-  qa:            ['operativo'],
-  pagos:         ['operativo'],
-  cobranzas:     ['operativo'],
-  forms:         ['operativo'],
-  kpis:          ['operativo'],
-  simulador:     ['operativo', 'comercial'],
-  respaldos:     ['operativo'],
-  institucional: ['comercial'],
-  modalidades:   ['comercial'],
-  propuesta:     ['comercial'],
-  marca:         ['comercial'],
-  workspace:     ['operativo', 'comercial']
+// ═══════════════════════════════════════════════════════════════
+// PRECIOS Y DATOS DE NEGOCIO
+// ═══════════════════════════════════════════════════════════════
+
+export const PACK_PRICE_DEFAULT = 15000; // ARS
+export const CANON_PERCENTAGE = 0.20;    // 20% para cooperadora
+export const SLA_DAYS_DELIVERY = { min: 15, max: 30 };
+
+export const PACK_CONTENTS = {
+  carpeta: '1 carpeta premium',
+  impresiones: '2 fotos 20×30',
+  tiraCarnet: '1 tira carnet',
+  fotoDocente: '1 foto regalo docente',
+  digital: 'Descarga digital + pendrive'
 };
 
-/** Sección inicial por defecto para cada workspace */
-export const workspaceDefaults = {
+// ═══════════════════════════════════════════════════════════════
+// WORKSPACES Y NAVEGACIÓN
+// ═══════════════════════════════════════════════════════════════
+
+export const WORKSPACES = ['operativo', 'comercial'];
+
+export const WORKSPACE_DEFAULTS = {
   operativo: 'inicio',
   comercial: 'institucional'
 };
 
-/** Workspaces válidos */
-export const VALID_WORKSPACES = ['operativo', 'comercial'];
+export const WORKSPACE_LABELS = {
+  operativo: 'Operativo',
+  comercial: 'Comercial'
+};
+
+// ═══════════════════════════════════════════════════════════════
+// SECCIONES: MAPA Y PERMISOS POR WORKSPACE
+// ═══════════════════════════════════════════════════════════════
 
 /**
- * Secciones deprecadas → redirigen a otra sección activa.
- * Se usan para migración sin romper bookmarks o estado guardado.
+ * Mapeo sección → id del elemento DOM.
+ * Ej: showSection('cobranzas') → document.getElementById('sec-cobranzas')
+ */
+export const SECTION_MAP = {
+  inicio: 'sec-inicio',
+  appcenter: 'sec-appcenter',
+  quien: 'sec-quien',
+  pack: 'sec-pack',
+  compromisos: 'sec-compromisos',
+  flujo: 'sec-flujo',
+  calendario: 'sec-calendario',
+  economico: 'sec-economico',
+  captacion: 'sec-captacion',
+  scripts: 'sec-scripts',
+  familias: 'sec-familias',
+  marketing: 'sec-marketing',
+  cartera: 'sec-cartera',
+  captura: 'sec-captura',
+  iluminacion: 'sec-iluminacion',
+  lightroom: 'sec-lightroom',
+  photoshop: 'sec-photoshop',
+  montaje: 'sec-montaje',
+  imprenta: 'sec-imprenta',
+  archivos: 'sec-archivos',
+  checklist: 'sec-checklist',
+  seguimiento: 'sec-seguimiento',
+  roles: 'sec-roles',
+  emergencias: 'sec-emergencias',
+  diagnostico: 'sec-diagnostico',
+  sla: 'sec-sla',
+  qa: 'sec-qa',
+  pagos: 'sec-pagos',
+  cobranzas: 'sec-cobranzas',
+  forms: 'sec-forms',
+  kpis: 'sec-kpis',
+  simulador: 'sec-simulador',
+  respaldos: 'sec-respaldos',
+  institucional: 'sec-institucional',
+  modalidades: 'sec-modalidades',
+  propuesta: 'sec-propuesta',
+  marca: 'sec-marca',
+  workspace: 'sec-workspace'
+};
+
+/**
+ * Qué workspace(s) pueden ver cada sección.
+ * Si una sección no aparece acá, no es accesible.
+ */
+export const SECTION_SPACES = {
+  inicio: ['operativo', 'comercial'],
+  appcenter: ['operativo', 'comercial'],
+  quien: ['operativo', 'comercial'],
+  pack: ['operativo', 'comercial'],
+  compromisos: ['operativo', 'comercial'],
+  flujo: ['operativo'],
+  calendario: ['operativo'],
+  economico: ['operativo'],
+  captacion: ['operativo', 'comercial'],
+  scripts: ['operativo', 'comercial'],
+  familias: ['operativo', 'comercial'],
+  marketing: ['operativo', 'comercial'],
+  cartera: ['operativo', 'comercial'],
+  captura: ['operativo'],
+  iluminacion: ['operativo'],
+  lightroom: ['operativo'],
+  photoshop: ['operativo'],
+  montaje: ['operativo'],
+  imprenta: ['operativo'],
+  archivos: ['operativo'],
+  checklist: ['operativo'],
+  seguimiento: ['operativo'],
+  roles: ['operativo'],
+  emergencias: ['operativo'],
+  diagnostico: ['operativo'],
+  sla: ['operativo'],
+  qa: ['operativo'],
+  pagos: ['operativo'],
+  cobranzas: ['operativo'],
+  forms: ['operativo'],
+  kpis: ['operativo'],
+  simulador: ['operativo', 'comercial'],
+  respaldos: ['operativo'],
+  institucional: ['comercial'],
+  modalidades: ['comercial'],
+  propuesta: ['comercial'],
+  marca: ['comercial'],
+  workspace: ['operativo', 'comercial']
+};
+
+/**
+ * Secciones que se eliminaron o renombraron.
+ * Si un usuario tiene una guardada en localStorage, se redirige.
  */
 export const DEPRECATED_SECTION_REDIRECTS = {
-  quien:      'inicio',
-  pack:       'modalidades',
-  compromisos:'institucional',
-  flujo:      'calendario',
-  economico:  'simulador',
-  captura:    'checklist',
-  iluminacion:'checklist',
-  lightroom:  'checklist',
-  photoshop:  'checklist',
-  montaje:    'checklist',
-  imprenta:   'checklist',
-  archivos:   'workspace',
-  roles:      'checklist',
+  quien: 'inicio',
+  pack: 'modalidades',
+  compromisos: 'institucional',
+  flujo: 'calendario',
+  economico: 'simulador',
+  captura: 'checklist',
+  iluminacion: 'checklist',
+  lightroom: 'checklist',
+  photoshop: 'checklist',
+  montaje: 'checklist',
+  imprenta: 'checklist',
+  archivos: 'workspace',
+  roles: 'checklist',
   onboarding: 'inicio',
-  glosario:   'inicio'
+  glosario: 'inicio'
 };
 
-/** Secciones excluidas del índice de búsqueda (las deprecadas) */
-export const SEARCH_EXCLUDED_SECTIONS = new Set(Object.keys(DEPRECATED_SECTION_REDIRECTS));
+// ═══════════════════════════════════════════════════════════════
+// VALIDACIÓN
+// ═══════════════════════════════════════════════════════════════
 
-// ─────────────────────────────────────────────
-// CALENDARIO
-// ─────────────────────────────────────────────
+export const VALIDATION_RULES = {
+  email: /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
+  phone: /^\+?[0-9]{7,15}$/,
+  currency: /^[0-9]{1,10}$/,
+  schoolName: /^[a-záéíóúñ\s\d.°ª'-]{3,80}$/i,
+  courseFormat: /^[0-9°ªñáéíóúA-Z\s°'-]{1,20}$/i
+};
 
-export const CALENDAR_MONTH_KEYS = [
-  'enero', 'febrero', 'marzo', 'abril', 'mayo', 'junio',
-  'julio', 'agosto', 'septiembre', 'octubre', 'noviembre', 'diciembre'
+// ═══════════════════════════════════════════════════════════════
+// DATOS DE NEGOCIO: COBRANZAS Y SEGUIMIENTO
+// ═══════════════════════════════════════════════════════════════
+
+export const COBRO_STATES = ['pendiente', 'pagado'];
+
+export const FOLLOWUP_TYPES = ['ausente', 'retoma', 'pendiente'];
+export const FOLLOWUP_STATUS = ['abierto', 'agendado', 'resuelto'];
+
+export const PAYMENT_METHODS = [
+  { value: 'efectivo', label: 'Efectivo' },
+  { value: 'transferencia', label: 'Transferencia' },
+  { value: 'mercadopago', label: 'Mercado Pago' },
+  { value: 'otro', label: 'Otro' }
 ];
 
-export const CALENDAR_MONTH_LABELS = {
-  enero:      'Enero',
-  febrero:    'Febrero',
-  marzo:      'Marzo',
-  abril:      'Abril',
-  mayo:       'Mayo',
-  junio:      'Junio',
-  julio:      'Julio',
-  agosto:     'Agosto',
-  septiembre: 'Septiembre',
-  octubre:    'Octubre',
-  noviembre:  'Noviembre',
-  diciembre:  'Diciembre'
+// ═══════════════════════════════════════════════════════════════
+// FOTOGRAFÍA: WORKFLOWS Y EQUIPAMIENTO
+// ═══════════════════════════════════════════════════════════════
+
+export const PHOTOGRAPHY_STAGES = {
+  captura: 'Captura',
+  iluminacion: 'Iluminación',
+  lightroom: 'Lightroom (Post)',
+  photoshop: 'Photoshop (Retoque)',
+  montaje: 'Montaje',
+  imprenta: 'Imprenta'
 };
 
-export const CALENDAR_STATUS_LABELS = {
-  tentativo:      'Tentativo',
-  confirmado:     'Confirmado',
-  jornada:        'Jornada',
-  reunion:        'Reunión',
-  edicion:        'Edición',
-  entrega:        'Entrega',
-  retoma:         'Retoma',
-  cobranza:       'Cobranza',
-  administrativo: 'Administrativo'
+export const CHECKLIST_CATEGORIES = [
+  'equipamiento',
+  'setup',
+  'sesion',
+  'post',
+  'entrega'
+];
+
+// ═══════════════════════════════════════════════════════════════
+// CALENDARIO Y FECHAS
+// ═══════════════════════════════════════════════════════════════
+
+export const MONTHS_ES = [
+  'Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio',
+  'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'
+];
+
+export const DAYS_ES = [
+  'Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'
+];
+
+/** Mes de inicio del ciclo lectivo (1-indexed: 3 = Marzo) */
+export const SCHOOL_YEAR_START_MONTH = 3;
+
+// ═══════════════════════════════════════════════════════════════
+// UI: DIMENSIONES Y TIMING
+// ═══════════════════════════════════════════════════════════════
+
+export const UI = {
+  sidebarWidth: 268,          // px — sincronizar con --sidebar-w en CSS
+  topbarHeight: 60,           // px
+  mobileTabbarHeight: 60,     // px
+  modalAnimDuration: 200,     // ms
+  toastDuration: 3000,        // ms
+  toastPosition: 'top-right', // posición del toast container
+  transitionDuration: 200,    // ms
+  debounceDelay: 300,         // ms para inputs de búsqueda
+  scrollTopThreshold: 100     // px para mostrar botón "volver arriba"
 };
 
-export const CALENDAR_STATUS_OPTIONS = Object.keys(CALENDAR_STATUS_LABELS);
-
-export const CALENDAR_BASE_TEMPLATE = {
-  enero:      'Revisar equipo, actualizar precios, ordenar materiales comerciales y definir agenda tentativa.',
-  febrero:    'Contactar colegios, cerrar fechas, preparar formularios, contratos y materiales.',
-  marzo:      'Confirmar primeras jornadas, grupos y circuito de cobro. Preparar plan B por lluvia.',
-  abril:      'Sostener tomas masivas, controlar edición y entregas parciales.',
-  mayo:       'Continuar jornadas, revisar pendientes y mantener ritmo de producción.',
-  junio:      'Cerrar cuellos de botella y ordenar próximas entregas.',
-  julio:      'Avanzar edición acumulada, retomas y orden administrativo.',
-  agosto:     'Programar retomas, actos y campañas de segunda mitad del año.',
-  septiembre: 'Seguir retomas, campañas familiares y agenda de cierre.',
-  octubre:    'Últimas tomas, egresados y definición de plazos finales.',
-  noviembre:  'Edición masiva, producción, entregas y liquidaciones.',
-  diciembre:  'Cierre de cobranzas, rendiciones, KPIs y renovaciones.'
+export const BREAKPOINTS = {
+  mobile: 320,
+  tablet: 480,
+  desktop: 768,
+  wide: 1024,
+  ultrawide: 1440
 };
 
-/** Etiquetas del checklist de día de jornada */
-export const CALENDAR_DAY_CHECKLIST_LABELS = {
-  camera:   'Cámara principal, lente y flash revisados',
-  batteries:'Baterías cargadas y cargadores listos',
-  cards:    'Tarjetas vacías / respaldo preparado',
-  background:'Fondo, soportes y extensiones cargados',
-  schedule: 'Horario, cursos y secuencia confirmados',
-  contacts: 'Referentes y contactos a mano',
-  route:    'Ruta, llegada y acceso revisados',
-  space:    'Espacio / set y plan B definidos',
-  forms:    'Formularios, autorizaciones y pendientes revisados',
-  payments: 'Sistema de cobro / QR / sobres listos',
-  retakes:  'Ausentes, retomas y casos especiales anotados',
-  closing:  'Plan de cierre, backup y próximo paso definido'
+// ═══════════════════════════════════════════════════════════════
+// COLORES (referencia JS — fuente de verdad: CSS :root)
+// ═══════════════════════════════════════════════════════════════
+
+export const BRAND_COLORS = {
+  accent: '#00aeef',
+  accentDark: '#0090c8',
+  accentSoft: 'rgba(0,174,239,0.1)',
+  accentSoft2: 'rgba(0,174,239,0.18)',
+
+  // Light theme
+  sidebarBg: '#161c26',
+  textPrimary: '#1e2433',
+  textSecondary: '#4a5568',
+  textMuted: '#8a95a3',
+  bgMain: '#f4f6f9',
+  bgCard: '#ffffff',
+  bgSoft: '#edf2f7',
+  border: '#e2e8f0',
+
+  // Status
+  success: '#38a169',
+  warning: '#d69e2e',
+  danger: '#e53e3e'
 };
 
-// ─────────────────────────────────────────────
-// KPIs
-// ─────────────────────────────────────────────
-
-/** Modos válidos para el ticket KPI */
-export const KPI_TICKET_MODES = ['familia', 'alumno'];
-
-/** Modos válidos de período KPI */
-export const KPI_PERIOD_MODES = ['month_current', 'month_custom', 'all'];
-
-// ─────────────────────────────────────────────
-// IA — proveedores y plantillas
-// ─────────────────────────────────────────────
+// ═══════════════════════════════════════════════════════════════
+// INTEGRACIONES EXTERNAS (IA, URLs)
+// ═══════════════════════════════════════════════════════════════
 
 export const AI_PROVIDER_URLS = {
   chatgpt: 'https://chatgpt.com/',
-  gemini:  'https://gemini.google.com/app',
-  claude:  'https://claude.ai/'
+  gemini: 'https://gemini.google.com/app',
+  claude: 'https://claude.ai/'
 };
 
 export const AI_PROVIDER_INTENTS = {
   chatgpt: 'intent://chatgpt.com/#Intent;scheme=https;package=com.openai.chatgpt;S.browser_fallback_url=https%3A%2F%2Fchatgpt.com%2F;end',
-  gemini:  'intent://gemini.google.com/app#Intent;scheme=https;package=com.google.android.apps.bard;S.browser_fallback_url=https%3A%2F%2Fgemini.google.com%2Fapp;end',
-  claude:  'intent://claude.ai/#Intent;scheme=https;package=com.anthropic.claude;S.browser_fallback_url=https%3A%2F%2Fclaude.ai%2F;end'
+  gemini: 'intent://gemini.google.com/app#Intent;scheme=https;package=com.google.android.apps.bard;S.browser_fallback_url=https%3A%2F%2Fgemini.google.com%2Fapp;end',
+  claude: 'intent://claude.ai/#Intent;scheme=https;package=com.anthropic.claude;S.browser_fallback_url=https%3A%2F%2Fclaude.ai%2F;end'
 };
 
 export const AI_TEMPLATE_LABELS = {
-  consulta:  'Consulta operativa',
+  consulta: 'Consulta operativa',
   cobranzas: 'Cobranzas / pagos',
-  jornada:   'Jornada de toma',
-  comercial:  'Mensaje comercial',
-  kpis:       'Lectura de KPIs'
+  jornada: 'Jornada de toma',
+  comercial: 'Mensaje comercial',
+  kpis: 'Lectura de KPIs'
 };
 
-// ─────────────────────────────────────────────
-// DATOS SEMILLA (seed data para onboarding)
-// ─────────────────────────────────────────────
+// ═══════════════════════════════════════════════════════════════
+// CONTACTO Y DATOS DEL NEGOCIO
+// ═══════════════════════════════════════════════════════════════
 
-export const paymentBoardSeed = [
-  {
-    id: 'ex1',
-    school: 'Jardín Arco Iris',
-    date: '2026-03-08',
-    name: 'Sofía Pérez',
-    course: 'Sala 5 A',
-    amount: 15000,
-    status: 'validado',
-    receipt: 'MP-3021',
-    note: 'Pack base'
+export const BUSINESS_INFO = {
+  ownerName: 'Adrián Fernández',
+  phone: '11 5523-8266',
+  email: 'adrian@polar3.com.ar',
+  location: 'CABA',
+  website: 'https://polar3.com.ar',
+  instagram: '@polar3.photo'
+};
+
+// ═══════════════════════════════════════════════════════════════
+// TEXTOS / MENSAJES CONSTANTES
+// ═══════════════════════════════════════════════════════════════
+
+export const MESSAGES = {
+  noData: 'Sin datos cargados.',
+  loading: 'Cargando...',
+  saving: 'Guardando...',
+  saved: 'Guardado correctamente',
+  error: 'Ocurrió un error',
+  confirm: '¿Confirmás esta acción?',
+  deleted: 'Eliminado correctamente',
+  backupCreated: 'Respaldo creado exitosamente',
+  backupRestored: 'Respaldo restaurado exitosamente',
+  exportOk: 'Datos exportados correctamente',
+  importOk: 'Datos importados correctamente',
+  validationFail: 'Revisá los campos marcados en rojo'
+};
+
+// ═══════════════════════════════════════════════════════════════
+// VALORES POR DEFECTO
+// ═══════════════════════════════════════════════════════════════
+
+export const DEFAULTS = {
+  cobro: {
+    estado: 'pendiente',
+    metodoPago: 'transferencia'
   },
-  {
-    id: 'ex2',
-    school: 'Instituto San Martín',
-    date: '2026-03-11',
-    name: 'Tomás Díaz',
-    course: 'Sala 4 B',
-    amount: 15000,
-    status: 'observado',
-    receipt: 'Comprobante ilegible',
-    note: 'Pedir reenvío'
+  followup: {
+    estado: 'abierto'
   },
-  {
-    id: 'ex3',
-    school: 'Escuela Modelo Sur',
-    date: '2026-02-26',
-    name: 'Emma Roldán',
-    course: 'Sala 5 A',
-    amount: 17500,
-    status: 'liquidado',
-    receipt: 'Transferencia',
-    note: 'Pack + extra digital'
+  backup: {
+    intervalHours: 72,
+    dirtyOnly: true,
+    toastOnStart: true
   }
-];
+};
 
-export const schoolBoardSeed = [
-  {
-    id: 'sch1',
-    name: 'Jardín Arco Iris',
-    level: 'Jardín',
-    stage: 'renovacion',
-    contact: 'Cooperadora · Laura',
-    renewal: 'Abril 2026',
-    nextAction: 'Confirmar fecha de reunión',
-    risk: 'amarillo',
-    pack: 15000,
-    notes: 'Buen vínculo. Piden propuesta simplificada.'
-  },
-  {
-    id: 'sch2',
-    name: 'Instituto San Martín',
-    level: 'Primaria',
-    stage: 'propuesta',
-    contact: 'Secretaría',
-    renewal: '—',
-    nextAction: 'Enviar propuesta completa',
-    risk: 'verde',
-    pack: 15000,
-    notes: 'Interés en modalidad completa.'
-  },
-  {
-    id: 'sch3',
-    name: 'Escuela Modelo Sur',
-    level: 'Mixto',
-    stage: 'activo',
-    contact: 'Cooperadora',
-    renewal: 'Agosto 2026',
-    nextAction: 'Revisar conversión del último año',
-    risk: 'verde',
-    pack: 15000,
-    notes: 'Histórico estable.'
-  },
-  {
-    id: 'sch4',
-    name: 'Colegio Nuevo Horizonte',
-    level: 'Primaria',
-    stage: 'contacto',
-    contact: 'Directivo',
-    renewal: '—',
-    nextAction: 'Segundo seguimiento',
-    risk: 'rojo',
-    pack: 16000,
-    notes: 'Respuesta lenta y decisión política abierta.'
-  }
-];
+// ═══════════════════════════════════════════════════════════════
+// DEFAULT EXPORT (compatibilidad con import default)
+// ═══════════════════════════════════════════════════════════════
 
-export const followupSeed = [
-  {
-    id: 'fl1',
-    school: 'Jardín Arco Iris',
-    date: '2026-04-12',
-    course: 'Sala 5 A',
-    type: 'ausente',
-    count: 2,
-    status: 'abierto',
-    nextAction: 'Consultar si habrá retoma',
-    owner: 'Adrián',
-    notes: 'Dos ausentes justificados.'
-  },
-  {
-    id: 'fl2',
-    school: 'Instituto San Martín',
-    date: '2026-05-03',
-    course: '2° B',
-    type: 'retoma',
-    count: 1,
-    status: 'agendado',
-    nextAction: 'Retoma viernes 8:00',
-    owner: 'Adrián',
-    notes: 'Ojos cerrados en individual.'
-  },
-  {
-    id: 'fl3',
-    school: 'Escuela Modelo Sur',
-    date: '2026-05-15',
-    course: 'Sala 4',
-    type: 'pendiente',
-    count: 1,
-    status: 'abierto',
-    nextAction: 'Falta grupal del turno tarde',
-    owner: 'Asistente',
-    notes: 'Definir si se resuelve misma semana.'
-  }
-];
-
-// ─────────────────────────────────────────────
-// REGLAS DE NEGOCIO
-// ─────────────────────────────────────────────
-
-/** Porcentaje del canon sobre el precio del pack (20%) */
-export const CANON_PERCENTAGE = 0.2;
-
-/** Volúmenes de referencia para tabla de simulador */
-export const SIMULATOR_VOLUMES = [300, 400, 500];
-
-/** Intervalo por defecto para recordatorio de backup (horas) */
-export const BACKUP_DEFAULT_INTERVAL_HOURS = 72;
+export default {
+  APP_VERSION,
+  APP_NAME,
+  APP_SUBTITLE,
+  FEATURE_FLAGS,
+  STORAGE_PREFIX,
+  STORAGE_KEYS,
+  BACKUP_HISTORY_LIMIT,
+  BACKUP_AUTO_INTERVAL_HOURS,
+  PACK_PRICE_DEFAULT,
+  CANON_PERCENTAGE,
+  SLA_DAYS_DELIVERY,
+  PACK_CONTENTS,
+  WORKSPACES,
+  WORKSPACE_DEFAULTS,
+  WORKSPACE_LABELS,
+  SECTION_MAP,
+  SECTION_SPACES,
+  DEPRECATED_SECTION_REDIRECTS,
+  VALIDATION_RULES,
+  COBRO_STATES,
+  FOLLOWUP_TYPES,
+  FOLLOWUP_STATUS,
+  PAYMENT_METHODS,
+  PHOTOGRAPHY_STAGES,
+  CHECKLIST_CATEGORIES,
+  MONTHS_ES,
+  DAYS_ES,
+  SCHOOL_YEAR_START_MONTH,
+  UI,
+  BREAKPOINTS,
+  BRAND_COLORS,
+  AI_PROVIDER_URLS,
+  AI_PROVIDER_INTENTS,
+  AI_TEMPLATE_LABELS,
+  BUSINESS_INFO,
+  MESSAGES,
+  DEFAULTS
+};

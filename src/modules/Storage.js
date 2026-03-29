@@ -1,547 +1,864 @@
 /**
- * Storage.js — Polar[3] PWA v2.7.12
- * Capa de persistencia inteligente sobre localStorage.
- * Maneja: escritura/lectura con dirty-tracking, backup export/import,
- * historial de respaldos, preferencias de recordatorio y UI asociada.
+ * POLAR[3] SISTEMA OPERATIVO v2.8.0
+ * Storage Manager
+ *
+ * Envoltorio seguro para localStorage con:
+ * - Prefijo automático (polar3_)
+ * - Backup automático con scheduling
+ * - Dirty tracking para saber qué cambió
+ * - Listeners onChange para reactividad entre módulos
+ * - Export/import a archivo JSON
+ * - Detección de cuota de storage
+ * - Migración de keys antiguas
+ * - Compatible con la estructura anterior de Polar3
+ *
+ * Uso:
+ *   import { storage } from './modules/Storage.js';
+ *   storage.setItem('cobros', [...]);
+ *   storage.onChange('cobros', (newVal) => renderCobros(newVal));
  */
 
 import {
-  POLAR3_STORAGE_PREFIX,
-  BACKUP_META_KEY,
-  BACKUP_HISTORY_KEY,
-  BACKUP_PREFS_KEY,
+  STORAGE_PREFIX,
+  STORAGE_KEYS,
   BACKUP_HISTORY_LIMIT,
-  PAYMENT_BOARD_KEY,
-  SCHOOL_BOARD_KEY,
-  FOLLOWUP_BOARD_KEY,
-  CHECKLIST_KEY,
-  POLAR3_APP_VERSION,
-  BACKUP_DEFAULT_INTERVAL_HOURS
+  BACKUP_AUTO_INTERVAL_HOURS,
+  APP_VERSION,
+  FEATURE_FLAGS
 } from '../config.js';
 
-// ─────────────────────────────────────────────
-// ESTADO DEL MÓDULO
-// ─────────────────────────────────────────────
+// ═══════════════════════════════════════════════════════════════
+// CONSTANTES INTERNAS
+// ═══════════════════════════════════════════════════════════════
 
-let appReadyForDirtyTracking = false;
+/** Keys internas que no se incluyen en backups/exports de datos */
+const INTERNAL_KEYS = [
+  'dirty_keys',
+  'backup_meta',
+  'backup_history'
+];
 
-/** Callback inyectado por app.js para actualizar la UI de backup */
-let _onBackupStateChange = null;
+/** Prefijo de keys de backup (meta + data) */
+const BACKUP_KEY_PREFIX = 'backup_';
 
-/** Callback inyectado por app.js para mostrar toasts */
-let _showToast = null;
+/** Estimación del límite de localStorage (~5 MB en la mayoría de browsers) */
+const STORAGE_QUOTA_ESTIMATE_KB = 5120;
 
-// ─────────────────────────────────────────────
-// INICIALIZACIÓN
-// ─────────────────────────────────────────────
+// ═══════════════════════════════════════════════════════════════
+// CLASE PRINCIPAL
+// ═══════════════════════════════════════════════════════════════
 
-/**
- * @param {object} opts
- * @param {function} opts.onBackupStateChange - Se llama cuando cambia el estado del backup
- * @param {function} opts.showToast - fn(message, tone)
- */
-export function initStorage({ onBackupStateChange = null, showToast = null } = {}) {
-  _onBackupStateChange = onBackupStateChange;
-  _showToast = showToast;
-}
+class StorageManager {
+  constructor() {
+    this.prefix = STORAGE_PREFIX;
+    this.initialized = false;
 
-export function enableDirtyTracking() {
-  appReadyForDirtyTracking = true;
-}
+    /** @type {Map<string, Set<Function>>} Listeners por key */
+    this._listeners = new Map();
 
-// ─────────────────────────────────────────────
-// LECTURA / ESCRITURA RASTREADA
-// ─────────────────────────────────────────────
+    /** @type {Set<Function>} Listeners globales (cualquier cambio) */
+    this._globalListeners = new Set();
 
-export function trackedSetItem(key, value, markDirty = true) {
-  localStorage.setItem(key, value);
-  if (
-    appReadyForDirtyTracking &&
-    markDirty &&
-    key.startsWith(POLAR3_STORAGE_PREFIX) &&
-    key !== BACKUP_META_KEY
-  ) {
-    markBackupDirty(key);
-  }
-}
+    /** @type {number|null} Timer del auto-backup */
+    this._autoBackupTimer = null;
 
-export function trackedRemoveItem(key, markDirty = true) {
-  localStorage.removeItem(key);
-  if (
-    appReadyForDirtyTracking &&
-    markDirty &&
-    key.startsWith(POLAR3_STORAGE_PREFIX) &&
-    key !== BACKUP_META_KEY
-  ) {
-    markBackupDirty(key);
-  }
-}
-
-export function safeReadJsonKey(key, fallback) {
-  try {
-    const raw = localStorage.getItem(key);
-    return raw ? JSON.parse(raw) : fallback;
-  } catch (err) {
-    return fallback;
-  }
-}
-
-export function countTrackedKeys() {
-  return Object.keys(localStorage).filter(
-    key => key.startsWith(POLAR3_STORAGE_PREFIX) && key !== BACKUP_META_KEY
-  ).length;
-}
-
-// ─────────────────────────────────────────────
-// BACKUP META
-// ─────────────────────────────────────────────
-
-export function safeReadBackupMeta() {
-  return safeReadJsonKey(BACKUP_META_KEY, {});
-}
-
-export function writeBackupMeta(meta) {
-  localStorage.setItem(BACKUP_META_KEY, JSON.stringify(meta));
-}
-
-export function markBackupDirty(reason = 'update') {
-  const prev = safeReadBackupMeta();
-  const meta = {
-    ...prev,
-    dirty: true,
-    lastChangeAt: new Date().toISOString(),
-    lastChangeKey: reason || prev.lastChangeKey || 'update'
-  };
-  writeBackupMeta(meta);
-  if (_onBackupStateChange) _onBackupStateChange();
-}
-
-export function markBackupClean(mode = 'export') {
-  const prev = safeReadBackupMeta();
-  const now = new Date().toISOString();
-  const meta = {
-    ...prev,
-    dirty: false,
-    lastBackupAt: now,
-    lastBackupMode: mode,
-    lastChangeKey: prev.lastChangeKey || null
-  };
-  writeBackupMeta(meta);
-  if (_onBackupStateChange) _onBackupStateChange();
-}
-
-// ─────────────────────────────────────────────
-// HISTORIAL DE BACKUP
-// ─────────────────────────────────────────────
-
-export function getBackupHistory() {
-  const list = safeReadJsonKey(BACKUP_HISTORY_KEY, []);
-  return Array.isArray(list) ? list : [];
-}
-
-export function saveBackupHistory(history) {
-  localStorage.setItem(BACKUP_HISTORY_KEY, JSON.stringify(history.slice(0, BACKUP_HISTORY_LIMIT)));
-}
-
-export function addBackupHistoryEntry(action, options = {}) {
-  const history = getBackupHistory();
-  history.unshift({
-    id: 'bk_' + Date.now(),
-    at: new Date().toISOString(),
-    action,
-    fileName: options.fileName || '',
-    note: options.note || '',
-    summary: options.summary || getBackupSummary()
-  });
-  saveBackupHistory(history);
-}
-
-export function clearBackupHistory() {
-  if (!confirm('¿Limpiar el historial local de respaldos? Esto no borra los datos de trabajo, solo el registro de eventos.')) return;
-  localStorage.removeItem(BACKUP_HISTORY_KEY);
-  if (_onBackupStateChange) _onBackupStateChange();
-  if (_showToast) _showToast('Historial local de respaldos limpiado.', 'success');
-}
-
-// ─────────────────────────────────────────────
-// PREFERENCIAS DE BACKUP
-// ─────────────────────────────────────────────
-
-export function getBackupPrefs() {
-  const saved = safeReadJsonKey(BACKUP_PREFS_KEY, {});
-  return {
-    intervalHours: Number(saved.intervalHours ?? BACKUP_DEFAULT_INTERVAL_HOURS),
-    dirtyOnly: saved.dirtyOnly !== false,
-    toastOnStart: saved.toastOnStart !== false
-  };
-}
-
-export function saveBackupPrefs(nextPrefs = {}) {
-  const prefs = { ...getBackupPrefs(), ...nextPrefs };
-  localStorage.setItem(BACKUP_PREFS_KEY, JSON.stringify(prefs));
-  return prefs;
-}
-
-export function syncBackupPrefs() {
-  const interval = Number(document.getElementById('backupReminderInterval')?.value || 0);
-  const dirtyOnly = !!document.getElementById('backupReminderDirtyOnly')?.checked;
-  const toastOnStart = (document.getElementById('backupReminderToast')?.value || '1') === '1';
-  saveBackupPrefs({ intervalHours: interval, dirtyOnly, toastOnStart });
-  if (_onBackupStateChange) _onBackupStateChange();
-  if (_showToast) _showToast('Preferencias de recordatorio actualizadas.', 'success');
-}
-
-// ─────────────────────────────────────────────
-// RESUMEN / ESTADO CALCULADO
-// ─────────────────────────────────────────────
-
-export function getBackupSummary() {
-  const tryCount = (key) => {
-    try { return JSON.parse(localStorage.getItem(key) || '[]').length; } catch (e) { return 0; }
-  };
-  return {
-    schoolBoard:    tryCount(SCHOOL_BOARD_KEY),
-    followups:      tryCount(FOLLOWUP_BOARD_KEY),
-    payments:       tryCount(PAYMENT_BOARD_KEY),
-    checklistItems: tryCount(CHECKLIST_KEY),
-    trackedKeys:    countTrackedKeys()
-  };
-}
-
-export function computeBackupReminderState() {
-  const meta = safeReadBackupMeta();
-  const prefs = getBackupPrefs();
-  const lastBackupAt = meta.lastBackupAt ? new Date(meta.lastBackupAt) : null;
-  const lastChangeAt = meta.lastChangeAt ? new Date(meta.lastChangeAt) : null;
-  const now = new Date();
-  const hasDirty = !!meta.dirty;
-  const intervalHours = Number(prefs.intervalHours || 0);
-  const enabled = intervalHours > 0;
-  const noBackupYet = !lastBackupAt;
-  const hoursSinceBackup = lastBackupAt ? (now - lastBackupAt) / 36e5 : null;
-  const dueByTime = enabled && lastBackupAt ? hoursSinceBackup >= intervalHours : enabled && noBackupYet;
-  const dueByDirty = prefs.dirtyOnly ? hasDirty : true;
-  const due = enabled && dueByTime && dueByDirty;
-
-  let tone = 'success';
-  let short = 'Recordatorio: al día';
-  let title = 'Respaldo al día';
-  let text = lastBackupAt
-    ? `Último respaldo ${formatDateTime(meta.lastBackupAt)}.`
-    : 'Aún no se exportó un respaldo desde esta instalación.';
-
-  if (!enabled) {
-    tone = 'success';
-    short = 'Recordatorio: apagado';
-    title = 'Recordatorio desactivado';
-    text = 'La app no te avisará automáticamente. Sigue exportando un JSON al cerrar jornadas o tandas de carga.';
-  } else if (noBackupYet) {
-    tone = hasDirty ? 'danger' : 'warning';
-    short = hasDirty ? 'Recordatorio: primer backup pendiente' : 'Recordatorio: sin primer backup';
-    title = 'Conviene crear el primer respaldo';
-    text = hasDirty
-      ? 'Ya hay cambios cargados y todavía no exportaste ningún JSON. Haz el primer respaldo cuanto antes.'
-      : 'Todavía no hay un respaldo inicial registrado. Exporta uno cuando cierres la primera tanda de trabajo.';
-  } else if (due) {
-    tone = hasDirty ? 'danger' : 'warning';
-    short = 'Recordatorio: exportar hoy';
-    title = hasDirty ? 'Hay cambios pendientes sin respaldo' : 'Conviene refrescar el respaldo';
-    text = hasDirty
-      ? `Pasaron ${formatElapsedHours(hoursSinceBackup)} desde el último respaldo y hubo cambios posteriores. Exporta un JSON hoy.`
-      : `Pasaron ${formatElapsedHours(hoursSinceBackup)} desde el último respaldo. Conviene generar uno nuevo.`;
-  } else if (hasDirty) {
-    tone = 'warning';
-    short = 'Recordatorio: cambios sin exportar';
-    title = 'Hay cambios desde el último JSON';
-    const nextIn = lastBackupAt ? formatRelativeHours(intervalHours - hoursSinceBackup) : 'pronto';
-    text = `Hay cambios sin exportar, pero el recordatorio fuerte se activará ${nextIn}. Si acabas de cargar bastante información, respalda igual.`;
+    /** @type {boolean} Flag para evitar recursión en markDirty */
+    this._markingDirty = false;
   }
 
-  const nextReminderText = !enabled
-    ? 'Recordatorios desactivados.'
-    : noBackupYet
-      ? 'Se avisará apenas existan datos sin respaldo.'
-      : due
-        ? 'El recordatorio ya está activo.'
-        : `Próximo aviso estimado ${formatRelativeHours(intervalHours - (hoursSinceBackup || 0))}.`;
+  // ─────────────────────────────────────────────────────────────
+  // INICIALIZACIÓN
+  // ─────────────────────────────────────────────────────────────
 
-  return {
-    enabled, due, tone, short, title, text, nextReminderText,
-    lastBackupText: lastBackupAt ? formatDateTime(meta.lastBackupAt) : 'Sin exportar',
-    dirty: hasDirty, prefs,
-    lastChangeText: lastChangeAt ? formatDateTime(meta.lastChangeAt) : '—'
-  };
-}
+  /**
+   * Inicializa el storage manager.
+   * Ejecuta migraciones, purga backups viejos y programa auto-backup.
+   */
+  init() {
+    if (this.initialized) return;
 
-// ─────────────────────────────────────────────
-// EXPORT / IMPORT JSON
-// ─────────────────────────────────────────────
+    this._runMigrations();
 
-function collectBackupPayload() {
-  const storage = {};
-  Object.keys(localStorage)
-    .filter(key => key.startsWith(POLAR3_STORAGE_PREFIX))
-    .forEach(key => { storage[key] = localStorage.getItem(key); });
+    // Purgar backups > 30 días
+    this.purgeOldBackups(30);
 
-  const meta = safeReadBackupMeta();
-  return {
-    app: 'Polar3',
-    schema: 'polar3-backup-v1',
-    version: POLAR3_APP_VERSION,
-    exportedAt: new Date().toISOString(),
-    generatedFrom: location.href,
-    storage,
-    summary: {
-      ...getBackupSummary(),
-      dirty: !!meta.dirty
+    // Programar auto-backup si está habilitado
+    if (FEATURE_FLAGS.autoBackup) {
+      this._scheduleAutoBackup();
     }
-  };
-}
 
-export function exportBackupJson() {
-  try {
-    const stamp = new Date().toISOString().slice(0, 19).replace(/[:T]/g, '-');
-    const filename = `polar3-backup-${stamp}.json`;
-    addBackupHistoryEntry('export', { fileName: filename, summary: getBackupSummary(), note: 'Exportación manual JSON' });
-    const payload = collectBackupPayload();
-    const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = filename;
-    document.body.appendChild(a);
-    a.click();
-    a.remove();
-    setTimeout(() => URL.revokeObjectURL(url), 1200);
-    markBackupClean('export');
-    if (_showToast) _showToast('Respaldo JSON generado. Guarda el archivo dentro de la carpeta de Polar3.', 'success');
-  } catch (err) {
-    console.error(err);
-    if (_showToast) _showToast('No pude generar el respaldo JSON.', 'danger');
+    this.initialized = true;
+    console.log(`[Storage] Inicializado (${this.getAllKeys().length} keys, ${this.getStorageSize()} KB)`);
   }
-}
 
-export function triggerBackupImport() {
-  const input = document.getElementById('backupFileInput');
-  if (!input) return;
-  input.value = '';
-  input.click();
-}
+  // ─────────────────────────────────────────────────────────────
+  // CRUD BÁSICO
+  // ─────────────────────────────────────────────────────────────
 
-function applyBackupPayload(payload, fileName = '') {
-  const storage = payload?.storage;
-  if (!storage || typeof storage !== 'object') throw new Error('invalid_backup');
-  if (!confirm('Vas a reemplazar los datos actuales de Polar3 por el respaldo importado. Conviene exportar un JSON antes de continuar. ¿Seguimos?')) return;
-  Object.keys(localStorage)
-    .filter(key => key.startsWith(POLAR3_STORAGE_PREFIX))
-    .forEach(key => localStorage.removeItem(key));
-  Object.entries(storage).forEach(([key, value]) => {
-    localStorage.setItem(key, String(value));
-  });
-  markBackupClean('import');
-  addBackupHistoryEntry('import', { fileName, summary: getBackupSummary(), note: 'Importación manual JSON' });
-  if (_showToast) _showToast('Respaldo importado. La app se va a recargar.', 'success');
-  setTimeout(() => location.reload(), 350);
-}
-
-export function handleBackupImportFile(file) {
-  if (!file) return;
-  const reader = new FileReader();
-  reader.onload = evt => {
+  /**
+   * Obtiene un valor de localStorage.
+   * @param {string} key - Sin el prefijo (ej: 'cobros')
+   * @param {*} [defaultValue=null] - Valor por defecto si no existe
+   * @returns {*} Valor parseado o string
+   */
+  getItem(key, defaultValue = null) {
     try {
-      const payload = JSON.parse(String(evt.target?.result || ''));
-      const isValid = payload?.schema === 'polar3-backup-v1' && payload?.app === 'Polar3' && payload?.storage;
-      if (!isValid) throw new Error('invalid_schema');
-      applyBackupPayload(payload, file.name || 'respaldo-importado.json');
+      const fullKey = `${this.prefix}${key}`;
+      const stored = localStorage.getItem(fullKey);
+
+      if (stored === null) return defaultValue;
+
+      try {
+        return JSON.parse(stored);
+      } catch {
+        return stored;
+      }
     } catch (err) {
-      console.error(err);
-      if (_showToast) _showToast('El archivo no parece ser un respaldo válido de Polar3.', 'danger');
-    }
-  };
-  reader.onerror = () => {
-    if (_showToast) _showToast('No pude leer el archivo seleccionado.', 'danger');
-  };
-  reader.readAsText(file);
-}
-
-// ─────────────────────────────────────────────
-// UI DE BACKUP
-// ─────────────────────────────────────────────
-
-export function updateBackupChip() {
-  const chip = document.getElementById('backupChip');
-  if (!chip) return;
-  const meta = safeReadBackupMeta();
-  const state = computeBackupReminderState();
-  if (!meta.lastBackupAt) {
-    chip.textContent = meta.dirty ? 'Respaldo: pendiente' : 'Respaldo: sin exportar';
-  } else {
-    chip.textContent = meta.dirty
-      ? `Respaldo: pendiente · último ${formatDateTime(meta.lastBackupAt)}`
-      : `Respaldo: ${formatDateTime(meta.lastBackupAt)}`;
-  }
-  chip.dataset.state = state.due ? state.tone : (meta.dirty ? 'warning' : 'success');
-}
-
-export function updateBackupReminderUI() {
-  const state = computeBackupReminderState();
-  const chip = document.getElementById('backupReminderChip');
-  if (chip) {
-    chip.textContent = state.short;
-    chip.dataset.state = state.tone;
-  }
-  const bar = document.getElementById('backupReminderBar');
-  if (bar) {
-    if (!state.enabled && !state.dirty) {
-      bar.hidden = true;
-    } else if (state.due || !safeReadBackupMeta().lastBackupAt || state.dirty) {
-      bar.hidden = false;
-      bar.dataset.tone = state.tone;
-      bar.innerHTML = `
-        <div>
-          <strong>${state.title}</strong>
-          <span>${state.text}</span>
-        </div>
-        <div class="backup-reminder-actions">
-          <button class="mini-btn" type="button" onclick="showSection('respaldos')">Abrir administración</button>
-          <button class="mini-btn" type="button" onclick="exportBackupJson()">Respaldar ahora</button>
-        </div>
-      `;
-    } else {
-      bar.hidden = true;
-    }
-  }
-}
-
-export function renderBackupAdmin() {
-  const state = computeBackupReminderState();
-  const meta = safeReadBackupMeta();
-  const history = getBackupHistory();
-  const summary = getBackupSummary();
-
-  const setText = (id, value) => {
-    const el = document.getElementById(id);
-    if (el) el.textContent = value;
-  };
-
-  setText('backupAdminStatus', state.due ? 'Atención' : (meta.dirty ? 'Pendiente' : 'Al día'));
-  setText('backupAdminLast', state.lastBackupText);
-  setText('backupAdminHistoryCount', String(history.length));
-  setText('backupAdminTrackedKeys', String(summary.trackedKeys));
-  setText('backupAdminDirty', meta.dirty ? 'Sí' : 'No');
-  setText('backupAdminBadge', state.enabled
-    ? `Cada ${
-        state.prefs.intervalHours === 24  ? '24 h'    :
-        state.prefs.intervalHours === 72  ? '3 días'  :
-        state.prefs.intervalHours === 168 ? '7 días'  :
-        state.prefs.intervalHours + ' h'
-      }`
-    : 'Recordatorio apagado'
-  );
-  setText('backupAdminSummary', `${state.title}. ${state.text}`);
-  setText('backupWorkflowHint', meta.dirty
-    ? 'Ahora mismo hay cambios pendientes. Conviene exportar un JSON antes de cerrar el día o mover datos.'
-    : 'El estado actual está limpio. Aprovecha para guardar un respaldo de cierre de jornada o semana.'
-  );
-
-  const statusBox = document.getElementById('backupReminderStatusBox');
-  if (statusBox) {
-    statusBox.className = `note-box ${state.due ? 'danger' : meta.dirty ? 'info' : 'success'}`;
-    statusBox.textContent = `${state.nextReminderText} Último cambio detectado: ${state.lastChangeText}.`;
-  }
-
-  const interval  = document.getElementById('backupReminderInterval');
-  const toast     = document.getElementById('backupReminderToast');
-  const dirtyOnly = document.getElementById('backupReminderDirtyOnly');
-  if (interval)  interval.value   = String(state.prefs.intervalHours);
-  if (toast)     toast.value      = state.prefs.toastOnStart ? '1' : '0';
-  if (dirtyOnly) dirtyOnly.checked = !!state.prefs.dirtyOnly;
-
-  const insight = document.getElementById('backupHistoryInsight');
-  if (insight) {
-    if (!history.length) {
-      insight.className = 'note-box info';
-      insight.textContent = 'Todavía no hay eventos registrados. El primer respaldo exportado creará una entrada aquí.';
-    } else if (state.due) {
-      insight.className = 'note-box danger';
-      insight.textContent = 'El historial muestra actividad previa, pero ahora ya toca generar un respaldo nuevo. No dejes que el JSON quede desfasado respecto a la carga real.';
-    } else if (meta.dirty) {
-      insight.className = 'note-box info';
-      insight.textContent = 'Hay historial y también cambios nuevos sin exportar. El sistema sigue relativamente protegido, pero aún no refleja la última carga.';
-    } else {
-      insight.className = 'note-box success';
-      insight.textContent = 'El historial está al día y no hay cambios pendientes. Buen punto para cerrar jornada o semana.';
+      console.error(`[Storage] Error leyendo "${key}":`, err);
+      return defaultValue;
     }
   }
 
-  const rows = document.getElementById('backupHistoryRows');
-  if (rows) {
-    if (!history.length) {
-      rows.innerHTML = '<tr><td colspan="5" style="text-align:center;color:var(--text-muted)">Sin historial todavía.</td></tr>';
-    } else {
-      rows.innerHTML = history.map(item => {
-        const tagClass = item.action === 'import' ? 'import' : 'export';
-        const file = item.fileName || '—';
-        const summaryText = item.summary
-          ? `${item.summary.schoolBoard || 0} colegios · ${item.summary.followups || 0} seguimientos · ${item.summary.payments || 0} pagos`
-          : 'Sin resumen';
-        return `
-          <tr>
-            <td>${formatDateTime(item.at)}</td>
-            <td><span class="history-tag ${tagClass}">${item.action === 'import' ? 'Importación' : 'Exportación'}</span></td>
-            <td>${file}</td>
-            <td>${summaryText}</td>
-            <td>${item.note || '—'}</td>
-          </tr>
-        `;
-      }).join('');
+  /**
+   * Guarda un valor en localStorage.
+   * Notifica listeners y marca como dirty para backup.
+   * @param {string} key - Sin el prefijo
+   * @param {*} value - Valor a guardar (se serializa a JSON)
+   * @returns {boolean} true si se guardó correctamente
+   */
+  setItem(key, value) {
+    try {
+      const fullKey = `${this.prefix}${key}`;
+      const serialized = typeof value === 'string' ? value : JSON.stringify(value);
+
+      localStorage.setItem(fullKey, serialized);
+
+      // Marcar como modificado (sin recursión)
+      this._markDirty(key);
+
+      // Notificar listeners
+      this._notify(key, value);
+
+      return true;
+    } catch (err) {
+      // Detectar error de cuota
+      if (this._isQuotaError(err)) {
+        console.error(`[Storage] ¡Cuota excedida al guardar "${key}"! Intentá purgar backups o exportar datos.`);
+      } else {
+        console.error(`[Storage] Error guardando "${key}":`, err);
+      }
+      return false;
     }
   }
-}
 
-export function updateBackupUI() {
-  updateBackupChip();
-  updateBackupReminderUI();
-  renderBackupAdmin();
-}
+  /**
+   * Elimina un valor de localStorage.
+   * @param {string} key - Sin el prefijo
+   * @returns {boolean}
+   */
+  removeItem(key) {
+    try {
+      const fullKey = `${this.prefix}${key}`;
+      localStorage.removeItem(fullKey);
 
-// ─────────────────────────────────────────────
-// TOAST RECORDATORIO AL INICIAR
-// ─────────────────────────────────────────────
+      this._markDirty(key);
+      this._notify(key, undefined);
 
-let backupReminderShown = false;
+      return true;
+    } catch (err) {
+      console.error(`[Storage] Error eliminando "${key}":`, err);
+      return false;
+    }
+  }
 
-export function maybeShowBackupReminderToast() {
-  if (backupReminderShown) return;
-  const prefs = getBackupPrefs();
-  const state = computeBackupReminderState();
-  if (prefs.toastOnStart && state.due) {
-    if (_showToast) _showToast(state.short + ' · ' + state.text, state.tone === 'danger' ? 'danger' : 'warning');
-    backupReminderShown = true;
+  /**
+   * Verifica si una key existe.
+   * @param {string} key - Sin el prefijo
+   * @returns {boolean}
+   */
+  hasItem(key) {
+    const fullKey = `${this.prefix}${key}`;
+    return localStorage.getItem(fullKey) !== null;
+  }
+
+  /**
+   * Obtiene todas las keys de la app (sin prefijo).
+   * @returns {string[]}
+   */
+  getAllKeys() {
+    const keys = [];
+    for (let i = 0; i < localStorage.length; i++) {
+      const fullKey = localStorage.key(i);
+      if (fullKey && fullKey.startsWith(this.prefix)) {
+        keys.push(fullKey.slice(this.prefix.length));
+      }
+    }
+    return keys;
+  }
+
+  /**
+   * Obtiene solo las keys de datos de negocio (excluye internas y backups).
+   * @returns {string[]}
+   */
+  getDataKeys() {
+    return this.getAllKeys().filter(key => {
+      if (INTERNAL_KEYS.includes(key)) return false;
+      if (key.startsWith(BACKUP_KEY_PREFIX)) return false;
+      return true;
+    });
+  }
+
+  /**
+   * Limpia todo el storage de la app (solo keys con nuestro prefijo).
+   * @returns {boolean}
+   */
+  clear() {
+    try {
+      const keys = this.getAllKeys();
+      keys.forEach(key => {
+        localStorage.removeItem(`${this.prefix}${key}`);
+      });
+      console.log(`[Storage] Limpiado (${keys.length} keys)`);
+      return true;
+    } catch (err) {
+      console.error('[Storage] Error limpiando:', err);
+      return false;
+    }
+  }
+
+  // ─────────────────────────────────────────────────────────────
+  // LISTENERS (reactividad entre módulos)
+  // ─────────────────────────────────────────────────────────────
+
+  /**
+   * Escucha cambios en una key específica.
+   * @param {string} key - Key a observar (sin prefijo)
+   * @param {Function} fn - Callback: (newValue, key) => void
+   * @returns {Function} Función para desuscribirse
+   *
+   * @example
+   *   const unsub = storage.onChange('cobros', (cobros) => {
+   *     renderTable(cobros);
+   *   });
+   *   // Más tarde: unsub();
+   */
+  onChange(key, fn) {
+    if (!this._listeners.has(key)) {
+      this._listeners.set(key, new Set());
+    }
+    this._listeners.get(key).add(fn);
+    return () => this._listeners.get(key)?.delete(fn);
+  }
+
+  /**
+   * Escucha cualquier cambio en el storage.
+   * @param {Function} fn - Callback: (key, newValue) => void
+   * @returns {Function} Función para desuscribirse
+   */
+  onAnyChange(fn) {
+    this._globalListeners.add(fn);
+    return () => this._globalListeners.delete(fn);
+  }
+
+  /**
+   * Notifica a los listeners de una key y a los globales.
+   * @param {string} key
+   * @param {*} value
+   * @private
+   */
+  _notify(key, value) {
+    // Listeners específicos
+    const keyListeners = this._listeners.get(key);
+    if (keyListeners) {
+      keyListeners.forEach(fn => {
+        try { fn(value, key); } catch (e) { console.error('[Storage] Listener error:', e); }
+      });
+    }
+
+    // Listeners globales
+    this._globalListeners.forEach(fn => {
+      try { fn(key, value); } catch (e) { console.error('[Storage] Global listener error:', e); }
+    });
+  }
+
+  // ─────────────────────────────────────────────────────────────
+  // DIRTY TRACKING (qué cambió desde el último backup)
+  // ─────────────────────────────────────────────────────────────
+
+  /**
+   * Marca una key como modificada.
+   * Usa flag para evitar recursión (setItem → markDirty → setItem…).
+   * @param {string} key
+   * @private
+   */
+  _markDirty(key) {
+    // No trackear keys internas ni backups
+    if (INTERNAL_KEYS.includes(key) || key.startsWith(BACKUP_KEY_PREFIX)) return;
+    if (this._markingDirty) return;
+
+    this._markingDirty = true;
+    try {
+      const dirtyKeys = this._readRaw('dirty_keys', []);
+      if (!dirtyKeys.includes(key)) {
+        dirtyKeys.push(key);
+        this._writeRaw('dirty_keys', dirtyKeys);
+      }
+
+      // Actualizar timestamp de último cambio
+      const meta = this._readRaw('backup_meta', {});
+      meta.lastChangeAt = new Date().toISOString();
+      meta.dirty = true;
+      this._writeRaw('backup_meta', meta);
+    } catch (err) {
+      console.error('[Storage] Error en markDirty:', err);
+    } finally {
+      this._markingDirty = false;
+    }
+  }
+
+  /**
+   * Lee directo de localStorage sin pasar por markDirty.
+   * @param {string} key - Sin prefijo
+   * @param {*} defaultValue
+   * @returns {*}
+   * @private
+   */
+  _readRaw(key, defaultValue = null) {
+    try {
+      const raw = localStorage.getItem(`${this.prefix}${key}`);
+      if (raw === null) return defaultValue;
+      return JSON.parse(raw);
+    } catch {
+      return defaultValue;
+    }
+  }
+
+  /**
+   * Escribe directo a localStorage sin pasar por markDirty ni notify.
+   * @param {string} key - Sin prefijo
+   * @param {*} value
+   * @private
+   */
+  _writeRaw(key, value) {
+    try {
+      localStorage.setItem(`${this.prefix}${key}`, JSON.stringify(value));
+    } catch (err) {
+      console.error(`[Storage] Raw write error "${key}":`, err);
+    }
+  }
+
+  // ─────────────────────────────────────────────────────────────
+  // BACKUP: CREAR / RESTAURAR / LISTAR / PURGAR
+  // ─────────────────────────────────────────────────────────────
+
+  /**
+   * Crea un backup del estado actual.
+   * Solo guarda keys de datos de negocio (excluye internas y otros backups).
+   * @param {string} [description='Manual'] - Descripción del backup
+   * @returns {{success: boolean, id?: string, meta?: Object, error?: string}}
+   */
+  createBackup(description = 'Manual') {
+    try {
+      const timestamp = Date.now();
+      const id = `backup_${timestamp}`;
+
+      // Snapshot solo de datos de negocio
+      const dataKeys = this.getDataKeys();
+      const data = {};
+      dataKeys.forEach(key => {
+        data[key] = this.getItem(key);
+      });
+
+      const meta = {
+        id,
+        fecha: new Date().toISOString(),
+        description,
+        version: APP_VERSION,
+        keysCount: dataKeys.length
+      };
+
+      // Guardar (raw para no triggear dirty)
+      this._writeRaw(`${id}_meta`, meta);
+      this._writeRaw(`${id}_data`, data);
+
+      // Agregar al historial
+      const history = this._readRaw('backup_history', []);
+      history.push({ id, fecha: meta.fecha, description });
+      this._writeRaw('backup_history', history.slice(-BACKUP_HISTORY_LIMIT));
+
+      // Limpiar dirty
+      this._writeRaw('dirty_keys', []);
+
+      // Actualizar meta global
+      const backupMeta = this._readRaw('backup_meta', {});
+      backupMeta.lastBackupAt = new Date().toISOString();
+      backupMeta.dirty = false;
+      this._writeRaw('backup_meta', backupMeta);
+
+      console.log(`[Storage] Backup creado: ${id} (${dataKeys.length} keys)`);
+      return { success: true, id, meta };
+    } catch (err) {
+      console.error('[Storage] Error creando backup:', err);
+      return { success: false, error: err.message };
+    }
+  }
+
+  /**
+   * Restaura un backup anterior.
+   * Crea un backup de seguridad antes de restaurar.
+   * @param {string} backupId
+   * @returns {{success: boolean, error?: string}}
+   */
+  restoreBackup(backupId) {
+    try {
+      const backupData = this._readRaw(`${backupId}_data`);
+      if (!backupData) {
+        return { success: false, error: 'Backup no encontrado' };
+      }
+
+      // Backup de seguridad antes de restaurar
+      this.createBackup('Pre-restauración (automático)');
+
+      // Limpiar datos actuales (solo datos, no backups)
+      this.getDataKeys().forEach(key => {
+        localStorage.removeItem(`${this.prefix}${key}`);
+      });
+
+      // Restaurar
+      let restored = 0;
+      Object.entries(backupData).forEach(([key, value]) => {
+        this.setItem(key, value);
+        restored++;
+      });
+
+      console.log(`[Storage] Backup restaurado: ${backupId} (${restored} keys)`);
+      return { success: true };
+    } catch (err) {
+      console.error('[Storage] Error restaurando backup:', err);
+      return { success: false, error: err.message };
+    }
+  }
+
+  /**
+   * Lista todos los backups disponibles (más recientes primero).
+   * @returns {Array<{id: string, fecha: string, description: string, version?: string, keysCount?: number, canRestore: boolean}>}
+   */
+  listBackups() {
+    const history = this._readRaw('backup_history', []);
+    return history
+      .map(item => {
+        const meta = this._readRaw(`${item.id}_meta`, {});
+        const hasData = this._readRaw(`${item.id}_data`) !== null;
+        return {
+          ...item,
+          ...meta,
+          canRestore: hasData
+        };
+      })
+      .reverse();
+  }
+
+  /**
+   * Elimina un backup específico.
+   * @param {string} backupId
+   * @returns {boolean}
+   */
+  deleteBackup(backupId) {
+    try {
+      localStorage.removeItem(`${this.prefix}${backupId}_meta`);
+      localStorage.removeItem(`${this.prefix}${backupId}_data`);
+
+      // Actualizar historial
+      const history = this._readRaw('backup_history', []);
+      const newHistory = history.filter(item => item.id !== backupId);
+      this._writeRaw('backup_history', newHistory);
+
+      console.log(`[Storage] Backup eliminado: ${backupId}`);
+      return true;
+    } catch (err) {
+      console.error('[Storage] Error eliminando backup:', err);
+      return false;
+    }
+  }
+
+  /**
+   * Elimina backups más antiguos que X días.
+   * @param {number} [daysToKeep=30]
+   * @returns {number} Cantidad eliminados
+   */
+  purgeOldBackups(daysToKeep = 30) {
+    try {
+      const now = Date.now();
+      const maxAge = daysToKeep * 24 * 60 * 60 * 1000;
+      const history = this._readRaw('backup_history', []);
+
+      let deleted = 0;
+      const newHistory = [];
+
+      history.forEach(item => {
+        const age = now - new Date(item.fecha).getTime();
+        if (age > maxAge) {
+          localStorage.removeItem(`${this.prefix}${item.id}_meta`);
+          localStorage.removeItem(`${this.prefix}${item.id}_data`);
+          deleted++;
+        } else {
+          newHistory.push(item);
+        }
+      });
+
+      if (deleted > 0) {
+        this._writeRaw('backup_history', newHistory);
+        console.log(`[Storage] Backups purgados: ${deleted}`);
+      }
+
+      return deleted;
+    } catch (err) {
+      console.error('[Storage] Error purgando backups:', err);
+      return 0;
+    }
+  }
+
+  /**
+   * Estado actual del sistema de backup.
+   * @returns {{lastBackupAt: string|null, lastChangeAt: string|null, isDirty: boolean, backupCount: number, dirtyKeysCount: number, needsBackup: boolean}}
+   */
+  getBackupStatus() {
+    const meta = this._readRaw('backup_meta', {});
+    const history = this._readRaw('backup_history', []);
+    const dirtyKeys = this._readRaw('dirty_keys', []);
+
+    // Calcular si necesita backup
+    let needsBackup = false;
+    if (meta.dirty || dirtyKeys.length > 0) {
+      if (!meta.lastBackupAt) {
+        needsBackup = true;
+      } else {
+        const hoursSinceBackup = (Date.now() - new Date(meta.lastBackupAt).getTime()) / (1000 * 60 * 60);
+        needsBackup = hoursSinceBackup >= BACKUP_AUTO_INTERVAL_HOURS;
+      }
+    }
+
+    return {
+      lastBackupAt: meta.lastBackupAt || null,
+      lastChangeAt: meta.lastChangeAt || null,
+      isDirty: meta.dirty || dirtyKeys.length > 0,
+      backupCount: history.length,
+      dirtyKeysCount: dirtyKeys.length,
+      needsBackup
+    };
+  }
+
+  // ─────────────────────────────────────────────────────────────
+  // AUTO-BACKUP
+  // ─────────────────────────────────────────────────────────────
+
+  /**
+   * Programa el auto-backup periódico.
+   * Verifica cada hora si pasaron las horas configuradas desde el último backup.
+   * @private
+   */
+  _scheduleAutoBackup() {
+    // Chequear al iniciar
+    this._checkAutoBackup();
+
+    // Chequear cada hora
+    this._autoBackupTimer = setInterval(() => {
+      this._checkAutoBackup();
+    }, 60 * 60 * 1000);
+  }
+
+  /**
+   * Verifica si toca hacer auto-backup y lo ejecuta.
+   * @private
+   */
+  _checkAutoBackup() {
+    const status = this.getBackupStatus();
+    if (status.needsBackup && status.dirtyKeysCount > 0) {
+      console.log('[Storage] Auto-backup programado, ejecutando...');
+      this.createBackup('Automático');
+    }
+  }
+
+  /**
+   * Detiene el auto-backup (para cleanup).
+   */
+  stopAutoBackup() {
+    if (this._autoBackupTimer) {
+      clearInterval(this._autoBackupTimer);
+      this._autoBackupTimer = null;
+    }
+  }
+
+  // ─────────────────────────────────────────────────────────────
+  // EXPORT / IMPORT (archivos JSON)
+  // ─────────────────────────────────────────────────────────────
+
+  /**
+   * Exporta todos los datos de negocio como objeto JSON.
+   * @returns {Object}
+   */
+  export() {
+    const dataKeys = this.getDataKeys();
+    const data = {};
+    dataKeys.forEach(key => {
+      data[key] = this.getItem(key);
+    });
+
+    return {
+      app: 'Polar3',
+      version: APP_VERSION,
+      exportDate: new Date().toISOString(),
+      recordCount: dataKeys.length,
+      data
+    };
+  }
+
+  /**
+   * Exporta y dispara descarga como archivo .json.
+   * @param {string} [filename] - Nombre del archivo (sin extensión)
+   */
+  downloadExport(filename) {
+    const exportData = this.export();
+    const name = filename || `polar3_export_${new Date().toISOString().slice(0, 10)}`;
+    const blob = new Blob([JSON.stringify(exportData, null, 2)], { type: 'application/json' });
+
+    const link = document.createElement('a');
+    link.href = URL.createObjectURL(blob);
+    link.download = `${name}.json`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(link.href);
+
+    console.log(`[Storage] Export descargado: ${name}.json`);
+  }
+
+  /**
+   * Importa datos desde un objeto JSON exportado.
+   * @param {Object} exportData - Objeto con { data: { key: value, ... } }
+   * @param {Object} [opts]
+   * @param {boolean} [opts.merge=true] - true = merge, false = reemplazar todo
+   * @param {boolean} [opts.backupFirst=true] - Hacer backup antes de importar
+   * @returns {{success: boolean, imported: number, error?: string}}
+   */
+  import(exportData, opts = {}) {
+    const { merge = true, backupFirst = true } = opts;
+
+    try {
+      if (!exportData || !exportData.data || typeof exportData.data !== 'object') {
+        return { success: false, imported: 0, error: 'Formato de importación inválido' };
+      }
+
+      // Backup de seguridad
+      if (backupFirst) {
+        this.createBackup('Pre-importación (automático)');
+      }
+
+      // Si no es merge, limpiar datos actuales
+      if (!merge) {
+        this.getDataKeys().forEach(key => {
+          localStorage.removeItem(`${this.prefix}${key}`);
+        });
+      }
+
+      let imported = 0;
+      Object.entries(exportData.data).forEach(([key, value]) => {
+        if (this.setItem(key, value)) {
+          imported++;
+        }
+      });
+
+      console.log(`[Storage] Importados: ${imported} keys (merge=${merge})`);
+      return { success: true, imported };
+    } catch (err) {
+      console.error('[Storage] Error importando:', err);
+      return { success: false, imported: 0, error: err.message };
+    }
+  }
+
+  /**
+   * Abre un file picker y procesa el archivo JSON seleccionado.
+   * @param {Object} [opts] - Opciones de import (merge, backupFirst)
+   * @returns {Promise<{success: boolean, imported: number, error?: string}>}
+   */
+  importFromFile(opts = {}) {
+    return new Promise((resolve) => {
+      const input = document.createElement('input');
+      input.type = 'file';
+      input.accept = '.json';
+
+      input.addEventListener('change', (e) => {
+        const file = e.target.files?.[0];
+        if (!file) {
+          resolve({ success: false, imported: 0, error: 'No se seleccionó archivo' });
+          return;
+        }
+
+        const reader = new FileReader();
+        reader.onload = (ev) => {
+          try {
+            const parsed = JSON.parse(ev.target.result);
+            const result = this.import(parsed, opts);
+            resolve(result);
+          } catch (err) {
+            resolve({ success: false, imported: 0, error: 'El archivo no es JSON válido' });
+          }
+        };
+        reader.onerror = () => {
+          resolve({ success: false, imported: 0, error: 'Error leyendo el archivo' });
+        };
+        reader.readAsText(file);
+      });
+
+      input.click();
+    });
+  }
+
+  // ─────────────────────────────────────────────────────────────
+  // DIAGNÓSTICO Y CUOTA
+  // ─────────────────────────────────────────────────────────────
+
+  /**
+   * Tamaño total del storage de la app en KB.
+   * Cuenta tanto keys como valores (con prefijo).
+   * @returns {number}
+   */
+  getStorageSize() {
+    try {
+      let bytes = 0;
+      this.getAllKeys().forEach(key => {
+        const fullKey = `${this.prefix}${key}`;
+        const value = localStorage.getItem(fullKey) || '';
+        // Cada char en JS = 2 bytes en UTF-16, pero localStorage suele contar chars
+        bytes += fullKey.length + value.length;
+      });
+      return Math.round(bytes / 1024);
+    } catch {
+      return 0;
+    }
+  }
+
+  /**
+   * Desglose de tamaño por key (top N más pesadas).
+   * Útil para diagnóstico cuando el storage crece mucho.
+   * @param {number} [top=10]
+   * @returns {Array<{key: string, sizeKB: number}>}
+   */
+  getStorageSizeBreakdown(top = 10) {
+    const items = this.getAllKeys().map(key => {
+      const value = localStorage.getItem(`${this.prefix}${key}`) || '';
+      return { key, sizeKB: Math.round(value.length / 1024 * 100) / 100 };
+    });
+
+    items.sort((a, b) => b.sizeKB - a.sizeKB);
+    return items.slice(0, top);
+  }
+
+  /**
+   * Porcentaje estimado de uso de la cuota de localStorage.
+   * @returns {number} 0-100
+   */
+  getUsagePercent() {
+    const usedKB = this.getStorageSize();
+    return Math.min(100, Math.round((usedKB / STORAGE_QUOTA_ESTIMATE_KB) * 100));
+  }
+
+  /**
+   * Resumen completo del estado del storage (para pantalla de diagnóstico).
+   * @returns {Object}
+   */
+  getDiagnostics() {
+    return {
+      version: APP_VERSION,
+      totalKeys: this.getAllKeys().length,
+      dataKeys: this.getDataKeys().length,
+      sizeKB: this.getStorageSize(),
+      usagePercent: this.getUsagePercent(),
+      backup: this.getBackupStatus(),
+      topKeys: this.getStorageSizeBreakdown(5)
+    };
+  }
+
+  // ─────────────────────────────────────────────────────────────
+  // MIGRACIÓN DE DATOS ANTIGUOS
+  // ─────────────────────────────────────────────────────────────
+
+  /**
+   * Ejecuta migraciones necesarias para compatibilidad.
+   * Se corre una sola vez al init().
+   * @private
+   */
+  _runMigrations() {
+    // Migración 1: Keys sin prefijo → con prefijo
+    // Versiones muy viejas de Polar3 guardaban sin 'polar3_'
+    this._migrateLegacyKeys();
+
+    // Migración 2: precio como string → number
+    const precio = this.getItem(STORAGE_KEYS.precio);
+    if (typeof precio === 'string' && precio !== '') {
+      const parsed = parseInt(precio, 10);
+      if (!isNaN(parsed)) {
+        this.setItem(STORAGE_KEYS.precio, parsed);
+        console.log('[Storage] Migración: precio string → number');
+      }
+    }
+  }
+
+  /**
+   * Busca keys de Polar3 sin prefijo y las migra.
+   * @private
+   */
+  _migrateLegacyKeys() {
+    const knownKeys = Object.values(STORAGE_KEYS);
+
+    knownKeys.forEach(key => {
+      // Verificar si existe sin prefijo
+      const legacyValue = localStorage.getItem(key);
+      const prefixedExists = localStorage.getItem(`${this.prefix}${key}`) !== null;
+
+      if (legacyValue !== null && !prefixedExists) {
+        // Mover al nuevo formato
+        localStorage.setItem(`${this.prefix}${key}`, legacyValue);
+        localStorage.removeItem(key);
+        console.log(`[Storage] Migración: "${key}" → "${this.prefix}${key}"`);
+      }
+    });
+  }
+
+  // ─────────────────────────────────────────────────────────────
+  // HELPERS INTERNOS
+  // ─────────────────────────────────────────────────────────────
+
+  /**
+   * Detecta si un error es de cuota excedida.
+   * @param {Error} err
+   * @returns {boolean}
+   * @private
+   */
+  _isQuotaError(err) {
+    return (
+      err.name === 'QuotaExceededError' ||
+      err.code === 22 ||
+      err.code === 1014 ||
+      (err.name === 'NS_ERROR_DOM_QUOTA_REACHED')
+    );
+  }
+
+  /**
+   * Limpia listeners y timers (para testing o cleanup).
+   */
+  destroy() {
+    this.stopAutoBackup();
+    this._listeners.clear();
+    this._globalListeners.clear();
+    this.initialized = false;
   }
 }
 
-// ─────────────────────────────────────────────
-// FORMATEO DE FECHAS (helpers locales)
-// ─────────────────────────────────────────────
+// ═══════════════════════════════════════════════════════════════
+// SINGLETON EXPORT
+// ═══════════════════════════════════════════════════════════════
 
-export function formatDateTime(value) {
-  if (!value) return 'pendiente';
-  const date = new Date(value);
-  if (Number.isNaN(date.getTime())) return 'pendiente';
-  return date.toLocaleString('es-AR', { dateStyle: 'short', timeStyle: 'short' });
-}
+export const storage = new StorageManager();
 
-function formatRelativeHours(hours) {
-  if (!Number.isFinite(hours) || hours <= 0) return 'ahora';
-  if (hours < 24) return `en ${Math.ceil(hours)} h`;
-  const days = Math.ceil(hours / 24);
-  return `en ${days} día${days > 1 ? 's' : ''}`;
-}
-
-function formatElapsedHours(hours) {
-  if (!Number.isFinite(hours) || hours < 1) return 'menos de 1 hora';
-  if (hours < 24) return `${Math.round(hours)} h`;
-  const days = Math.floor(hours / 24);
-  return `${days} día${days > 1 ? 's' : ''}`;
-}
+export default storage;

@@ -1,439 +1,775 @@
 /**
- * CobrosStore.js — Polar[3] PWA v2.7.12
- * Gestión del tablero de cobranzas (pagos por familia/alumno).
- * Incluye CRUD, filtros, render de tabla + vista móvil, y helpers de fecha/escuela.
+ * POLAR[3] SISTEMA OPERATIVO v2.8.0
+ * CobrosStore — State management para cobranzas
+ *
+ * Mantiene índices para búsquedas O(1) por ID y por escuela.
+ * Incluye validación inline, filtros múltiples, stats y export.
+ * Notifica listeners cuando cambian los datos.
+ *
+ * Uso:
+ *   import { cobrosStore } from './stores/CobrosStore.js';
+ *   cobrosStore.init();
+ *   cobrosStore.add({ escuela: 'Jardín Sol', curso: 'Sala 5', ... });
+ *   cobrosStore.onChange((records) => renderTable(records));
  */
 
-import { PAYMENT_BOARD_KEY, paymentBoardSeed } from '../config.js';
-import { trackedSetItem, trackedRemoveItem } from '../modules/Storage.js';
+import { storage } from '../modules/Storage.js';
+import {
+  STORAGE_KEYS,
+  COBRO_STATES,
+  PAYMENT_METHODS,
+  PACK_PRICE_DEFAULT,
+  CANON_PERCENTAGE,
+  DEFAULTS,
+  APP_VERSION,
+  VALIDATION_RULES
+} from '../config.js';
 
-// ─────────────────────────────────────────────
-// CALLBACKS INYECTADOS
-// ─────────────────────────────────────────────
+// ═══════════════════════════════════════════════════════════════
+// VALIDACIÓN INLINE
+// ═══════════════════════════════════════════════════════════════
 
-let _showToast = null;
-let _onDataChange = null;  // notifica a KPIs y dashboard móvil
+/**
+ * Valida un objeto cobro antes de guardarlo.
+ * @param {Object} cobro
+ * @returns {{valid: boolean, errors: string[]}}
+ */
+function validateCobro(cobro) {
+  const errors = [];
 
-export function initCobrosStore({ showToast = null, onDataChange = null } = {}) {
-  _showToast = showToast;
-  _onDataChange = onDataChange;
-}
-
-// ─────────────────────────────────────────────
-// HELPERS DE FECHA / ESCUELA
-// ─────────────────────────────────────────────
-
-export function normalizePaymentDate(value) {
-  const raw = String(value || '').trim();
-  if (!raw) return '';
-  const match = raw.match(/^(\d{4})-(\d{2})-(\d{2})$/);
-  if (!match) return '';
-  const m = Number(match[2]);
-  const d = Number(match[3]);
-  if (m < 1 || m > 12 || d < 1 || d > 31) return '';
-  return `${match[1]}-${match[2]}-${match[3]}`;
-}
-
-export function getTodayIsoDate() {
-  const now = new Date();
-  const year = now.getFullYear();
-  const month = String(now.getMonth() + 1).padStart(2, '0');
-  const day = String(now.getDate()).padStart(2, '0');
-  return `${year}-${month}-${day}`;
-}
-
-export function normalizeSchoolKey(value) {
-  return String(value || '')
-    .trim()
-    .toLowerCase()
-    .normalize('NFD')
-    .replace(/[\u0300-\u036f]/g, '')
-    .replace(/\s+/g, ' ');
-}
-
-export function normalizeMonthValue(value) {
-  const raw = String(value || '').trim();
-  return /^\d{4}-\d{2}$/.test(raw) ? raw : '';
-}
-
-export function getCurrentMonthValue() {
-  return getTodayIsoDate().slice(0, 7);
-}
-
-export function getCurrentYearValue() {
-  return getTodayIsoDate().slice(0, 4);
-}
-
-export function formatCalendarDate(value) {
-  const safe = normalizePaymentDate(value);
-  if (!safe) return 'Sin fecha';
-  const [year, month, day] = safe.split('-').map(Number);
-  const dt = new Date(year, month - 1, day);
-  return dt.toLocaleDateString('es-AR', { day: '2-digit', month: '2-digit', year: 'numeric' });
-}
-
-export function formatMonthLabel(value) {
-  const safe = normalizeMonthValue(value);
-  if (!safe) return 'mes sin definir';
-  const [year, month] = safe.split('-').map(Number);
-  const dt = new Date(year, month - 1, 1);
-  return dt.toLocaleDateString('es-AR', { month: 'long', year: 'numeric' });
-}
-
-export function escapeHtml(value) {
-  return String(value || '')
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;')
-    .replace(/"/g, '&quot;')
-    .replace(/'/g, '&#39;');
-}
-
-export function money(n) {
-  const num = Number.isFinite(Number(n)) ? Number(n) : 0;
-  return '$' + Math.round(num).toLocaleString('es-AR');
-}
-
-// ─────────────────────────────────────────────
-// ESTADO DE FILTROS UI (en memoria)
-// ─────────────────────────────────────────────
-
-const paymentBoardUiState = {
-  search: '',
-  status: ''
-};
-
-// ─────────────────────────────────────────────
-// CRUD — datos
-// ─────────────────────────────────────────────
-
-export function getPaymentBoardData() {
-  try {
-    const data = JSON.parse(localStorage.getItem(PAYMENT_BOARD_KEY) || '[]');
-    if (!Array.isArray(data)) return [];
-    return data.map(item => ({
-      ...item,
-      school:  String(item.school  || '').trim(),
-      name:    String(item.name    || '').trim(),
-      course:  String(item.course  || '').trim(),
-      receipt: String(item.receipt || '').trim(),
-      note:    String(item.note    || '').trim(),
-      date:    normalizePaymentDate(item.date)
-    }));
-  } catch (e) {
-    return [];
-  }
-}
-
-export function savePaymentBoardData(data) {
-  trackedSetItem(PAYMENT_BOARD_KEY, JSON.stringify(data));
-}
-
-export function addPaymentRecord() {
-  const school  = document.getElementById('paymentSchool')?.value.trim() || '';
-  const name    = document.getElementById('paymentName')?.value.trim() || '';
-  const course  = document.getElementById('paymentCourse')?.value.trim() || '';
-  const date    = normalizePaymentDate(document.getElementById('paymentDate')?.value) || getTodayIsoDate();
-  const amount  = parseInt(document.getElementById('paymentAmount')?.value || '0', 10);
-  const status  = document.getElementById('paymentStatus')?.value || 'pendiente';
-  const receipt = document.getElementById('paymentReceipt')?.value.trim() || '';
-  const note    = document.getElementById('paymentNote')?.value.trim() || '';
-
-  if (!name || !amount) return;
-
-  const data = getPaymentBoardData();
-  data.unshift({ id: 'pay_' + Date.now(), school, date, name, course, amount, status, receipt, note });
-  savePaymentBoardData(data);
-
-  ['paymentSchool', 'paymentName', 'paymentCourse', 'paymentAmount', 'paymentReceipt', 'paymentNote'].forEach(id => {
-    const el = document.getElementById(id);
-    if (el) el.value = '';
-  });
-  const statusEl = document.getElementById('paymentStatus');
-  if (statusEl) statusEl.value = 'pendiente';
-  const dateEl = document.getElementById('paymentDate');
-  if (dateEl) dateEl.value = getTodayIsoDate();
-
-  if (_showToast) _showToast('Registro de cobranza guardado.', 'success');
-  renderPaymentBoard();
-  document.getElementById('paymentName')?.focus();
-}
-
-export function setPaymentField(id, field, value) {
-  const data = getPaymentBoardData().map(item => {
-    if (item.id !== id) return item;
-    let nextValue = value;
-    if (field === 'school') nextValue = String(value || '').trim();
-    if (field === 'date')   nextValue = normalizePaymentDate(value);
-    return { ...item, [field]: nextValue };
-  });
-  savePaymentBoardData(data);
-  renderPaymentBoard();
-}
-
-export function setPaymentStatus(id, status) {
-  setPaymentField(id, 'status', status);
-}
-
-export function setPaymentQuickStatus(id, status) {
-  setPaymentField(id, 'status', status);
-}
-
-export function removePaymentRecord(id) {
-  savePaymentBoardData(getPaymentBoardData().filter(item => item.id !== id));
-  renderPaymentBoard();
-}
-
-export function seedPaymentBoard() {
-  if (getPaymentBoardData().length) return;
-  savePaymentBoardData(paymentBoardSeed);
-  renderPaymentBoard();
-}
-
-export function clearPaymentBoard() {
-  if (!confirm('¿Vaciar el tablero de cobranzas?')) return;
-  trackedRemoveItem(PAYMENT_BOARD_KEY);
-  renderPaymentBoard();
-}
-
-export function fillMissingPaymentDates() {
-  const data = getPaymentBoardData();
-  const missing = data.filter(item => !normalizePaymentDate(item.date)).length;
-  if (!missing) {
-    if (_showToast) _showToast('No hay registros sin fecha para completar.', 'warning');
-    return;
-  }
-  const today = getTodayIsoDate();
-  savePaymentBoardData(data.map(item => normalizePaymentDate(item.date) ? item : { ...item, date: today }));
-  renderPaymentBoard();
-  if (_showToast) _showToast(`Se completaron ${missing} fecha(s) faltante(s) con ${today}.`, 'success');
-}
-
-export function syncPaymentDateDefault() {
-  const input = document.getElementById('paymentDate');
-  if (input && !input.value) input.value = getTodayIsoDate();
-}
-
-// ─────────────────────────────────────────────
-// FILTROS
-// ─────────────────────────────────────────────
-
-export function getPaymentStatusLabel(status) {
-  return ({
-    pendiente: 'Pendiente',
-    observado: 'Observado',
-    validado:  'Validado',
-    liquidado: 'Liquidado'
-  })[status] || 'Pendiente';
-}
-
-function getPaymentFilteredData(data = getPaymentBoardData()) {
-  const search = String(paymentBoardUiState.search || '').trim().toLowerCase();
-  const status = paymentBoardUiState.status || '';
-  return data.filter(item => {
-    if (status && item.status !== status) return false;
-    if (!search) return true;
-    const haystack = [item.school, item.name, item.course, item.receipt, item.note, item.date, item.status]
-      .map(v => String(v || '').toLowerCase()).join(' ');
-    return haystack.includes(search);
-  });
-}
-
-export function setPaymentSearch(value) {
-  paymentBoardUiState.search = String(value || '').trim();
-  renderPaymentBoard();
-}
-
-export function setPaymentStatusFilter(value) {
-  paymentBoardUiState.status = value || '';
-  renderPaymentBoard();
-}
-
-export function clearPaymentFilters() {
-  paymentBoardUiState.search = '';
-  paymentBoardUiState.status = '';
-  const searchEl = document.getElementById('paymentSearch');
-  const statusEl = document.getElementById('paymentFilterStatus');
-  if (searchEl) searchEl.value = '';
-  if (statusEl) statusEl.value = '';
-  renderPaymentBoard();
-}
-
-// ─────────────────────────────────────────────
-// DATALIST DE COLEGIOS
-// ─────────────────────────────────────────────
-
-export function getUnifiedSchoolNames(schoolBoardData = [], kpiScope = '') {
-  const paymentNames = getPaymentBoardData().map(item => String(item.school || '').trim()).filter(Boolean);
-  const boardNames = schoolBoardData.map(item => String(item.name || '').trim()).filter(Boolean);
-  const scopeName = String(kpiScope || '').trim();
-  return [...new Set([...boardNames, ...paymentNames, scopeName].filter(Boolean))]
-    .sort((a, b) => a.localeCompare(b, 'es', { sensitivity: 'base' }));
-}
-
-export function renderPaymentSchoolOptions(schoolBoardData = [], kpiScope = '') {
-  const list = document.getElementById('paymentSchoolOptions');
-  if (!list) return;
-  const names = getUnifiedSchoolNames(schoolBoardData, kpiScope);
-  list.innerHTML = names.map(name => `<option value="${String(name).replace(/"/g, '&quot;')}"></option>`).join('');
-}
-
-// ─────────────────────────────────────────────
-// RENDER
-// ─────────────────────────────────────────────
-
-export function renderPaymentBoard(schoolBoardData = [], kpiScope = '') {
-  const rows = document.getElementById('paymentsBoardRows');
-  const mobileList = document.getElementById('paymentMobileList');
-  if (!rows) return;
-
-  const data = getPaymentBoardData();
-  const filteredData = getPaymentFilteredData(data);
-
-  renderPaymentSchoolOptions(schoolBoardData, kpiScope);
-
-  // Tabla desktop
-  if (!data.length) {
-    rows.innerHTML = '<tr><td colspan="9" style="text-align:center;color:var(--text-muted)">Sin registros todavía.</td></tr>';
-  } else if (!filteredData.length) {
-    rows.innerHTML = '<tr><td colspan="9" style="text-align:center;color:var(--text-muted)">No hay registros para este filtro.</td></tr>';
-  } else {
-    rows.innerHTML = filteredData.map(item => {
-      const school  = escapeHtml(item.school  || '');
-      const date    = escapeHtml(item.date    || '');
-      const name    = escapeHtml(item.name    || '');
-      const course  = escapeHtml(item.course  || '');
-      const receipt = escapeHtml(item.receipt || '');
-      const note    = escapeHtml(item.note    || '');
-      return `
-        <tr>
-          <td>
-            <input class="inline-input" list="paymentSchoolOptions" value="${school}" onchange="setPaymentField('${item.id}','school', this.value)" placeholder="Asignar colegio" type="text">
-          </td>
-          <td>
-            <input class="inline-input inline-input-date" value="${date}" onchange="setPaymentField('${item.id}','date', this.value)" type="date">
-          </td>
-          <td><strong>${name || '—'}</strong></td>
-          <td>${course || '—'}</td>
-          <td>${money(item.amount)}</td>
-          <td>
-            <select class="inline-select status-${item.status}" onchange="setPaymentField('${item.id}','status', this.value)">
-              <option value="pendiente" ${item.status === 'pendiente' ? 'selected' : ''}>Pendiente</option>
-              <option value="observado"  ${item.status === 'observado'  ? 'selected' : ''}>Observado</option>
-              <option value="validado"   ${item.status === 'validado'   ? 'selected' : ''}>Validado</option>
-              <option value="liquidado"  ${item.status === 'liquidado'  ? 'selected' : ''}>Liquidado</option>
-            </select>
-          </td>
-          <td>${receipt || '—'}</td>
-          <td>${note || '—'}</td>
-          <td><button class="mini-btn danger" type="button" onclick="removePaymentRecord('${item.id}')">Eliminar</button></td>
-        </tr>
-      `;
-    }).join('');
+  if (!cobro.escuela || typeof cobro.escuela !== 'string' || cobro.escuela.trim().length < 2) {
+    errors.push('Escuela es requerida (mín. 2 caracteres)');
   }
 
-  // Lista móvil
-  if (mobileList) {
-    if (!data.length) {
-      mobileList.innerHTML = '<div class="payment-mobile-empty">Todavía no hay registros de cobranzas.</div>';
-    } else if (!filteredData.length) {
-      mobileList.innerHTML = '<div class="payment-mobile-empty">No hay resultados con ese filtro.</div>';
-    } else {
-      mobileList.innerHTML = filteredData.map(item => {
-        const school  = escapeHtml(item.school  || 'Sin institución');
-        const name    = escapeHtml(item.name    || 'Sin nombre');
-        const course  = escapeHtml(item.course  || 'Sin curso');
-        const receipt = escapeHtml(item.receipt || 'Sin comprobante');
-        const note    = escapeHtml(item.note    || 'Sin observación');
-        const prettyDate  = escapeHtml(formatCalendarDate(item.date));
-        const statusLabel = escapeHtml(getPaymentStatusLabel(item.status));
-        return `
-          <article class="payment-mobile-card status-${item.status}">
-            <div class="payment-mobile-card-top">
-              <div>
-                <div class="payment-mobile-school">${school}</div>
-                <h4>${name}</h4>
-                <p>${course}</p>
-              </div>
-              <div class="payment-mobile-amount-wrap">
-                <strong class="payment-mobile-amount">${money(item.amount)}</strong>
-                <span class="payment-status-pill status-${item.status}">${statusLabel}</span>
-              </div>
-            </div>
-            <div class="payment-mobile-meta">
-              <span>📅 ${prettyDate}</span>
-              <span>🧾 ${receipt}</span>
-            </div>
-            <div class="payment-mobile-note">${note}</div>
-            <div class="payment-mobile-edit-grid">
-              <label class="payment-mobile-edit">
-                <span>Fecha</span>
-                <input class="inline-input inline-input-date" value="${escapeHtml(item.date || '')}" onchange="setPaymentField('${item.id}','date', this.value)" type="date">
-              </label>
-              <label class="payment-mobile-edit">
-                <span>Estado</span>
-                <select class="inline-select status-${item.status}" onchange="setPaymentField('${item.id}','status', this.value)">
-                  <option value="pendiente" ${item.status === 'pendiente' ? 'selected' : ''}>Pendiente</option>
-                  <option value="observado"  ${item.status === 'observado'  ? 'selected' : ''}>Observado</option>
-                  <option value="validado"   ${item.status === 'validado'   ? 'selected' : ''}>Validado</option>
-                  <option value="liquidado"  ${item.status === 'liquidado'  ? 'selected' : ''}>Liquidado</option>
-                </select>
-              </label>
-            </div>
-            <div class="payment-mobile-actions">
-              <button class="payment-chip-btn" type="button" onclick="setPaymentQuickStatus('${item.id}','pendiente')">Pend.</button>
-              <button class="payment-chip-btn" type="button" onclick="setPaymentQuickStatus('${item.id}','observado')">Obs.</button>
-              <button class="payment-chip-btn" type="button" onclick="setPaymentQuickStatus('${item.id}','validado')">Validar</button>
-              <button class="payment-chip-btn primary" type="button" onclick="setPaymentQuickStatus('${item.id}','liquidado')">Liquidar</button>
-              <button class="payment-chip-btn danger" type="button" onclick="removePaymentRecord('${item.id}')">Eliminar</button>
-            </div>
-          </article>
-        `;
-      }).join('');
+  if (!cobro.curso || typeof cobro.curso !== 'string' || cobro.curso.trim().length < 1) {
+    errors.push('Curso es requerido');
+  }
+
+  if (cobro.cantidad !== undefined && cobro.cantidad !== null) {
+    const cant = Number(cobro.cantidad);
+    if (isNaN(cant) || cant < 0) {
+      errors.push('Cantidad debe ser un número >= 0');
     }
   }
 
-  // Totales y resumen
-  const total    = data.reduce((sum, item) => sum + (Number(item.amount) || 0), 0);
-  const pending  = data.filter(item => ['pendiente', 'observado'].includes(item.status))
-                       .reduce((sum, item) => sum + (Number(item.amount) || 0), 0);
-  const settled  = data.filter(item => item.status === 'liquidado')
-                       .reduce((sum, item) => sum + (Number(item.amount) || 0), 0);
-  const assignedSchools = new Set(data.map(item => normalizeSchoolKey(item.school)).filter(Boolean)).size;
-  const unassigned = data.filter(item => !normalizeSchoolKey(item.school)).length;
-  const undated    = data.filter(item => !normalizePaymentDate(item.date)).length;
-
-  const setId = (id, val) => { const el = document.getElementById(id); if (el) el.textContent = val; };
-  setId('payCount',        String(data.length));
-  setId('payTotal',        money(total));
-  setId('payPending',      money(pending));
-  setId('paySettled',      money(settled));
-  setId('paySchoolsLinked', `${assignedSchools} vinculados · ${unassigned} sin colegio · ${undated} sin fecha`);
-
-  const insight = document.getElementById('paymentInsight');
-  if (insight) {
-    if (!data.length)            insight.textContent = 'Aún no hay datos cargados.';
-    else if (undated > 0)        insight.textContent = `Hay ${undated} cobro(s) sin fecha. Completa esa columna para habilitar KPIs confiables por período.`;
-    else if (unassigned > 0)     insight.textContent = `Hay ${unassigned} cobro(s) sin institución asignada. Completa esa columna para habilitar KPIs confiables por colegio.`;
-    else if (pending > settled && pending > 0) insight.textContent = 'Hoy tienes más dinero en seguimiento que liquidado. Conviene atacar observados y pendientes antes de producir.';
-    else if (settled >= total * 0.6) insight.textContent = 'Buen nivel de cierre: la mayor parte del tablero ya está liquidada o lista para conciliación.';
-    else                         insight.textContent = 'Tablero equilibrado, pero todavía conviene revisar observados para no frenar producción.';
-  }
-
-  const feedback = document.getElementById('paymentFilterFeedback');
-  if (feedback) {
-    if (!data.length) {
-      feedback.textContent = 'Sin registros cargados todavía.';
-    } else if (!paymentBoardUiState.search && !paymentBoardUiState.status) {
-      feedback.textContent = `Mostrando todos los registros (${data.length}).`;
-    } else {
-      feedback.textContent = `Mostrando ${filteredData.length} de ${data.length} registro(s)${
-        paymentBoardUiState.status ? ` · estado ${getPaymentStatusLabel(paymentBoardUiState.status).toLowerCase()}` : ''
-      }${
-        paymentBoardUiState.search ? ` · búsqueda "${paymentBoardUiState.search}"` : ''
-      }.`;
+  if (cobro.precio !== undefined && cobro.precio !== null) {
+    const precio = Number(cobro.precio);
+    if (isNaN(precio) || precio < 0) {
+      errors.push('Precio debe ser un número >= 0');
     }
   }
 
-  if (_onDataChange) _onDataChange();
+  if (cobro.estado && !COBRO_STATES.includes(cobro.estado)) {
+    errors.push(`Estado inválido: "${cobro.estado}". Valores: ${COBRO_STATES.join(', ')}`);
+  }
+
+  if (cobro.metodoPago) {
+    const validMethods = PAYMENT_METHODS.map(m => m.value);
+    if (!validMethods.includes(cobro.metodoPago)) {
+      errors.push(`Método de pago inválido: "${cobro.metodoPago}"`);
+    }
+  }
+
+  if (cobro.email && !VALIDATION_RULES.email.test(cobro.email)) {
+    errors.push('Formato de email inválido');
+  }
+
+  if (cobro.telefono) {
+    const clean = cobro.telefono.replace(/[^\d+]/g, '');
+    if (clean.length > 0 && !VALIDATION_RULES.phone.test(clean)) {
+      errors.push('Teléfono debe tener 7-15 dígitos');
+    }
+  }
+
+  return { valid: errors.length === 0, errors };
 }
+
+/**
+ * Sanitiza strings para prevenir XSS básico.
+ * @param {string} str
+ * @returns {string}
+ */
+function sanitize(str) {
+  if (typeof str !== 'string') return str;
+  return str.replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+}
+
+/**
+ * Genera un ID único para un cobro.
+ * @returns {string}
+ */
+function generateId() {
+  const ts = Date.now();
+  const rand = Math.random().toString(36).slice(2, 11);
+  return `cobro_${ts}_${rand}`;
+}
+
+// ═══════════════════════════════════════════════════════════════
+// CLASE PRINCIPAL
+// ═══════════════════════════════════════════════════════════════
+
+class CobrosStore {
+  constructor() {
+    /** @type {Array<Object>} Registros de cobranzas */
+    this.records = [];
+
+    /** @type {Object<string, number>} Índice id → posición en array */
+    this._indexById = {};
+
+    /** @type {Object<string, number[]>} Índice escuela → posiciones */
+    this._indexByEscuela = {};
+
+    /** @type {Set<Function>} Listeners de cambio */
+    this._listeners = new Set();
+
+    /** @type {boolean} */
+    this._initialized = false;
+  }
+
+  // ─────────────────────────────────────────────────────────────
+  // INICIALIZACIÓN
+  // ─────────────────────────────────────────────────────────────
+
+  /**
+   * Carga datos desde storage y construye índices.
+   * Llamar una vez al iniciar la app.
+   */
+  init() {
+    if (this._initialized) return;
+
+    this.records = storage.getItem(STORAGE_KEYS.cobros, []);
+
+    // Asegurar que es un array
+    if (!Array.isArray(this.records)) {
+      console.warn('[CobrosStore] Datos corruptos, reseteando a array vacío');
+      this.records = [];
+    }
+
+    this._rebuildIndexes();
+    this._initialized = true;
+
+    console.log(`[CobrosStore] Inicializado: ${this.records.length} registros, ${this.getEscuelas().length} escuelas`);
+  }
+
+  // ─────────────────────────────────────────────────────────────
+  // CRUD
+  // ─────────────────────────────────────────────────────────────
+
+  /**
+   * Agrega una cobranza nueva.
+   * @param {Object} data - Datos del cobro (sin id ni fechas)
+   * @returns {{success: boolean, id?: string, error?: string, errors?: string[]}}
+   */
+  add(data) {
+    // Sanitizar strings
+    const cleaned = this._sanitizeRecord(data);
+
+    // Defaults
+    cleaned.estado = cleaned.estado || DEFAULTS.cobro.estado;
+    cleaned.metodoPago = cleaned.metodoPago || DEFAULTS.cobro.metodoPago;
+    cleaned.cantidad = Number(cleaned.cantidad) || 0;
+    cleaned.precio = Number(cleaned.precio) || PACK_PRICE_DEFAULT;
+    cleaned.total = cleaned.cantidad * cleaned.precio;
+
+    // Validar
+    const validation = validateCobro(cleaned);
+    if (!validation.valid) {
+      console.warn('[CobrosStore] Validación fallida:', validation.errors);
+      return { success: false, error: 'Validación fallida', errors: validation.errors };
+    }
+
+    // Generar ID y timestamps
+    const id = cleaned.id || generateId();
+    const now = new Date().toISOString();
+
+    const record = {
+      ...cleaned,
+      id,
+      fechaCreacion: cleaned.fechaCreacion || now,
+      fechaModificacion: now
+    };
+
+    // Verificar duplicado
+    if (this._indexById[id] !== undefined) {
+      return { success: false, error: `ID duplicado: ${id}` };
+    }
+
+    // Agregar al array
+    const idx = this.records.length;
+    this.records.push(record);
+
+    // Actualizar índice por ID
+    this._indexById[id] = idx;
+
+    // Actualizar índice por escuela
+    const escuela = record.escuela;
+    if (!this._indexByEscuela[escuela]) {
+      this._indexByEscuela[escuela] = [];
+    }
+    this._indexByEscuela[escuela].push(idx);
+
+    // Persistir y notificar
+    this._persist();
+    this._notify();
+
+    console.log(`[CobrosStore] Agregado: ${id}`);
+    return { success: true, id };
+  }
+
+  /**
+   * Obtiene un cobro por ID.
+   * @param {string} id
+   * @returns {Object|null} Copia del registro (no referencia directa)
+   */
+  getById(id) {
+    const idx = this._indexById[id];
+    if (idx === undefined) return null;
+    return { ...this.records[idx] };
+  }
+
+  /**
+   * Actualiza un cobro existente.
+   * @param {string} id
+   * @param {Object} updates - Campos a actualizar
+   * @returns {{success: boolean, error?: string, errors?: string[]}}
+   */
+  update(id, updates) {
+    const idx = this._indexById[id];
+    if (idx === undefined) {
+      return { success: false, error: 'Cobro no encontrado' };
+    }
+
+    const current = this.records[idx];
+    const cleaned = this._sanitizeRecord(updates);
+
+    // Merge
+    const merged = {
+      ...current,
+      ...cleaned,
+      id, // No permitir cambiar el ID
+      fechaCreacion: current.fechaCreacion, // No modificar fecha de creación
+      fechaModificacion: new Date().toISOString()
+    };
+
+    // Recalcular total si cambiaron precio o cantidad
+    if (cleaned.precio !== undefined || cleaned.cantidad !== undefined) {
+      merged.cantidad = Number(merged.cantidad) || 0;
+      merged.precio = Number(merged.precio) || 0;
+      merged.total = merged.cantidad * merged.precio;
+    }
+
+    // Validar
+    const validation = validateCobro(merged);
+    if (!validation.valid) {
+      return { success: false, error: 'Validación fallida', errors: validation.errors };
+    }
+
+    // Si cambió la escuela, actualizar índice
+    if (cleaned.escuela && cleaned.escuela !== current.escuela) {
+      // Quitar del índice viejo
+      const oldList = this._indexByEscuela[current.escuela];
+      if (oldList) {
+        const pos = oldList.indexOf(idx);
+        if (pos > -1) oldList.splice(pos, 1);
+        if (oldList.length === 0) delete this._indexByEscuela[current.escuela];
+      }
+
+      // Agregar al índice nuevo
+      if (!this._indexByEscuela[cleaned.escuela]) {
+        this._indexByEscuela[cleaned.escuela] = [];
+      }
+      this._indexByEscuela[cleaned.escuela].push(idx);
+    }
+
+    // Guardar
+    this.records[idx] = merged;
+    this._persist();
+    this._notify();
+
+    console.log(`[CobrosStore] Actualizado: ${id}`);
+    return { success: true };
+  }
+
+  /**
+   * Elimina un cobro por ID.
+   * @param {string} id
+   * @returns {{success: boolean, error?: string}}
+   */
+  delete(id) {
+    const idx = this._indexById[id];
+    if (idx === undefined) {
+      return { success: false, error: 'Cobro no encontrado' };
+    }
+
+    // Remover del array
+    this.records.splice(idx, 1);
+
+    // Reconstruir índices (splice desplaza posiciones)
+    this._rebuildIndexes();
+
+    // Persistir y notificar
+    this._persist();
+    this._notify();
+
+    console.log(`[CobrosStore] Eliminado: ${id}`);
+    return { success: true };
+  }
+
+  /**
+   * Cambia el estado de un cobro (pendiente ↔ pagado).
+   * Shortcut de update para el caso más común.
+   * @param {string} id
+   * @param {string} nuevoEstado - 'pendiente' | 'pagado'
+   * @param {Object} [extras] - Datos adicionales (metodoPago, comprobante, etc.)
+   * @returns {{success: boolean, error?: string}}
+   */
+  cambiarEstado(id, nuevoEstado, extras = {}) {
+    if (!COBRO_STATES.includes(nuevoEstado)) {
+      return { success: false, error: `Estado inválido: ${nuevoEstado}` };
+    }
+
+    const updates = { estado: nuevoEstado, ...extras };
+
+    // Si se marca como pagado y no tiene fecha de pago, agregarla
+    if (nuevoEstado === 'pagado' && !extras.fechaPago) {
+      updates.fechaPago = new Date().toISOString();
+    }
+
+    return this.update(id, updates);
+  }
+
+  // ─────────────────────────────────────────────────────────────
+  // CONSULTAS Y FILTROS
+  // ─────────────────────────────────────────────────────────────
+
+  /**
+   * Todos los registros (copia).
+   * @returns {Object[]}
+   */
+  getAll() {
+    return this.records.map(r => ({ ...r }));
+  }
+
+  /**
+   * Cantidad total de registros.
+   * @returns {number}
+   */
+  get count() {
+    return this.records.length;
+  }
+
+  /**
+   * Busca cobros por escuela (O(1) lookup + copy).
+   * @param {string} escuela
+   * @returns {Object[]}
+   */
+  findByEscuela(escuela) {
+    const indices = this._indexByEscuela[escuela] || [];
+    return indices.map(idx => ({ ...this.records[idx] }));
+  }
+
+  /**
+   * Lista de escuelas únicas.
+   * @returns {string[]}
+   */
+  getEscuelas() {
+    return Object.keys(this._indexByEscuela).sort();
+  }
+
+  /**
+   * Filtra registros con criterios múltiples.
+   * Todos los criterios se combinan con AND.
+   * @param {Object} criteria
+   * @param {string} [criteria.escuela] - Escuela exacta
+   * @param {string} [criteria.estado] - 'pendiente' | 'pagado'
+   * @param {string} [criteria.metodoPago] - Método de pago
+   * @param {string} [criteria.mes] - Formato 'YYYY-MM' para filtrar por fecha
+   * @param {number} [criteria.minTotal] - Total mínimo
+   * @param {number} [criteria.maxTotal] - Total máximo
+   * @param {string} [criteria.texto] - Búsqueda de texto en escuela, curso, familia, notas
+   * @returns {Object[]}
+   */
+  filter(criteria = {}) {
+    const textoBusqueda = criteria.texto ? criteria.texto.toLowerCase().trim() : null;
+
+    return this.records.filter(record => {
+      // Filtro por escuela
+      if (criteria.escuela && record.escuela !== criteria.escuela) return false;
+
+      // Filtro por estado
+      if (criteria.estado && record.estado !== criteria.estado) return false;
+
+      // Filtro por método de pago
+      if (criteria.metodoPago && record.metodoPago !== criteria.metodoPago) return false;
+
+      // Filtro por mes (YYYY-MM)
+      if (criteria.mes) {
+        const fechaRef = record.fecha || record.fechaCreacion || '';
+        if (!fechaRef.startsWith(criteria.mes)) return false;
+      }
+
+      // Filtro por rango de total
+      if (criteria.minTotal !== undefined && (record.total || 0) < criteria.minTotal) return false;
+      if (criteria.maxTotal !== undefined && (record.total || 0) > criteria.maxTotal) return false;
+
+      // Búsqueda de texto
+      if (textoBusqueda) {
+        const haystack = [
+          record.escuela,
+          record.curso,
+          record.familia,
+          record.notas,
+          record.comprobante
+        ].filter(Boolean).join(' ').toLowerCase();
+
+        if (!haystack.includes(textoBusqueda)) return false;
+      }
+
+      return true;
+    }).map(r => ({ ...r }));
+  }
+
+  /**
+   * Ordena registros por un campo.
+   * @param {Object[]} records - Array de registros (no muta el original)
+   * @param {string} field - Campo por el que ordenar
+   * @param {'asc'|'desc'} [direction='desc']
+   * @returns {Object[]}
+   */
+  sort(records, field, direction = 'desc') {
+    const sorted = [...records];
+    const mult = direction === 'asc' ? 1 : -1;
+
+    sorted.sort((a, b) => {
+      let valA = a[field];
+      let valB = b[field];
+
+      // Números
+      if (typeof valA === 'number' && typeof valB === 'number') {
+        return (valA - valB) * mult;
+      }
+
+      // Fechas (ISO strings)
+      if (field.includes('fecha') || field.includes('Fecha')) {
+        valA = valA ? new Date(valA).getTime() : 0;
+        valB = valB ? new Date(valB).getTime() : 0;
+        return (valA - valB) * mult;
+      }
+
+      // Strings
+      valA = (valA || '').toString().toLowerCase();
+      valB = (valB || '').toString().toLowerCase();
+      return valA.localeCompare(valB, 'es') * mult;
+    });
+
+    return sorted;
+  }
+
+  // ─────────────────────────────────────────────────────────────
+  // ESTADÍSTICAS
+  // ─────────────────────────────────────────────────────────────
+
+  /**
+   * Estadísticas generales de cobranzas.
+   * @param {Object} [criteria] - Filtros opcionales (mismos que filter())
+   * @returns {Object}
+   */
+  getStats(criteria) {
+    const records = criteria ? this.filter(criteria) : this.records;
+
+    const totalCobros = records.length;
+    const totalMonto = records.reduce((sum, r) => sum + (r.total || 0), 0);
+
+    const pagados = records.filter(r => r.estado === 'pagado');
+    const montoCobrado = pagados.reduce((sum, r) => sum + (r.total || 0), 0);
+
+    const pendientes = records.filter(r => r.estado === 'pendiente');
+    const montoPendiente = pendientes.reduce((sum, r) => sum + (r.total || 0), 0);
+
+    const totalPacks = records.reduce((sum, r) => sum + (r.cantidad || 0), 0);
+    const canon = montoCobrado * CANON_PERCENTAGE;
+
+    return {
+      totalCobros,
+      totalPacks,
+      totalMonto,
+      montoCobrado,
+      montoPendiente,
+      canon,
+      netoPostCanon: montoCobrado - canon,
+      porcentajeCobrado: totalMonto > 0 ? Math.round((montoCobrado / totalMonto) * 10000) / 100 : 0,
+      cantidadPagados: pagados.length,
+      cantidadPendientes: pendientes.length,
+      escuelasUnicas: criteria
+        ? [...new Set(records.map(r => r.escuela))].length
+        : Object.keys(this._indexByEscuela).length,
+      ticketPromedio: totalCobros > 0 ? Math.round(totalMonto / totalCobros) : 0
+    };
+  }
+
+  /**
+   * Stats agrupados por escuela.
+   * @returns {Array<{escuela: string, cobros: number, packs: number, total: number, cobrado: number, pendiente: number, porcentaje: number}>}
+   */
+  getStatsByEscuela() {
+    const groups = {};
+
+    this.records.forEach(r => {
+      const key = r.escuela || '(sin escuela)';
+      if (!groups[key]) {
+        groups[key] = { escuela: key, cobros: 0, packs: 0, total: 0, cobrado: 0, pendiente: 0 };
+      }
+      const g = groups[key];
+      g.cobros++;
+      g.packs += (r.cantidad || 0);
+      g.total += (r.total || 0);
+      if (r.estado === 'pagado') {
+        g.cobrado += (r.total || 0);
+      } else {
+        g.pendiente += (r.total || 0);
+      }
+    });
+
+    return Object.values(groups).map(g => ({
+      ...g,
+      porcentaje: g.total > 0 ? Math.round((g.cobrado / g.total) * 10000) / 100 : 0
+    })).sort((a, b) => b.total - a.total);
+  }
+
+  /**
+   * Stats agrupados por mes.
+   * @returns {Array<{mes: string, cobros: number, total: number, cobrado: number}>}
+   */
+  getStatsByMes() {
+    const groups = {};
+
+    this.records.forEach(r => {
+      const fecha = r.fecha || r.fechaCreacion || '';
+      const mes = fecha.slice(0, 7) || 'sin-fecha';
+      if (!groups[mes]) {
+        groups[mes] = { mes, cobros: 0, total: 0, cobrado: 0 };
+      }
+      const g = groups[mes];
+      g.cobros++;
+      g.total += (r.total || 0);
+      if (r.estado === 'pagado') {
+        g.cobrado += (r.total || 0);
+      }
+    });
+
+    return Object.values(groups).sort((a, b) => a.mes.localeCompare(b.mes));
+  }
+
+  // ─────────────────────────────────────────────────────────────
+  // LISTENERS
+  // ─────────────────────────────────────────────────────────────
+
+  /**
+   * Registra un listener que se ejecuta cuando cambian los datos.
+   * @param {Function} fn - (records: Object[]) => void
+   * @returns {Function} Función para desuscribirse
+   *
+   * @example
+   *   const unsub = cobrosStore.onChange((records) => {
+   *     renderTable(records);
+   *     updateBadge(records.length);
+   *   });
+   */
+  onChange(fn) {
+    this._listeners.add(fn);
+    return () => this._listeners.delete(fn);
+  }
+
+  /**
+   * Notifica a todos los listeners.
+   * @private
+   */
+  _notify() {
+    const snapshot = this.getAll();
+    this._listeners.forEach(fn => {
+      try { fn(snapshot); } catch (e) { console.error('[CobrosStore] Listener error:', e); }
+    });
+  }
+
+  // ─────────────────────────────────────────────────────────────
+  // EXPORT / IMPORT
+  // ─────────────────────────────────────────────────────────────
+
+  /**
+   * Exporta cobranzas como objeto JSON.
+   * @returns {Object}
+   */
+  export() {
+    return {
+      app: 'Polar3',
+      module: 'cobros',
+      version: APP_VERSION,
+      exportDate: new Date().toISOString(),
+      recordCount: this.records.length,
+      data: this.records.map(r => ({ ...r }))
+    };
+  }
+
+  /**
+   * Exporta y descarga como archivo .json.
+   * @param {string} [filename]
+   */
+  downloadExport(filename) {
+    const exported = this.export();
+    const name = filename || `polar3_cobros_${new Date().toISOString().slice(0, 10)}`;
+    const blob = new Blob([JSON.stringify(exported, null, 2)], { type: 'application/json' });
+
+    const link = document.createElement('a');
+    link.href = URL.createObjectURL(blob);
+    link.download = `${name}.json`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(link.href);
+
+    console.log(`[CobrosStore] Export descargado: ${name}.json`);
+  }
+
+  /**
+   * Importa cobranzas desde un objeto JSON.
+   * @param {Object} importData - { data: [...cobros] }
+   * @param {Object} [opts]
+   * @param {boolean} [opts.merge=true] - true = agrega, false = reemplaza todo
+   * @param {boolean} [opts.preserveIds=true] - Mantener IDs originales si no hay conflicto
+   * @returns {{success: boolean, imported: number, skipped: number, error?: string}}
+   */
+  import(importData, opts = {}) {
+    const { merge = true, preserveIds = true } = opts;
+
+    try {
+      if (!importData || !Array.isArray(importData.data)) {
+        return { success: false, imported: 0, skipped: 0, error: 'Formato inválido: se espera { data: [...] }' };
+      }
+
+      // Si no es merge, limpiar datos actuales
+      if (!merge) {
+        this.records = [];
+        this._rebuildIndexes();
+      }
+
+      let imported = 0;
+      let skipped = 0;
+
+      importData.data.forEach(rawRecord => {
+        // Si preserveIds y ya existe, skip
+        if (preserveIds && rawRecord.id && this._indexById[rawRecord.id] !== undefined) {
+          skipped++;
+          return;
+        }
+
+        // Si no preserveIds, quitar el id para que add() genere uno nuevo
+        const record = { ...rawRecord };
+        if (!preserveIds) {
+          delete record.id;
+        }
+
+        const result = this.add(record);
+        if (result.success) {
+          imported++;
+        } else {
+          skipped++;
+        }
+      });
+
+      console.log(`[CobrosStore] Importados: ${imported}, saltados: ${skipped}`);
+      return { success: true, imported, skipped };
+    } catch (err) {
+      console.error('[CobrosStore] Error importando:', err);
+      return { success: false, imported: 0, skipped: 0, error: err.message };
+    }
+  }
+
+  // ─────────────────────────────────────────────────────────────
+  // UTILIDADES
+  // ─────────────────────────────────────────────────────────────
+
+  /**
+   * Recarga datos desde storage (útil post-import global o restore).
+   */
+  reload() {
+    this.records = storage.getItem(STORAGE_KEYS.cobros, []);
+    if (!Array.isArray(this.records)) this.records = [];
+    this._rebuildIndexes();
+    this._notify();
+    console.log(`[CobrosStore] Recargado: ${this.records.length} registros`);
+  }
+
+  /**
+   * Limpia todos los cobros.
+   */
+  clear() {
+    this.records = [];
+    this._indexById = {};
+    this._indexByEscuela = {};
+    this._persist();
+    this._notify();
+    console.log('[CobrosStore] Datos limpiados');
+  }
+
+  // ─────────────────────────────────────────────────────────────
+  // MÉTODOS PRIVADOS
+  // ─────────────────────────────────────────────────────────────
+
+  /**
+   * Persiste el array de records a storage.
+   * @private
+   */
+  _persist() {
+    storage.setItem(STORAGE_KEYS.cobros, this.records);
+  }
+
+  /**
+   * Reconstruye todos los índices desde cero.
+   * Necesario después de splice (delete) o reload.
+   * @private
+   */
+  _rebuildIndexes() {
+    this._indexById = {};
+    this._indexByEscuela = {};
+
+    this.records.forEach((record, idx) => {
+      // Por ID
+      if (record.id) {
+        this._indexById[record.id] = idx;
+      }
+
+      // Por escuela
+      const escuela = record.escuela || '(sin escuela)';
+      if (!this._indexByEscuela[escuela]) {
+        this._indexByEscuela[escuela] = [];
+      }
+      this._indexByEscuela[escuela].push(idx);
+    });
+  }
+
+  /**
+   * Sanitiza strings de un registro.
+   * @param {Object} data
+   * @returns {Object}
+   * @private
+   */
+  _sanitizeRecord(data) {
+    const cleaned = {};
+    Object.entries(data).forEach(([key, value]) => {
+      if (typeof value === 'string') {
+        cleaned[key] = sanitize(value.trim());
+      } else {
+        cleaned[key] = value;
+      }
+    });
+    return cleaned;
+  }
+}
+
+// ═══════════════════════════════════════════════════════════════
+// SINGLETON EXPORT
+// ═══════════════════════════════════════════════════════════════
+
+export const cobrosStore = new CobrosStore();
+
+export default cobrosStore;
