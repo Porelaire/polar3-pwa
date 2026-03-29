@@ -1,14 +1,9 @@
-﻿/**
+/**
  * POLAR[3] SISTEMA OPERATIVO v2.8.0
- * KPIs â€” CÃ¡lculos de rentabilidad y mÃ©tricas de negocio
+ * KPIs — C\u00E1lculos de rentabilidad y m\u00E9tricas de negocio
  *
- * MÃ³dulo de solo lectura: toma datos de CobrosStore y calcula KPIs.
+ * M\u00F3dulo de solo lectura: toma datos de CobrosStore y calcula KPIs.
  * No tiene estado propio, se recalcula on-demand.
- *
- * Uso:
- *   import { kpis } from './modules/Business/KPIs.js';
- *   const dashboard = kpis.getDashboard();
- *   const simulacion = kpis.simular({ precioPack: 18000, cantidadAlumnos: 200 });
  */
 
 import { cobrosStore } from '../../stores/CobrosStore.js';
@@ -39,8 +34,7 @@ class KPIsManager {
     const ingresoNeto = stats.montoCobrado - canon;
     const ganancia = ingresoNeto - costoTotal;
     const margenNeto = stats.montoCobrado > 0
-      ? Math.round((ganancia / stats.montoCobrado) * 10000) / 100
-      : 0;
+      ? Math.round((ganancia / stats.montoCobrado) * 10000) / 100 : 0;
     return {
       totalPacks: stats.totalPacks,
       totalCobros: stats.totalCobros,
@@ -49,25 +43,17 @@ class KPIsManager {
       cobrado: stats.montoCobrado,
       pendiente: stats.montoPendiente,
       porcentajeCobrado: stats.porcentajeCobrado,
-      costoTotal,
-      costoPorPack: costoPack,
-      canon,
-      ingresoNeto,
-      ganancia,
-      margenNeto,
+      costoTotal, costoPorPack: costoPack, canon,
+      ingresoNeto, ganancia, margenNeto,
       ticketPromedio: stats.ticketPromedio,
       precioPromedio: stats.totalPacks > 0
-        ? Math.round(stats.totalMonto / stats.totalPacks)
-        : PACK_PRICE_DEFAULT,
+        ? Math.round(stats.totalMonto / stats.totalPacks) : PACK_PRICE_DEFAULT,
       packsPromedioPorEscuela: stats.escuelasUnicas > 0
-        ? Math.round(stats.totalPacks / stats.escuelasUnicas)
-        : 0
+        ? Math.round(stats.totalPacks / stats.escuelasUnicas) : 0
     };
   }
 
-  getRankingEscuelas() {
-    return cobrosStore.getStatsByEscuela();
-  }
+  getRankingEscuelas() { return cobrosStore.getStatsByEscuela(); }
 
   getEscuelasConDeuda() {
     return cobrosStore.getStatsByEscuela()
@@ -80,8 +66,7 @@ class KPIsManager {
       const [year, month] = item.mes.split('-');
       const monthIdx = parseInt(month, 10) - 1;
       const mesLabel = monthIdx >= 0 && monthIdx < 12
-        ? `${MONTHS_ES[monthIdx]} ${year}`
-        : item.mes;
+        ? `${MONTHS_ES[monthIdx]} ${year}` : item.mes;
       return { ...item, mesLabel };
     });
   }
@@ -90,24 +75,24 @@ class KPIsManager {
     const precio = params.precioPack || PACK_PRICE_DEFAULT;
     const alumnos = params.cantidadAlumnos || 100;
     const tasaConversion = (params.tasaConversion || 70) / 100;
-    const canonPct = params.canonPorcentaje !== undefined ? params.canonPorcentaje / 100 : CANON_PERCENTAGE;
+    const canonPct = params.canonPorcentaje !== undefined
+      ? params.canonPorcentaje / 100 : CANON_PERCENTAGE;
     const packsVendidos = Math.round(alumnos * tasaConversion);
     const facturacionBruta = packsVendidos * precio;
     const canon = facturacionBruta * canonPct;
     const costos = {
-      impresion: params.costoImpresion !== undefined ? params.costoImpresion : COSTOS_DEFAULT.impresion,
-      carpeta: params.costoCarpeta !== undefined ? params.costoCarpeta : COSTOS_DEFAULT.carpeta,
-      pendrive: params.costoPendrive !== undefined ? params.costoPendrive : COSTOS_DEFAULT.pendrive,
+      impresion:  params.costoImpresion  !== undefined ? params.costoImpresion  : COSTOS_DEFAULT.impresion,
+      carpeta:    params.costoCarpeta    !== undefined ? params.costoCarpeta    : COSTOS_DEFAULT.carpeta,
+      pendrive:   params.costoPendrive   !== undefined ? params.costoPendrive   : COSTOS_DEFAULT.pendrive,
       transporte: params.costoTransporte !== undefined ? params.costoTransporte : COSTOS_DEFAULT.transporte,
-      insumos: params.costoInsumos !== undefined ? params.costoInsumos : COSTOS_DEFAULT.insumos
+      insumos:    params.costoInsumos    !== undefined ? params.costoInsumos    : COSTOS_DEFAULT.insumos
     };
     const costoPorPack = Object.values(costos).reduce((s, v) => s + v, 0);
     const costoTotal = packsVendidos * costoPorPack;
     const ingresoNeto = facturacionBruta - canon;
     const ganancia = ingresoNeto - costoTotal;
     const margenNeto = ingresoNeto > 0
-      ? Math.round((ganancia / ingresoNeto) * 10000) / 100
-      : 0;
+      ? Math.round((ganancia / ingresoNeto) * 10000) / 100 : 0;
     return {
       precio, alumnos,
       tasaConversion: tasaConversion * 100,
@@ -116,22 +101,19 @@ class KPIsManager {
       costoTotal, costoPorPack, costos,
       ingresoNeto, ganancia, margenNeto,
       puntoEquilibrio: costoPorPack > 0
-        ? Math.ceil(costoTotal / (precio - costoPorPack - (precio * canonPct)))
-        : 0
+        ? Math.ceil(costoTotal / (precio - costoPorPack - (precio * canonPct))) : 0
     };
   }
 
   _calcCostoPack(costos) {
-    return (costos.impresion || COSTOS_DEFAULT.impresion)
-      + (costos.carpeta || COSTOS_DEFAULT.carpeta)
-      + (costos.pendrive || COSTOS_DEFAULT.pendrive)
-      + (costos.transporte || COSTOS_DEFAULT.transporte)
-      + (costos.insumos || COSTOS_DEFAULT.insumos);
+    return (costos.impresion  || COSTOS_DEFAULT.impresion)
+         + (costos.carpeta    || COSTOS_DEFAULT.carpeta)
+         + (costos.pendrive   || COSTOS_DEFAULT.pendrive)
+         + (costos.transporte || COSTOS_DEFAULT.transporte)
+         + (costos.insumos    || COSTOS_DEFAULT.insumos);
   }
 
-  getCostosDefault() {
-    return { ...COSTOS_DEFAULT };
-  }
+  getCostosDefault() { return { ...COSTOS_DEFAULT }; }
 }
 
 export const kpis = new KPIsManager();

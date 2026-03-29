@@ -1,6 +1,6 @@
-﻿/**
+/**
  * POLAR[3] SISTEMA OPERATIVO v2.8.0
- * Seguimiento â€” GestiÃ³n de pendientes, ausentes y retomas
+ * Seguimiento — Gesti\u00F3n de pendientes, ausentes y retomas
  */
 
 import { storage } from '../Storage.js';
@@ -22,11 +22,12 @@ function sanitize(str) {
 
 function validateRecord(data) {
   const errors = [];
-  if (!data.escuela || data.escuela.trim().length < 2) errors.push('Escuela es requerida');
+  if (!data.escuela || data.escuela.trim().length < 2)
+    errors.push('Escuela es requerida');
   if (!data.tipo || !FOLLOWUP_TYPES.includes(data.tipo))
-    errors.push(`Tipo invÃ¡lido. Valores: ${FOLLOWUP_TYPES.join(', ')}`);
+    errors.push(`Tipo inv\u00E1lido. Valores: ${FOLLOWUP_TYPES.join(', ')}`);
   if (data.estado && !FOLLOWUP_STATUS.includes(data.estado))
-    errors.push(`Estado invÃ¡lido. Valores: ${FOLLOWUP_STATUS.join(', ')}`);
+    errors.push(`Estado inv\u00E1lido. Valores: ${FOLLOWUP_STATUS.join(', ')}`);
   return { valid: errors.length === 0, errors };
 }
 
@@ -69,8 +70,8 @@ class SeguimientoManager {
   }
 
   getById(id) {
-    const record = this.records.find(r => r.id === id);
-    return record ? { ...record } : null;
+    const r = this.records.find(r => r.id === id);
+    return r ? { ...r } : null;
   }
 
   update(id, updates) {
@@ -86,7 +87,8 @@ class SeguimientoManager {
       fechaModificacion: new Date().toISOString()
     };
     const validation = validateRecord(merged);
-    if (!validation.valid) return { success: false, error: 'ValidaciÃ³n fallida', errors: validation.errors };
+    if (!validation.valid)
+      return { success: false, error: 'Validaci\u00F3n fallida', errors: validation.errors };
     this.records[idx] = merged;
     this._persist();
     this._notify();
@@ -105,27 +107,22 @@ class SeguimientoManager {
 
   cambiarEstado(id, nuevoEstado, nota) {
     if (!FOLLOWUP_STATUS.includes(nuevoEstado))
-      return { success: false, error: `Estado invÃ¡lido: ${nuevoEstado}` };
+      return { success: false, error: `Estado inv\u00E1lido: ${nuevoEstado}` };
     const updates = { estado: nuevoEstado };
     if (nota) updates.notas = nota;
     if (nuevoEstado === 'resuelto') updates.fechaResolucion = new Date().toISOString();
     return this.update(id, updates);
   }
 
-  resolver(id, nota) { return this.cambiarEstado(id, 'resuelto', nota); }
-
-  agendar(id, proximaAccion) {
-    return this.update(id, { estado: 'agendado', proximaAccion: proximaAccion || '' });
-  }
-
-  getAll() { return this.records.map(r => ({ ...r })); }
-
-  get count() { return this.records.length; }
+  resolver(id, nota)           { return this.cambiarEstado(id, 'resuelto', nota); }
+  agendar(id, proximaAccion)   { return this.update(id, { estado: 'agendado', proximaAccion: proximaAccion || '' }); }
+  getAll()                     { return this.records.map(r => ({ ...r })); }
+  get count()                  { return this.records.length; }
 
   filter(criteria = {}) {
     const texto = criteria.texto ? criteria.texto.toLowerCase().trim() : null;
     return this.records.filter(r => {
-      if (criteria.tipo && r.tipo !== criteria.tipo) return false;
+      if (criteria.tipo   && r.tipo   !== criteria.tipo)   return false;
       if (criteria.estado && r.estado !== criteria.estado) return false;
       if (criteria.escuela && r.escuela !== criteria.escuela) return false;
       if (texto) {
@@ -143,17 +140,17 @@ class SeguimientoManager {
   getByTipo(tipo) { return this.filter({ tipo }); }
 
   getEscuelasConPendientes() {
-    const escuelas = new Set();
-    this.records.forEach(r => { if (r.estado !== 'resuelto') escuelas.add(r.escuela); });
-    return [...escuelas].sort();
+    const s = new Set();
+    this.records.forEach(r => { if (r.estado !== 'resuelto') s.add(r.escuela); });
+    return [...s].sort();
   }
 
   getStats() {
-    const total = this.records.length;
-    const abiertos   = this.records.filter(r => r.estado === 'abierto').length;
-    const agendados  = this.records.filter(r => r.estado === 'agendado').length;
-    const resueltos  = this.records.filter(r => r.estado === 'resuelto').length;
-    const porTipo = {};
+    const total     = this.records.length;
+    const abiertos  = this.records.filter(r => r.estado === 'abierto').length;
+    const agendados = this.records.filter(r => r.estado === 'agendado').length;
+    const resueltos = this.records.filter(r => r.estado === 'resuelto').length;
+    const porTipo   = {};
     FOLLOWUP_TYPES.forEach(t => {
       porTipo[t] = this.records.filter(r => r.tipo === t && r.estado !== 'resuelto').length;
     });
@@ -167,16 +164,11 @@ class SeguimientoManager {
     };
   }
 
-  onChange(fn) {
-    this._listeners.add(fn);
-    return () => this._listeners.delete(fn);
-  }
+  onChange(fn) { this._listeners.add(fn); return () => this._listeners.delete(fn); }
 
   _notify() {
-    const snapshot = this.getAll();
-    this._listeners.forEach(fn => {
-      try { fn(snapshot); } catch (e) { console.error('[Seguimiento] Listener error:', e); }
-    });
+    const snap = this.getAll();
+    this._listeners.forEach(fn => { try { fn(snap); } catch(e) { console.error('[Seguimiento]', e); } });
   }
 
   export() {
@@ -192,17 +184,12 @@ class SeguimientoManager {
     const { merge = true } = opts;
     try {
       if (!importData || !Array.isArray(importData.data))
-        return { success: false, error: 'Formato invÃ¡lido' };
+        return { success: false, error: 'Formato inv\u00E1lido' };
       if (!merge) this.records = [];
       let imported = 0;
-      importData.data.forEach(record => {
-        const result = this.add(record);
-        if (result.success) imported++;
-      });
+      importData.data.forEach(r => { if (this.add(r).success) imported++; });
       return { success: true, imported };
-    } catch (err) {
-      return { success: false, error: err.message };
-    }
+    } catch (err) { return { success: false, error: err.message }; }
   }
 
   reload() {
@@ -212,15 +199,8 @@ class SeguimientoManager {
     console.log(`[Seguimiento] Recargado: ${this.records.length}`);
   }
 
-  clear() {
-    this.records = [];
-    this._persist();
-    this._notify();
-  }
-
-  _persist() {
-    storage.setItem(STORAGE_KEYS.followupBoard, this.records);
-  }
+  clear() { this.records = []; this._persist(); this._notify(); }
+  _persist() { storage.setItem(STORAGE_KEYS.followupBoard, this.records); }
 }
 
 export const seguimiento = new SeguimientoManager();
